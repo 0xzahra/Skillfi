@@ -312,7 +312,7 @@ const App: React.FC = () => {
                         isLoading={isLoading} 
                     />
                     <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                        Vibe coded by arewa.base.eth
+                        Vibe coded by arewa.base.eth © 2026
                     </div>
                 </div>
               </div>

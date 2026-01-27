@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST';
+type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'TAX';
 
 export const FinanceTools: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FinanceTab>('BUDGET');
@@ -22,6 +22,11 @@ export const FinanceTools: React.FC = () => {
   const [rate, setRate] = useState(5);
   const [years, setYears] = useState(10);
   const [monthly, setMonthly] = useState(100);
+
+  // Tax State
+  const [taxIncome, setTaxIncome] = useState(75000);
+  const [taxDeductions, setTaxDeductions] = useState(13850);
+  const [taxRate, setTaxRate] = useState(22);
 
   // --- Handlers ---
   const addExpense = () => {
@@ -58,24 +63,34 @@ export const FinanceTools: React.FC = () => {
     return total;
   };
 
+  const calculateTax = () => {
+      const taxableIncome = Math.max(0, taxIncome - taxDeductions);
+      const taxAmount = taxableIncome * (taxRate / 100);
+      const netIncome = taxIncome - taxAmount;
+      const monthlyNet = netIncome / 12;
+      const effectiveRate = (taxAmount / taxIncome) * 100;
+      return { taxableIncome, taxAmount, netIncome, monthlyNet, effectiveRate };
+  };
+
   const budgetData = calculateBudget();
   const profitData = calculateProfit();
   const interestTotal = calculateInterest();
+  const taxData = calculateTax();
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.0</span></h1>
+        <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.1</span></h1>
         <p className="text-gray-500 text-sm">Tactical Wealth Management System</p>
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-800 pb-1 overflow-x-auto">
-        {(['BUDGET', 'PROFIT', 'INTEREST'] as FinanceTab[]).map((tab) => (
+      <div className="flex gap-2 mb-6 border-b border-gray-800 pb-1 overflow-x-auto scrollbar-hide">
+        {(['BUDGET', 'PROFIT', 'INTEREST', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-bold tracking-wider rounded-t-lg transition-colors ${
+                className={`px-4 py-2 text-sm font-bold tracking-wider rounded-t-lg transition-colors whitespace-nowrap ${
                     activeTab === tab 
                     ? 'bg-skillfi-neon text-black border-t-2 border-skillfi-neon' 
                     : 'text-gray-500 hover:text-white bg-[#111]'
@@ -266,6 +281,84 @@ export const FinanceTools: React.FC = () => {
                     <div className="mt-2 text-[10px] text-gray-600 uppercase tracking-widest">
                         Total Invested: ${(principal + (monthly * 12 * years)).toLocaleString()}
                     </div>
+                </div>
+            </div>
+        )}
+
+        {/* TAX TAB */}
+        {activeTab === 'TAX' && (
+            <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Gross Annual Income ($)</label>
+                        <input 
+                            type="number" 
+                            value={taxIncome} 
+                            onChange={(e) => setTaxIncome(Number(e.target.value))}
+                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Total Deductions ($)</label>
+                        <input 
+                            type="number" 
+                            value={taxDeductions} 
+                            onChange={(e) => setTaxDeductions(Number(e.target.value))}
+                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Est. Tax Rate (%)</label>
+                        <input 
+                            type="number" 
+                            value={taxRate} 
+                            onChange={(e) => setTaxRate(Number(e.target.value))}
+                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tax Liability Card */}
+                    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimated Tax Bill</span>
+                        <div className="text-3xl font-bold text-red-400 tracking-tight">
+                            -${taxData.taxAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </div>
+                        <div className="mt-3 w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-red-500 rounded-full" 
+                                style={{ width: `${Math.min(taxData.effectiveRate, 100)}%` }}
+                            ></div>
+                        </div>
+                        <span className="text-[10px] text-gray-500 mt-2 text-right">Effective Rate: {taxData.effectiveRate.toFixed(1)}%</span>
+                    </div>
+
+                    {/* Net Income Card */}
+                    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
+                         <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Net Take-Home (Annual)</span>
+                        <div className="text-3xl font-bold text-green-400 tracking-tight">
+                            ${taxData.netIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
+                            <span className="text-xs text-gray-400">Monthly Average:</span>
+                            <span className="text-lg font-bold text-white">${taxData.monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl flex gap-3 items-start">
+                    <div className="text-blue-400 mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                        </svg>
+                    </div>
+                    <p className="text-xs text-blue-300 leading-relaxed">
+                        <strong className="text-blue-200">Advisory:</strong> This is a simplified estimation. Tax laws are complex and vary by jurisdiction. 
+                        Always consult with a qualified accountant or use official government tools for filing.
+                    </p>
                 </div>
             </div>
         )}

@@ -62,6 +62,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         <div className={`${isUser ? 'text-gray-200' : 'text-gray-300'}`}>
           {isUser ? message.content : renderContent(message.content)}
         </div>
+
+        {/* Footer for Model Responses */}
+        {!isUser && (
+            <div className="mt-4 pt-3 border-t border-gray-800/50">
+                <p className="text-[10px] text-gray-600 font-mono text-center opacity-70">
+                    Vibe coded by arewa.base.eth © 2026
+                </p>
+            </div>
+        )}
       </div>
     </div>
   );
