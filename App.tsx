@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { ChatInterface } from './components/ChatInterface';
 import { InputArea } from './components/InputArea';
 import { Sidebar } from './components/Sidebar';
-import { Calculator } from './components/Calculator';
+import { FinanceTools } from './components/FinanceTools';
 import { Dashboard } from './components/Dashboard';
 import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
@@ -304,7 +304,7 @@ const App: React.FC = () => {
             </>
           )}
 
-          {currentView === 'TOOLS_CALC' && <Calculator />}
+          {currentView === 'TOOLS_CALC' && <FinanceTools />}
           
           {currentView === 'SETTINGS' && (
               <Settings 
