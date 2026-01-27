@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'TAX';
 
-export const FinanceTools: React.FC = () => {
+interface FinanceToolsProps {
+    onAnalyze?: (data: string) => void;
+}
+
+export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   const [activeTab, setActiveTab] = useState<FinanceTab>('BUDGET');
 
   // Budget State
@@ -77,11 +81,26 @@ export const FinanceTools: React.FC = () => {
   const interestTotal = calculateInterest();
   const taxData = calculateTax();
 
+  // Audit Handlers
+  const handleAuditBudget = () => {
+      if (!onAnalyze) return;
+      const data = `MONTHLY INCOME: $${salary}\nEXPENSES: ${JSON.stringify(expenses)}\nSAVINGS: $${budgetData.savings} (${budgetData.savingsRate.toFixed(1)}%)`;
+      onAnalyze(data);
+  };
+
+  const handleAuditProfit = () => {
+      if (!onAnalyze) return;
+      const data = `ASSET TRADE:\nBUY: $${buyPrice} x ${quantity}\nSELL: $${sellPrice}\nFEES: ${fees}%\nPROFIT: $${profitData.profit.toFixed(2)} (${profitData.roi.toFixed(2)}% ROI)`;
+      onAnalyze(data);
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.1</span></h1>
-        <p className="text-gray-500 text-sm">Tactical Wealth Management System</p>
+      <header className="mb-6 flex justify-between items-end">
+        <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.1</span></h1>
+            <p className="text-gray-500 text-sm">Tactical Wealth Management System</p>
+        </div>
       </header>
 
       {/* Tabs */}
@@ -168,6 +187,19 @@ export const FinanceTools: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                <div className="pt-4 border-t border-gray-800">
+                    <button 
+                        onClick={handleAuditBudget}
+                        className="w-full py-3 bg-gradient-to-r from-skillfi-neon/20 to-blue-500/20 border border-skillfi-neon/50 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 animate-pulse">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                        RUN AI TACTICAL AUDIT
+                    </button>
+                    <p className="text-[10px] text-gray-500 text-center mt-2">Sends current budget data to Skillfi for ruthless optimization.</p>
+                </div>
             </div>
         )}
 
@@ -226,6 +258,18 @@ export const FinanceTools: React.FC = () => {
                     <div className="mt-2 text-xs text-gray-600 font-mono">
                         TOTAL EXIT VALUE: ${profitData.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
+                 </div>
+
+                 <div className="pt-4 border-t border-gray-800">
+                    <button 
+                        onClick={handleAuditProfit}
+                        className="w-full py-3 bg-gradient-to-r from-skillfi-neon/20 to-purple-500/20 border border-skillfi-neon/50 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                        </svg>
+                        ANALYZE RISK & REWARD
+                    </button>
                  </div>
              </div>
         )}

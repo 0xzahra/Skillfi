@@ -1,4 +1,4 @@
-import { GoogleGenAI, Chat, Content, Part } from "@google/genai";
+import { GoogleGenAI, Chat, Content, Part, Modality } from "@google/genai";
 import { SKILLFI_SYSTEM_INSTRUCTION } from "../constants";
 
 const getClient = () => {
@@ -20,6 +20,7 @@ export const initializeChat = async (): Promise<Chat> => {
         config: {
             systemInstruction: SKILLFI_SYSTEM_INSTRUCTION,
             temperature: 0.7,
+            tools: [{ googleSearch: {} }] // Enable Google Search Grounding for real-time info
         }
     });
     
@@ -38,7 +39,6 @@ export const sendMessageToSkillfi = async (
             const parts: Part[] = [];
             
             // Only add text part if there is actual text content
-            // Sending an empty text part { text: "" } can cause RPC errors
             if (text && text.trim().length > 0) {
                 parts.push({ text: text });
             }
@@ -54,11 +54,38 @@ export const sendMessageToSkillfi = async (
                 message: parts
             });
             responseText = result.text || "";
+            
+            // Append Grounding Sources if available
+            const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks;
+            if (groundingChunks) {
+                const sources = groundingChunks
+                    .filter((c: any) => c.web?.uri && c.web?.title)
+                    .map((c: any) => `- [${c.web.title}](${c.web.uri})`)
+                    .join('\n');
+                
+                if (sources) {
+                    responseText += `\n\n**Verified Sources:**\n${sources}`;
+                }
+            }
+
         } else {
             const result = await chat.sendMessage({
                 message: text
             });
             responseText = result.text || "";
+
+            // Append Grounding Sources if available
+            const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks;
+            if (groundingChunks) {
+                const sources = groundingChunks
+                    .filter((c: any) => c.web?.uri && c.web?.title)
+                    .map((c: any) => `- [${c.web.title}](${c.web.uri})`)
+                    .join('\n');
+                
+                if (sources) {
+                    responseText += `\n\n**Verified Sources:**\n${sources}`;
+                }
+            }
         }
 
         return responseText;
@@ -66,6 +93,34 @@ export const sendMessageToSkillfi = async (
     } catch (error) {
         console.error("Gemini API Error:", error);
         return "[Soft alert tone] I encountered a connection issue. Please try sending your message again.";
+    }
+};
+
+// Generate High-Quality Neural Speech
+export const generateSpeech = async (text: string): Promise<string | null> => {
+    const ai = getClient();
+    try {
+        // Clean text for speech (remove markdown links and visual cues)
+        const cleanText = text.replace(/\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]/g, '').substring(0, 400); // Limit length for speed
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: { parts: [{ text: cleanText }] },
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: 'Kore' }, // Kore is deep and authoritative
+                    },
+                },
+            },
+        });
+        
+        // Return base64 string of raw PCM data
+        return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
+    } catch (error) {
+        console.error("TTS Error", error);
+        return null;
     }
 };
 

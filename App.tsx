@@ -9,7 +9,7 @@ import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
 import { IntroSplash } from './components/IntroSplash';
-import { initializeChat, sendMessageToSkillfi } from './services/geminiService';
+import { initializeChat, sendMessageToSkillfi, generateSpeech } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession } from './types';
 import { INITIAL_GREETING } from './constants';
@@ -199,6 +199,12 @@ const App: React.FC = () => {
       setIsSidebarOpen(false);
   };
 
+  // Triggered by Finance Tools
+  const handleAnalyzeFinance = (dataContext: string) => {
+      setCurrentView('CHAT');
+      handleSendMessage(`[SYSTEM AUDIT REQUEST]\nDATA PACKAGE:\n${dataContext}\n\nTASK: Analyze this financial data. Provide a ruthless, optimized strategy to maximize wealth and efficiency. Spot leaks and suggest improvements.`);
+  };
+
   const handleSendMessage = async (text: string, attachment?: { data: string; mimeType: string }) => {
     if (!text.trim() && !attachment) return;
 
@@ -232,9 +238,16 @@ const App: React.FC = () => {
       
       setMessages(prev => [...prev, newBotMsg]);
       
-      // Voice Output
+      // Voice Output Logic
       if (isVoiceMode) {
-          AudioService.speak(responseText);
+          // Attempt High-Fidelity TTS first
+          const speechData = await generateSpeech(responseText);
+          if (speechData) {
+              AudioService.playPCM(speechData);
+          } else {
+              // Fallback to browser TTS if API fails/limits
+              AudioService.speak(responseText);
+          }
       } else {
           AudioService.playSuccess(); // Just a beep if voice off
       }
@@ -319,7 +332,7 @@ const App: React.FC = () => {
             </>
           )}
 
-          {currentView === 'TOOLS_CALC' && <FinanceTools />}
+          {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
           
           {currentView === 'SETTINGS' && (
               <Settings 
