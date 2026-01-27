@@ -1,0 +1,7 @@
+{
+  "name": "Skillfi Career & Financial guidance",
+  "description": "A practical mentor guiding career education and financial paths based on passions and skills.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
