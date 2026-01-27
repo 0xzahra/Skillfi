@@ -28,6 +28,11 @@ export interface UserProfile {
   netWorth: number;
   xp: number;
   level: string; // 'ROOKIE', 'OPERATOR', 'ELITE'
+  // New Fields
+  age?: number;
+  userType?: 'ADULT' | 'CHILD';
+  qualification?: string;
+  isTechie?: boolean;
   socials?: {
     twitter?: string;
     linkedin?: string;

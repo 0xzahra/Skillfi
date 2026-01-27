@@ -8,6 +8,7 @@ import { Dashboard } from './components/Dashboard';
 import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
+import { IntroSplash } from './components/IntroSplash';
 import { initializeChat, sendMessageToSkillfi } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession } from './types';
@@ -15,6 +16,7 @@ import { INITIAL_GREETING } from './constants';
 
 const App: React.FC = () => {
   // --- STATE ---
+  const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [activities, setActivities] = useState<ActivityLog[]>([
@@ -43,11 +45,10 @@ const App: React.FC = () => {
 
   // --- INITIALIZATION ---
   useEffect(() => {
-    // Check local storage for auth
+    // Check local storage for auth logic, but don't set view until splash is done
     const savedUser = localStorage.getItem('skillfi_user');
     if (savedUser) {
         setUser(JSON.parse(savedUser));
-        setCurrentView('DASHBOARD');
         initChat();
     }
     
@@ -72,6 +73,16 @@ const App: React.FC = () => {
         saveCurrentSession();
     }
   }, [messages]);
+
+  const handleSplashComplete = () => {
+      setShowSplash(false);
+      // If user was found during initial load, go to dashboard, else Auth
+      if (localStorage.getItem('skillfi_user')) {
+          setCurrentView('DASHBOARD');
+      } else {
+          setCurrentView('AUTH');
+      }
+  };
 
   const initChat = async () => {
     try {
@@ -251,6 +262,10 @@ const App: React.FC = () => {
           AudioService.stopSpeech();
       }
   };
+
+  if (showSplash) {
+      return <IntroSplash onComplete={handleSplashComplete} />;
+  }
 
   if (currentView === 'AUTH') {
       return <Auth onLogin={handleLogin} />;
