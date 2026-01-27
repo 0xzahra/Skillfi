@@ -233,7 +233,7 @@ const App: React.FC = () => {
       const errorMsg: Message = {
           id: Date.now().toString(),
           role: 'model',
-          content: "[Soft alert tone] System Error: Unable to process request. Please retry.",
+          content: "System Error: Unable to process request. Please retry.",
           timestamp: Date.now()
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -297,7 +297,7 @@ const App: React.FC = () => {
                         isLoading={isLoading} 
                     />
                     <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                        SKILLFI v2.5 // AI GUIDANCE SYSTEM // ENCRYPTED
+                        Vibe coded by arewa.base.eth
                     </div>
                 </div>
               </div>

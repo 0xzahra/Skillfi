@@ -76,7 +76,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
                             onClick={() => onSelectSession(session.id)}
                             className="group relative bg-[#111] hover:bg-[#161616] border border-gray-800 hover:border-skillfi-neon/30 p-5 rounded-xl cursor-pointer transition-all duration-200 shadow-md flex items-center justify-between overflow-hidden"
                         >
-                            {/* Content */}
+                            {/* Content Layer (z-0) */}
                             <div className="flex-1 min-w-0 pr-4 relative z-0">
                                 <div className="flex items-center gap-3 mb-1">
                                     <span className="w-2 h-2 rounded-full bg-skillfi-neon/50"></span>
@@ -101,7 +101,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
                                 </p>
                             </div>
 
-                            {/* Actions - High Z-Index to prevent click-through issues */}
+                            {/* Action Layer (z-10) - Ensures buttons are on top of the card click area */}
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity relative z-10">
                                 <button 
                                     onClick={(e) => startEditing(session, e)}

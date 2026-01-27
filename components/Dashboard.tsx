@@ -86,31 +86,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
                     </div>
                     <div className="text-skillfi-accent text-sm font-bold uppercase tracking-wide mb-1">Quick Access</div>
                     <div className="text-xl font-bold text-white flex items-center gap-2">
-                        Interest Calculator 
+                        Finance Tools 
                         <span className="text-gray-500 group-hover:translate-x-1 transition-transform">→</span>
                     </div>
                 </div>
-            </div>
-
-            <h2 className="text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest border-b border-gray-800 pb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-gray-500 rounded-full"></span>
-                Recent Activity Log
-            </h2>
-            <div className="space-y-3">
-                {activities.length === 0 ? (
-                    <div className="text-gray-600 text-sm text-center py-4 italic">No recent activity detected.</div>
-                ) : (
-                    activities.map((act) => (
-                        <div key={act.id} className="flex items-center gap-4 p-4 bg-[#111] border border-gray-800/50 rounded-xl hover:bg-[#161616] transition-colors">
-                            <div className="w-2 h-2 bg-skillfi-neon rounded-full shadow-[0_0_8px_rgba(0,255,255,0.5)]"></div>
-                            <div className="flex-1">
-                                <div className="text-gray-200 text-sm font-medium">{act.title}</div>
-                                <div className="text-gray-500 text-xs mt-0.5">{act.desc} • {act.time}</div>
-                            </div>
-                            <div className="text-gray-600 font-mono text-xs bg-gray-900 px-2 py-1 rounded">{act.type}</div>
-                        </div>
-                    ))
-                )}
             </div>
         </div>
     );

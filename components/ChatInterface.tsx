@@ -24,7 +24,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoadin
             <div className="flex justify-start mb-6">
                 <div className="bg-transparent border-l-2 border-skillfi-accent pl-6 py-2">
                     <div className="flex items-center gap-2 text-skillfi-accent font-mono text-sm animate-pulse">
-                        Analyzing...
+                        Analyzing... Feel free to explore the Finance tools while I think.
                     </div>
                 </div>
             </div>
