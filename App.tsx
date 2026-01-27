@@ -170,10 +170,8 @@ const App: React.FC = () => {
   };
 
   const handleNavigate = (view: string) => {
-      if (view === 'CAREER' || view === 'HOPE' || view === 'SAFETY') {
-          setCurrentView('CHAT');
-          handleSendMessage(`ACTIVATE MODE: ${view}`);
-      } else if (view === 'FINANCE') {
+      // Direct Navigation Views (No Chat Trigger)
+      if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
       } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY') {
           setCurrentView(view as ViewMode);
@@ -181,7 +179,9 @@ const App: React.FC = () => {
           localStorage.removeItem('skillfi_user');
           setUser(null);
           setCurrentView('AUTH');
-      } else {
+      } 
+      // Chat Modes (Triggers Context Switch)
+      else {
           setCurrentView('CHAT');
           handleSendMessage(`ACTIVATE MODE: ${view}`);
       }

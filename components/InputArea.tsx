@@ -142,9 +142,16 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
         {isLoading ? (
           <button 
             onClick={onStop}
-            className="px-6 py-3.5 font-bold tracking-wide transition-all duration-300 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg"
+            className="relative px-8 py-3.5 font-bold tracking-wide transition-all duration-300 bg-[#1a1a1a] text-white rounded-xl shadow-lg overflow-hidden border border-gray-700 group"
           >
-             STOP
+             {/* Progress Bar Layer */}
+             <div className="absolute top-0 left-0 h-full bg-skillfi-neon w-full opacity-20 animate-progress-fill origin-left"></div>
+             
+             {/* Content Layer */}
+             <span className="relative z-10 flex items-center gap-2">
+                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                 STOP
+             </span>
           </button>
         ) : (
           <button 

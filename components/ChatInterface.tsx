@@ -14,9 +14,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoadin
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // Filter out system command messages that start with "ACTIVATE MODE:"
+  // This keeps the UI clean when users switch modes via sidebar
+  const displayMessages = messages.filter(msg => !msg.content.startsWith('ACTIVATE MODE:'));
+
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8 scroll-smooth">
-        {messages.map((msg) => (
+        {displayMessages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} />
         ))}
         

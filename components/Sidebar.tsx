@@ -12,6 +12,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose 
     { id: 'career', label: 'Career Path', desc: 'Web3 & Tech', icon: '🚀', action: 'CAREER' },
     { id: 'finance', label: 'Financial Tools', desc: 'Calculator & Wealth', icon: '📊', action: 'FINANCE' },
     { id: 'elite', label: 'High Class', desc: 'Refinement Skills', icon: '🎩', action: 'ELITE' },
+    { id: 'relationships', label: 'Relationships', desc: 'Marriage & Conflict', icon: '❤️', action: 'RELATIONSHIPS' },
     { id: 'education', label: 'Education', desc: 'Academic Guidance', icon: '🧠', action: 'EDUCATION' },
     { id: 'safety', label: 'Digital Safety', desc: 'Security Protocol', icon: '🛡️', action: 'SAFETY' },
     { id: 'history', label: 'Chat History', desc: 'Archives & Logs', icon: '📜', action: 'HISTORY' },

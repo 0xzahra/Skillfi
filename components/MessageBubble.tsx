@@ -13,11 +13,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
     const cleanContent = content
         .replace(/\*\*/g, '') 
         .replace(/##/g, '')   
-        .replace(/-\s/g, '• '); // Use bullet point instead of arrow for modern look
+        .replace(/-\s/g, '• ') // Use bullet point instead of arrow for modern look
+        .replace(/\[SFX:.*?\]/g, '') // Remove SFX brackets
+        .trim();
 
     return cleanContent.split('\n').map((line, i) => (
       <div key={i} className={`min-h-[1.2em] text-[15px] leading-relaxed ${line.trim() === '' ? 'h-3' : ''}`}>
-        {line.includes('[') && line.includes(']') ? (
+        {line.includes('[') && line.includes(']') && !line.includes('SFX') ? (
             <span className="text-skillfi-accent font-bold text-xs tracking-wide">{line}</span>
         ) : (
             line

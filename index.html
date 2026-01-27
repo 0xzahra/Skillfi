@@ -48,6 +48,19 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #00ffff; 
       }
+
+      /* Progress Bar Animation */
+      @keyframes progressFill {
+        0% { width: 0%; }
+        15% { width: 15%; }
+        40% { width: 45%; }
+        70% { width: 80%; }
+        90% { width: 95%; }
+        100% { width: 98%; }
+      }
+      .animate-progress-fill {
+        animation: progressFill 6s cubic-bezier(0.1, 0.7, 1.0, 0.1) forwards;
+      }
     </style>
   <script type="importmap">
 {
