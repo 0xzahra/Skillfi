@@ -10,7 +10,7 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
 
   useEffect(() => {
     // Sequence Timeline
-    const timers: NodeJS.Timeout[] = [];
+    const timers: any[] = [];
 
     // Start Progress Bar
     const interval = setInterval(() => {
