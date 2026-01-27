@@ -2,10 +2,11 @@ import React, { useState, useRef } from 'react';
 
 interface InputAreaProps {
   onSendMessage: (text: string, attachment?: { data: string; mimeType: string }) => void;
+  onStop: () => void;
   isLoading: boolean;
 }
 
-export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, isLoading }) => {
+export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isLoading }) => {
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [attachment, setAttachment] = useState<{ name: string; type: string; data: string } | null>(null);
@@ -155,26 +156,32 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, isLoading }
           )}
         </button>
 
-        {/* Send Button */}
-        <button 
-          onClick={handleSend}
-          disabled={isLoading || (!text.trim() && !attachment)}
-          className={`px-4 py-3 rounded-xl font-bold tracking-wider transition-all duration-300 ${
-            isLoading || (!text.trim() && !attachment)
-              ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-              : 'bg-skillfi-neon text-black hover:bg-skillfi-accent hover:text-white shadow-[0_0_15px_rgba(0,255,255,0.3)]'
-          }`}
-        >
-           {isLoading ? (
-             <span className="flex items-center gap-1">
-               <span className="w-1 h-1 bg-current rounded-full animate-bounce"></span>
-               <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-100"></span>
-               <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-200"></span>
-             </span>
-           ) : (
-             "ANALYZE"
-           )}
-        </button>
+        {/* Send / Stop Button */}
+        {isLoading ? (
+          <button 
+            onClick={onStop}
+            className="px-6 py-3 rounded-xl font-bold tracking-wider transition-all duration-300 bg-red-600 hover:bg-red-700 text-white shadow-[0_0_15px_rgba(255,0,0,0.3)] flex items-center justify-center"
+            title="Pause/Stop Generation"
+          >
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5h13.5m-13.5 9h13.5" /> 
+               {/* Using a generic Pause-like icon or a Stop square */}
+               <rect x="6" y="6" width="12" height="12" fill="currentColor" rx="1" />
+             </svg>
+          </button>
+        ) : (
+          <button 
+            onClick={handleSend}
+            disabled={(!text.trim() && !attachment)}
+            className={`px-4 py-3 rounded-xl font-bold tracking-wider transition-all duration-300 ${
+              (!text.trim() && !attachment)
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                : 'bg-skillfi-neon text-black hover:bg-skillfi-accent hover:text-white shadow-[0_0_15px_rgba(0,255,255,0.3)]'
+            }`}
+          >
+             ANALYZE
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { GoogleGenAI, Chat, Content } from "@google/genai";
+import { GoogleGenAI, Chat, Content, Part } from "@google/genai";
 import { SKILLFI_SYSTEM_INSTRUCTION } from "../constants";
 
 const getClient = () => {
@@ -14,14 +14,12 @@ const getClient = () => {
 export const initializeChat = async (): Promise<Chat> => {
     const ai = getClient();
     
-    // Using gemini-2.5-flash-latest as it is robust for persona-based chat
-    // or gemini-3-flash-preview as per guidelines for basic text tasks.
-    // Using gemini-3-flash-preview as requested for text tasks.
+    // Using gemini-3-flash-preview for the main conversational intelligence
     const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
             systemInstruction: SKILLFI_SYSTEM_INSTRUCTION,
-            temperature: 0.7, // Balance between creativity and precision
+            temperature: 0.7,
         }
     });
     
@@ -35,31 +33,28 @@ export const sendMessageToSkillfi = async (
 ): Promise<string> => {
     try {
         let responseText = "";
-
-        // Construct the message payload
-        // Chat.sendMessage accepts a 'message' property which can be string or Part[]
         
         if (attachment) {
-            // Multimodal request
-            const parts = [
-                { text: text },
-                {
-                    inlineData: {
-                        mimeType: attachment.mimeType,
-                        data: attachment.data
-                    }
-                }
-            ];
+            const parts: Part[] = [];
             
-            // For multimodal inputs, we might need to use a model that supports images/audio heavily
-            // but gemini-3-flash-preview supports multimodal.
+            // Only add text part if there is actual text content
+            // Sending an empty text part { text: "" } can cause RPC errors
+            if (text && text.trim().length > 0) {
+                parts.push({ text: text });
+            }
+            
+            parts.push({
+                inlineData: {
+                    mimeType: attachment.mimeType,
+                    data: attachment.data
+                }
+            });
             
             const result = await chat.sendMessage({
                 message: parts
             });
             responseText = result.text || "";
         } else {
-            // Text only request
             const result = await chat.sendMessage({
                 message: text
             });
@@ -70,6 +65,46 @@ export const sendMessageToSkillfi = async (
 
     } catch (error) {
         console.error("Gemini API Error:", error);
-        return "[Soft alert tone] Connection interrupted. Network congested. Please try again.";
+        return "[Soft alert tone] I encountered a connection issue. Please try sending your message again.";
+    }
+};
+
+// New function to generate a Vision Board image based on the latest context
+export const generateVisionBoard = async (context: string): Promise<string | null> => {
+    const ai = getClient();
+    
+    // Simplified prompt for cleaner, less complex results
+    const imagePrompt = `
+    A minimalistic and elegant abstract representation of this career path: ${context.substring(0, 200)}. 
+    Style: sleek high-tech minimal line art, dark background #0a0a0a, single glowing neon blue accent. 
+    Focus on clarity, geometry, and upward growth. No text, no cluttered details, no faces.
+    `;
+
+    try {
+        // Using gemini-2.5-flash-image for generation as per guidelines
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    { text: imagePrompt }
+                ]
+            },
+            config: {
+                // Config for image generation
+            }
+        });
+
+        // Parse response for image
+        if (response.candidates?.[0]?.content?.parts) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    return part.inlineData.data;
+                }
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error("Image Gen Error:", error);
+        return null;
     }
 };
