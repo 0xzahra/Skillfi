@@ -14,6 +14,7 @@ import { Tribes } from './components/Tribes';
 import { Support } from './components/Support'; 
 import { Inbox } from './components/Inbox';
 import { Notifications } from './components/Notifications';
+import { CareerArsenal } from './components/CareerArsenal'; // New Import
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -90,7 +91,6 @@ const App: React.FC = () => {
     // Check local storage for auth logic
     const savedUser = localStorage.getItem('skillfi_user');
     if (savedUser) {
-        // Migration check for old user objects that might lack new fields
         const parsed = JSON.parse(savedUser);
         const migratedUser: UserProfile = {
             ...parsed,
@@ -127,7 +127,6 @@ const App: React.FC = () => {
 
   // Auto-save current chat to history
   useEffect(() => {
-    // Only save if we have meaningful messages (more than just the initial greeting)
     if (messages.length > 1) {
         saveCurrentSession();
     }
@@ -141,7 +140,6 @@ const App: React.FC = () => {
   const handleLanguageSelect = (selectedLang: LanguageCode) => {
       setCurrentLang(selectedLang);
       setShowLanguageSelect(false);
-      // If user was found during initial load, go to dashboard, else Auth
       if (localStorage.getItem('skillfi_user')) {
           setCurrentView('DASHBOARD');
       } else {
@@ -218,14 +216,14 @@ const App: React.FC = () => {
           ...user,
           skills: updatedSkills,
           credits: newCredits,
-          isElite: user.isElite || eliteStatus // Once elite, always elite? or dynamic? Let's say dynamic but sticky.
+          isElite: user.isElite || eliteStatus
       };
 
       if (eliteStatus && !user.isElite) {
           AudioService.playSuccess();
           alert("ELITE STATUS UNLOCKED! USDC SIMULATION ACTIVATED.");
       } else {
-          AudioService.playSuccess(); // Credit earned sound
+          AudioService.playSuccess(); 
       }
 
       handleUpdateUser(updatedUser);
@@ -283,17 +281,22 @@ const App: React.FC = () => {
   };
 
   const handleNavigate = (view: string) => {
-      // Direct Navigation Views (No Chat Trigger)
+      // Routing Logic
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
-      } else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS'].includes(view)) {
+      } 
+      else if (view === 'CAREER') {
+          // Directs to the new Arsenal UI instead of Chat
+          setCurrentView('CAREER');
+      }
+      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS'].includes(view)) {
           setCurrentView(view as ViewMode);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
           setUser(null);
           setCurrentView('AUTH');
       } 
-      // Specific Chat Modes
+      // Chat Fallbacks
       else if (view === 'RIGHTS') {
           setCurrentView('CHAT');
           handleSendMessage("Explain Marriage Rights (Protected by Divine/Universal Law) in detail.");
@@ -310,7 +313,6 @@ const App: React.FC = () => {
           setCurrentView('CHAT');
           handleSendMessage("ACTIVATE MODE: TRADING DOJO. Focus on risk management, technical analysis, and psychology.");
       }
-      // General Chat Modes
       else {
           setCurrentView('CHAT');
           handleSendMessage(`ACTIVATE MODE: ${view}`);
@@ -459,15 +461,13 @@ const App: React.FC = () => {
   const handleTouchEnd = () => {
       if (!touchStart.current || !touchEnd.current) return;
       const distance = touchStart.current - touchEnd.current;
-      const isLeftSwipe = distance > 70; // Swipe Left (dragged > 70px)
-      const isRightSwipe = distance < -70; // Swipe Right (dragged < -70px)
+      const isLeftSwipe = distance > 70; 
+      const isRightSwipe = distance < -70;
 
-      // Swipe Right from edge (Open Sidebar)
       if (isRightSwipe && touchStart.current < 50) {
           setIsSidebarOpen(true);
       }
       
-      // Swipe Left (Close Sidebar)
       if (isLeftSwipe && isSidebarOpen) {
           setIsSidebarOpen(false);
       }
@@ -559,6 +559,9 @@ const App: React.FC = () => {
                       />
                   )}
                   
+                  {/* The Career Arsenal View (Anti-AI Interface) */}
+                  {currentView === 'CAREER' && <CareerArsenal />}
+
                   {currentView === 'CHAT' && (
                     <>
                       <ChatInterface messages={messages} isLoading={isLoading} />

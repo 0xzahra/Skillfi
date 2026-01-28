@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'TAX';
+type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'RWA' | 'TAX';
 
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
@@ -187,14 +187,14 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
     <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20 scrollbar-hide">
       <header className="mb-6 flex justify-between items-end">
         <div>
-            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Finance OS <span className="text-skillfi-neon text-shadow-neon">v2.1</span></h1>
-            <p className="text-gray-500 text-sm mt-1">Tactical Wealth Management System</p>
+            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Wealth OS <span className="text-skillfi-neon text-shadow-neon">v4.0</span></h1>
+            <p className="text-gray-500 text-sm mt-1">Sovereign Financial Control Center</p>
         </div>
       </header>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide">
-        {(['BUDGET', 'PROFIT', 'INTEREST', 'TAX'] as FinanceTab[]).map((tab) => (
+        {(['BUDGET', 'PROFIT', 'INTEREST', 'RWA', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -390,7 +390,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
              </div>
         )}
 
-        {/* INTEREST TAB */}
+        {/* INTEREST TAB (Net Worth Orb) */}
         {activeTab === 'INTEREST' && (
             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -442,6 +442,50 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         </div>
                     </div>
                 </div>
+            </div>
+        )}
+
+        {/* RWA MONITOR (Gold/Silver) */}
+        {activeTab === 'RWA' && (
+            <div className="space-y-6 animate-fade-in">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* GOLD (XAU) CARD */}
+                    <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-yellow-500 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:opacity-20 transition-opacity">🧈</div>
+                        <h3 className="text-yellow-500 font-bold text-sm tracking-widest uppercase mb-4">GOLD (XAU/USD)</h3>
+                        <div className="text-4xl font-black text-white mb-2">$2,642.80</div>
+                        <div className="text-green-400 text-xs font-mono font-bold mb-6">▲ +0.45% (24h)</div>
+                        
+                        {/* Mock Chart Line */}
+                        <div className="w-full h-16 flex items-end gap-1 opacity-50">
+                            {[40,45,42,50,55,53,60,65,62,70,75,80].map((h, i) => (
+                                <div key={i} className="flex-1 bg-yellow-500 rounded-t-sm" style={{height: `${h}%`}}></div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* SILVER (XAG) CARD */}
+                    <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-gray-300 relative overflow-hidden group">
+                         <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:opacity-20 transition-opacity">🥈</div>
+                        <h3 className="text-gray-300 font-bold text-sm tracking-widest uppercase mb-4">SILVER (XAG/USD)</h3>
+                        <div className="text-4xl font-black text-white mb-2">$31.15</div>
+                        <div className="text-red-400 text-xs font-mono font-bold mb-6">▼ -0.12% (24h)</div>
+
+                         {/* Mock Chart Line */}
+                         <div className="w-full h-16 flex items-end gap-1 opacity-50">
+                            {[60,55,58,50,45,48,40,42,38,35,40,38].map((h, i) => (
+                                <div key={i} className="flex-1 bg-gray-400 rounded-t-sm" style={{height: `${h}%`}}></div>
+                            ))}
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="glass-panel p-6 rounded-2xl">
+                     <h3 className="text-white font-bold mb-4">Vault Holdings</h3>
+                     <div className="text-center py-8 text-gray-500 text-xs uppercase tracking-widest border border-dashed border-white/10 rounded-xl">
+                         No Physical Assets Linked
+                     </div>
+                 </div>
             </div>
         )}
 

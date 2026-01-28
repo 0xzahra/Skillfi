@@ -5,75 +5,81 @@ interface IntroSplashProps {
 }
 
 export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'INIT' | 'VORTEX' | 'LOGO' | 'BREAK'>('INIT');
+  const [phase, setPhase] = useState<'VORTEX' | 'LOGO' | 'EXPLODE' | 'DONE'>('VORTEX');
   
-  const symbols = ['📈', '💎', '🎨', '🥂', '✈️', '🩺', '💻', '🎓'];
+  // Symbols representing Career, Wealth, Skills
+  const symbols = ['📈', '💎', '🎨', '🥂', '✈️', '🩺', '💻', '🎓', '🔐', '⚡', '🏗️', '⚖️'];
 
   useEffect(() => {
-    // Phase 1: Init (Brief pause)
-    setTimeout(() => setPhase('VORTEX'), 500);
+    // Phase 1: Vortex Suck In (2s)
+    setTimeout(() => setPhase('LOGO'), 2000);
 
-    // Phase 2: Vortex to Logo
-    setTimeout(() => setPhase('LOGO'), 2500);
+    // Phase 2: Logo Hold (1s) -> Explode
+    setTimeout(() => setPhase('EXPLODE'), 3500);
 
-    // Phase 3: Glass Break / End
+    // Phase 3: Handover control but keep background elements
     setTimeout(() => {
-        setPhase('BREAK');
-        setTimeout(onComplete, 800); // Wait for break anim
+        setPhase('DONE');
+        onComplete();
     }, 4500);
 
   }, [onComplete]);
 
-  if (phase === 'BREAK') {
-      return (
-          <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-glass-break pointer-events-none">
-              <h1 className="text-9xl font-black text-white tracking-tighter mix-blend-difference">SKILLFI</h1>
-          </div>
-      );
+  // If DONE, we render nothing here (or could render the floating background if we lifted state up)
+  // For this architecture, we fade out the blocking layer.
+  if (phase === 'DONE') {
+      return null;
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#050505] flex flex-col items-center justify-center overflow-hidden">
+    <div className={`fixed inset-0 z-[100] bg-[#121212] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-1000 ${phase === 'EXPLODE' ? 'pointer-events-none' : ''}`}>
         
-        {/* Vortex Container */}
-        {phase === 'VORTEX' && (
-            <div className="relative w-full h-full flex items-center justify-center">
-                {symbols.map((sym, i) => (
+        {/* Kinetic Vortex & Explosion Container */}
+        <div className="absolute inset-0 flex items-center justify-center">
+            {symbols.map((sym, i) => {
+                const angle = (i / symbols.length) * 360;
+                // Randomize flight path for explosion
+                const flyX = (Math.random() - 0.5) * 200; // vw unit approximation
+                const flyY = (Math.random() - 0.5) * 200; // vh unit approximation
+                
+                return (
                     <div 
                         key={i}
-                        className="absolute text-6xl animate-vortex-spin opacity-0"
+                        className={`absolute text-4xl md:text-6xl transition-all duration-[1500ms] ease-out
+                            ${phase === 'VORTEX' ? 'animate-vortex-in opacity-0' : ''}
+                            ${phase === 'LOGO' ? 'scale-0 opacity-0' : ''}
+                            ${phase === 'EXPLODE' ? 'opacity-20 animate-float-random' : ''}
+                        `}
                         style={{
-                            animationDelay: `${i * 0.1}s`,
-                            left: '50%',
-                            top: '50%',
-                            marginLeft: '-30px',
-                            marginTop: '-30px',
-                            textShadow: '0 0 20px rgba(0,255,255,0.8)'
+                            // During VORTEX, animation handles transform.
+                            // During EXPLODE, we set final transform
+                            transform: phase === 'EXPLODE' 
+                                ? `translate(${flyX}vw, ${flyY}vh) scale(1)` 
+                                : undefined,
+                            animationDelay: phase === 'VORTEX' ? `${i * 0.1}s` : '0s'
                         }}
                     >
                         {sym}
                     </div>
-                ))}
-            </div>
-        )}
+                );
+            })}
+        </div>
 
-        {/* Converged Logo */}
-        {phase === 'LOGO' && (
-            <div className="relative z-10 animate-pulse-fast">
-                <div className="absolute -inset-20 bg-skillfi-neon/20 rounded-full blur-[100px]"></div>
-                <h1 className="text-8xl md:text-9xl font-black tracking-tighter text-white relative z-10 scale-150 transition-transform duration-500">
+        {/* The Converged Logo */}
+        <div className={`relative z-20 flex flex-col items-center justify-center transition-all duration-500 ${phase === 'VORTEX' ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}>
+            <div className={`relative ${phase === 'EXPLODE' ? 'animate-glass-break' : ''}`}>
+                <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white relative z-10">
                     SKILLFI<span className="text-skillfi-neon">.</span>
                 </h1>
-                <div className="mt-4 text-center">
-                     <div className="inline-block px-4 py-1 border border-skillfi-neon/50 rounded-full bg-skillfi-neon/10 text-skillfi-neon text-xs font-mono tracking-[0.5em] uppercase">
-                        Ultra Interface Loaded
-                     </div>
-                </div>
+                <div className="absolute -inset-10 bg-skillfi-neon/10 rounded-full blur-[80px]"></div>
             </div>
-        )}
 
-        <div className="absolute bottom-10 text-[10px] text-gray-600 font-mono tracking-widest uppercase">
-            System Initialization // v3.0 Ultra
+            {/* Neon Loading Bar - NO TEXT */}
+            {phase !== 'EXPLODE' && (
+                <div className="mt-8 w-64 h-[2px] bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-skillfi-neon animate-[scanLine_1s_linear_infinite_horizontal] w-full origin-left scale-x-0 transition-transform duration-[2000ms]" style={{ transform: 'scaleX(1)' }}></div>
+                </div>
+            )}
         </div>
     </div>
   );

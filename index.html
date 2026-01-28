@@ -29,24 +29,35 @@
             animation: {
               'spin-slow': 'spin 10s linear infinite',
               'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'vortex-spin': 'vortexSpin 2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+              'vortex-in': 'vortexIn 2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards',
+              'explode-out': 'explodeOut 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) forwards',
+              'float-random': 'floatRandom 10s ease-in-out infinite',
               'glass-break': 'glassBreak 0.8s ease-out forwards',
-              'float': 'float 6s ease-in-out infinite',
+              'scan-line': 'scanLine 3s linear infinite',
             },
             keyframes: {
-              vortexSpin: {
-                '0%': { transform: 'scale(0) rotate(0deg)', opacity: '0' },
-                '60%': { transform: 'scale(1.5) rotate(720deg)', opacity: '1' },
-                '100%': { transform: 'scale(1) rotate(1080deg)', opacity: '1' }
+              vortexIn: {
+                '0%': { transform: 'scale(3) rotate(0deg) translate(0, 0)', opacity: '0' },
+                '100%': { transform: 'scale(0) rotate(720deg) translate(0, 0)', opacity: '1' }
+              },
+              explodeOut: {
+                '0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
+                '100%': { transform: 'scale(1) rotate(0deg)', opacity: '0.3' }
+              },
+              floatRandom: {
+                '0%, 100%': { transform: 'translate(0, 0)' },
+                '25%': { transform: 'translate(10px, -15px)' },
+                '50%': { transform: 'translate(-5px, 10px)' },
+                '75%': { transform: 'translate(-10px, -5px)' }
               },
               glassBreak: {
                 '0%': { transform: 'scale(1)', opacity: '1', filter: 'blur(0px)' },
                 '50%': { transform: 'scale(1.1)', opacity: '0.8', filter: 'blur(2px)' },
                 '100%': { transform: 'scale(2)', opacity: '0', filter: 'blur(10px)' }
               },
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-10px)' }
+              scanLine: {
+                '0%': { transform: 'translateY(-100%)' },
+                '100%': { transform: 'translateY(100%)' }
               }
             }
           }
@@ -61,13 +72,13 @@
       .lenis.lenis-scrolling iframe { pointer-events: none; }
 
       body {
-        background-color: #050505;
+        background-color: #121212; /* Deep Charcoal */
         color: white;
         font-family: 'Inter', sans-serif;
         overflow-x: hidden;
-        perspective: 1000px; /* Enable 3D space */
-        touch-action: pan-x pan-y; /* Enable panning but not zooming */
-        overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
+        perspective: 1000px; 
+        touch-action: pan-x pan-y;
+        overscroll-behavior-y: none;
       }
 
       /* --- DEEP SPACE MESH --- */
@@ -75,33 +86,30 @@
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: 
-          radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-          radial-gradient(circle at 85% 15%, rgba(255, 102, 0, 0.04) 0%, transparent 40%),
-          radial-gradient(circle at 15% 85%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
-          linear-gradient(0deg, #020202 0%, #08080a 100%);
+          radial-gradient(circle at 50% 50%, rgba(20, 20, 25, 1) 0%, rgba(5, 5, 5, 1) 100%);
         z-index: -2;
       }
       
-      .light-rays {
+      .grid-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: repeating-linear-gradient(90deg, transparent 0, transparent 49px, rgba(255,255,255,0.01) 50px);
-        mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-        pointer-events: none;
+        background-image: 
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
         z-index: -1;
-        opacity: 0.5;
+        pointer-events: none;
       }
 
       /* --- GLASSMORPHISM 3.0 --- */
       .glass-panel {
-        background: rgba(15, 15, 20, 0.4);
+        background: rgba(20, 20, 25, 0.6);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(0, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 
           0 4px 30px rgba(0, 0, 0, 0.5),
-          inset 0 0 20px rgba(0, 0, 0, 0.2),
-          0 0 0 1px rgba(255, 255, 255, 0.05); /* Double border effect */
+          inset 0 0 20px rgba(0, 0, 0, 0.2);
         position: relative;
         overflow: hidden;
       }
@@ -110,19 +118,8 @@
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         opacity: 0.5;
-      }
-
-      /* 3D Tilt Effect Utility */
-      .tilt-card {
-        transition: transform 0.2s ease-out;
-        transform-style: preserve-3d;
-      }
-      .tilt-card:hover {
-        transform: perspective(1000px) rotateX(2deg) rotateY(2deg) scale(1.01);
-        border-color: rgba(0, 255, 255, 0.4);
-        box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
       }
 
       /* Neon Text Shadow */
@@ -131,13 +128,8 @@
       }
 
       /* Scrollbar Hide */
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-      }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
       /* Kinetic Type Animation */
       @keyframes kineticIn {
@@ -162,6 +154,6 @@
   <body>
     <div id="root"></div>
     <div class="deep-space-bg"></div>
-    <div class="light-rays"></div>
+    <div class="grid-overlay"></div>
   </body>
 </html>

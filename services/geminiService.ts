@@ -125,54 +125,13 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
     }
 };
 
-// New function to generate a Vision Board image based on the latest context
-export const generateVisionBoard = async (context: string): Promise<string | null> => {
-    const ai = getClient();
-    
-    // Simplified prompt for cleaner, less complex results
-    const imagePrompt = `
-    A minimalistic and elegant abstract representation of this career path: ${context.substring(0, 200)}. 
-    Style: sleek high-tech minimal line art, dark background #0a0a0a, single glowing neon blue accent. 
-    Focus on clarity, geometry, and upward growth. No text, no cluttered details, no faces.
-    `;
-
-    try {
-        // Using gemini-2.5-flash-image for generation as per guidelines
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: {
-                parts: [
-                    { text: imagePrompt }
-                ]
-            },
-            config: {
-                // Config for image generation
-            }
-        });
-
-        // Parse response for image
-        if (response.candidates?.[0]?.content?.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData) {
-                    return part.inlineData.data;
-                }
-            }
-        }
-        return null;
-    } catch (error) {
-        console.error("Image Gen Error:", error);
-        return null;
-    }
-};
-
-// Generate a Career Avatar based on user photo and role description
+// Generate a Career Avatar / Headshot
 export const generateCareerAvatar = async (
     imageBase64: string, 
     roleDescription: string
 ): Promise<string | null> => {
     const ai = getClient();
 
-    // Prompt engineered for hyper-realism and professional role adaptation
     const prompt = `
     Transform this person into a hyper-realistic, confident ${roleDescription}.
     Attire: High-end professional, futuristic yet practical for the role.
@@ -192,7 +151,6 @@ export const generateCareerAvatar = async (
             }
         });
 
-        // Parse response for the generated image
         if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
                 if (part.inlineData) {
@@ -204,6 +162,55 @@ export const generateCareerAvatar = async (
 
     } catch (error) {
         console.error("Career Avatar Gen Error:", error);
+        return null;
+    }
+};
+
+// New Function: Dedicated Neural Headshot Engine (Specific for the Arsenal)
+export const generateProfessionalHeadshot = async (
+    imageBase64: string,
+    style: 'CORPORATE' | 'MEDICAL' | 'CREATIVE' | 'TECH'
+): Promise<string | null> => {
+    const ai = getClient();
+    
+    let stylePrompt = "";
+    switch(style) {
+        case 'CORPORATE': stylePrompt = "wearing a tailored dark navy suit, white shirt, in a modern glass office skyscraper background."; break;
+        case 'MEDICAL': stylePrompt = "wearing pristine medical scrubs and a white coat, in a clean, bright hospital environment."; break;
+        case 'CREATIVE': stylePrompt = "wearing stylish, smart-casual architectural attire, in a modern design studio with warm lighting."; break;
+        case 'TECH': stylePrompt = "wearing a premium minimalist t-shirt and blazer, in a dark mode server room or tech startup hub."; break;
+    }
+
+    const prompt = `
+    Generate a professional LinkedIn headshot based on this person's facial features.
+    The person should be ${stylePrompt}
+    Expression: Confident, approachable, leader.
+    Quality: 8k, photorealistic, DSLR, shallow depth of field.
+    Ensure the face looks exactly like the input image but polished.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } },
+                    { text: prompt }
+                ]
+            }
+        });
+
+        if (response.candidates?.[0]?.content?.parts) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    return part.inlineData.data;
+                }
+            }
+        }
+        return null;
+
+    } catch (error) {
+        console.error("Headshot Gen Error:", error);
         return null;
     }
 };
