@@ -16,12 +16,12 @@ export const initializeChat = async (language: LanguageCode = 'en'): Promise<Cha
     const ai = getClient();
     
     // Using gemini-3-flash-preview for the main conversational intelligence
+    // Removed googleSearch from default tools to avoid 'Permission Denied' on standard keys
     const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
             systemInstruction: getSystemInstruction(language),
             temperature: 0.7,
-            tools: [{ googleSearch: {} }] // Enable Google Search Grounding for real-time info
         }
     });
     

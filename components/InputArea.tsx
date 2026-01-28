@@ -92,9 +92,9 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
   };
 
   return (
-    <div className="w-full flex flex-col gap-2 font-sans">
+    <div className="w-full flex flex-col gap-3 font-sans relative z-30">
       {attachment && (
-        <div className="flex items-center justify-between bg-[#111] px-4 py-2 border border-skillfi-neon/30 rounded-lg text-sm">
+        <div className="flex items-center justify-between bg-black/60 backdrop-blur-md px-4 py-2 border border-skillfi-neon/30 rounded-xl text-sm animate-fade-in shadow-lg">
           <span className="text-skillfi-neon truncate max-w-[200px] flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clipRule="evenodd" />
@@ -105,10 +105,11 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      {/* Floating Command Bar */}
+      <div className="flex items-end gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
         <button 
             onClick={() => fileInputRef.current?.click()}
-            className="p-3.5 text-gray-400 hover:text-white hover:bg-[#1a1a1a] rounded-xl transition-all"
+            className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
             disabled={isLoading}
             title="Upload Data"
         >
@@ -122,15 +123,15 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isRecording ? "Recording..." : "Ask Skillfi..."}
-          className="flex-1 bg-[#111] border border-gray-800 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-skillfi-neon/50 text-base resize-none h-[52px] max-h-32 shadow-sm transition-colors"
+          placeholder={isRecording ? "Recording..." : "Enter Command..."}
+          className="flex-1 bg-transparent border-none px-2 py-3.5 text-white placeholder-gray-500 focus:outline-none text-base resize-none h-[52px] max-h-32 transition-colors"
           disabled={isLoading || isRecording}
           rows={1}
         />
 
         <button 
           onClick={toggleRecording}
-          className={`p-3.5 rounded-xl transition-all duration-300 ${isRecording ? 'bg-red-500/10 text-red-500 animate-pulse ring-1 ring-red-500' : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'}`}
+          className={`p-3 rounded-xl transition-all duration-300 ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
           disabled={isLoading}
           title={isRecording ? "Stop Recording" : "Voice Input"}
         >
@@ -142,28 +143,27 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
         {isLoading ? (
           <button 
             onClick={onStop}
-            className="relative px-8 py-3.5 font-bold tracking-wide transition-all duration-300 bg-[#1a1a1a] text-white rounded-xl shadow-lg overflow-hidden border border-gray-700 group"
+            className="relative px-6 py-3 font-bold tracking-wide transition-all duration-300 bg-white/5 text-white rounded-xl shadow-lg overflow-hidden border border-white/10 group hover:border-red-500/50"
           >
-             {/* Progress Bar Layer */}
-             <div className="absolute top-0 left-0 h-full bg-skillfi-neon w-full opacity-20 animate-progress-fill origin-left"></div>
-             
              {/* Content Layer */}
-             <span className="relative z-10 flex items-center gap-2">
-                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                 STOP
+             <span className="relative z-10 flex items-center gap-2 text-xs">
+                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                 HALT
              </span>
           </button>
         ) : (
           <button 
             onClick={handleSend}
             disabled={(!text.trim() && !attachment)}
-            className={`px-6 py-3.5 font-bold tracking-wide transition-all duration-300 rounded-xl shadow-lg ${
+            className={`px-6 py-3 font-bold tracking-wide transition-all duration-300 rounded-xl shadow-lg flex items-center justify-center ${
               (!text.trim() && !attachment)
-                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                : 'bg-skillfi-neon text-black hover:bg-white hover:shadow-skillfi-neon/25'
+                ? 'bg-white/5 text-gray-600 cursor-not-allowed border border-transparent' 
+                : 'bg-skillfi-neon text-black hover:bg-white hover:shadow-[0_0_20px_#00ffff] border border-transparent'
             }`}
           >
-             RUN
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+             </svg>
           </button>
         )}
       </div>

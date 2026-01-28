@@ -9,7 +9,8 @@ import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
 import { IntroSplash } from './components/IntroSplash';
-import { Tribes } from './components/Tribes'; // New Component
+import { Tribes } from './components/Tribes';
+import { Support } from './components/Support'; // New Component
 import { initializeChat, sendMessageToSkillfi, generateSpeech } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -241,14 +242,27 @@ const App: React.FC = () => {
       // Direct Navigation Views (No Chat Trigger)
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
-      } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY' || view === 'TRIBES') {
+      } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY' || view === 'TRIBES' || view === 'SUPPORT') {
           setCurrentView(view as ViewMode);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
           setUser(null);
           setCurrentView('AUTH');
       } 
-      // Chat Modes (Triggers Context Switch)
+      // Specific Chat Modes
+      else if (view === 'RIGHTS') {
+          setCurrentView('CHAT');
+          handleSendMessage("Explain Marriage Rights (Protected by Divine/Universal Law) in detail.");
+      }
+      else if (view === 'DUTIES') {
+          setCurrentView('CHAT');
+          handleSendMessage("Outline the detailed Duties & Obligations in a standard marriage contract.");
+      }
+      else if (view === 'CRITERIA') {
+          setCurrentView('CHAT');
+          handleSendMessage("What are the recommended Criteria for selecting a spouse for long-term success?");
+      }
+      // General Chat Modes
       else {
           setCurrentView('CHAT');
           handleSendMessage(`ACTIVATE MODE: ${view}`);
@@ -437,6 +451,8 @@ const App: React.FC = () => {
                   {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
                   
                   {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} />}
+
+                  {currentView === 'SUPPORT' && <Support />}
 
                   {currentView === 'SETTINGS' && (
                       <Settings 

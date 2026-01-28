@@ -180,24 +180,24 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20 scrollbar-hide">
       <header className="mb-6 flex justify-between items-end">
         <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.1</span></h1>
-            <p className="text-gray-500 text-sm">Tactical Wealth Management System</p>
+            <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-md">Finance OS <span className="text-skillfi-neon text-shadow-neon">v2.1</span></h1>
+            <p className="text-gray-500 text-sm mt-1">Tactical Wealth Management System</p>
         </div>
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-800 pb-1 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide">
         {(['BUDGET', 'PROFIT', 'INTEREST', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-bold tracking-wider rounded-t-lg transition-colors whitespace-nowrap ${
+                className={`px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase ${
                     activeTab === tab 
-                    ? 'bg-skillfi-neon text-black border-t-2 border-skillfi-neon' 
-                    : 'text-gray-500 hover:text-white bg-[#111]'
+                    ? 'bg-skillfi-neon text-black border-t-2 border-white' 
+                    : 'text-gray-500 hover:text-white bg-white/5 border-t-2 border-transparent'
                 }`}
             >
                 {tab}
@@ -205,36 +205,36 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
         ))}
       </div>
 
-      <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl shadow-xl min-h-[500px]">
+      <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl min-h-[500px]">
         
         {/* BUDGET TAB */}
         {activeTab === 'BUDGET' && (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Income Input */}
-                    <div className="bg-black/40 p-5 rounded-xl border border-gray-800">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Monthly Income Flow ($)</label>
+                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-skillfi-neon/30 transition-colors">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Monthly Income Flow ($)</label>
                         <input 
                             type="number" 
                             value={salary} 
                             onChange={(e) => setSalary(Number(e.target.value))}
-                            className="w-full bg-transparent text-3xl font-bold text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
+                            className="w-full bg-transparent text-4xl font-bold text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
                         />
                     </div>
 
                     {/* Savings Bloom Visualization */}
-                    <div className="relative bg-black/40 p-5 rounded-xl border border-gray-800 flex flex-col justify-center items-center overflow-hidden min-h-[160px]">
+                    <div className="relative bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center overflow-hidden min-h-[160px]">
                         {/* Bloom Animation Layer */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
                             <div 
-                                className={`w-32 h-32 rounded-full blur-2xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
+                                className={`w-32 h-32 rounded-full blur-3xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
                                 style={{ transform: `scale(${Math.min(Math.max(budgetData.savingsRate / 20, 0.5), 1.5)})` }}
                             ></div>
                              {/* Geometric Petals */}
                              {[...Array(6)].map((_, i) => (
                                 <div 
                                     key={i}
-                                    className={`absolute w-40 h-1 rounded-full transition-colors duration-500 ${budgetData.savings >= 0 ? 'bg-skillfi-neon' : 'bg-red-500'}`}
+                                    className={`absolute w-40 h-0.5 rounded-full transition-colors duration-500 ${budgetData.savings >= 0 ? 'bg-skillfi-neon' : 'bg-red-500'}`}
                                     style={{ 
                                         transform: `rotate(${i * 30}deg)`,
                                         opacity: 0.2
@@ -251,7 +251,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                                     {budgetData.savingsRate.toFixed(1)}%
                                 </span>
                             </div>
-                            <div className={`text-4xl md:text-5xl font-black tracking-tighter ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
+                            <div className={`text-5xl font-black tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
                                 ${budgetData.savings.toLocaleString()}
                             </div>
                         </div>
@@ -259,15 +259,15 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                 </div>
 
                 <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-3 flex items-center gap-2 tracking-wider">
                         Expense Rivers
-                        <span className="text-xs normal-case bg-gray-800 px-2 rounded-full text-white">${budgetData.totalExpenses.toLocaleString()} Total</span>
+                        <span className="text-[10px] normal-case bg-white/10 px-2 py-0.5 rounded text-white">${budgetData.totalExpenses.toLocaleString()} Total</span>
                     </h3>
                     
                     {/* Expense Rivers List */}
-                    <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2">
+                    <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
                         {expenses.map((exp) => (
-                            <div key={exp.id} className="relative group overflow-hidden rounded-lg border border-gray-800 bg-[#151515]">
+                            <div key={exp.id} className="relative group overflow-hidden rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
                                 {/* River Flow Animation Background */}
                                 <div 
                                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
@@ -283,10 +283,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                                     }
                                 `}</style>
 
-                                <div className="relative z-10 flex justify-between items-center p-3">
+                                <div className="relative z-10 flex justify-between items-center p-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-1 h-8 bg-red-500/50 rounded-full"></div>
-                                        <span className="text-gray-300 font-medium">{exp.name}</span>
+                                        <div className="w-1 h-8 bg-red-500/50 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                                        <span className="text-gray-200 font-bold text-sm">{exp.name}</span>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <span className="text-white font-bold font-mono">${exp.cost}</span>
@@ -294,40 +294,40 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                                     </div>
                                 </div>
                                 {/* Bar Proportion */}
-                                <div className="absolute bottom-0 left-0 h-0.5 bg-red-500/30" style={{ width: `${Math.min((exp.cost / (salary || 1)) * 100, 100)}%` }}></div>
+                                <div className="absolute bottom-0 left-0 h-0.5 bg-red-500/50" style={{ width: `${Math.min((exp.cost / (salary || 1)) * 100, 100)}%` }}></div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="flex gap-2 p-4 bg-[#0a0a0a] rounded-xl border border-gray-800">
+                    <div className="flex gap-2 p-1.5 bg-black/50 rounded-xl border border-white/10">
                         <input 
                             type="text" 
                             placeholder="New Stream (e.g. Netflix)" 
                             value={newExpenseName} 
                             onChange={(e) => setNewExpenseName(e.target.value)}
-                            className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-600"
+                            className="flex-1 bg-transparent px-4 text-white text-sm focus:outline-none placeholder-gray-600 font-medium"
                         />
-                        <div className="w-px bg-gray-700 mx-2"></div>
+                        <div className="w-px bg-white/10 my-2"></div>
                         <input 
                             type="number" 
                             placeholder="$0.00" 
                             value={newExpenseCost} 
                             onChange={(e) => setNewExpenseCost(e.target.value)}
-                            className="w-24 bg-transparent text-white text-sm focus:outline-none placeholder-gray-600 text-right"
+                            className="w-24 bg-transparent px-2 text-white text-sm focus:outline-none placeholder-gray-600 text-right font-mono"
                         />
                         <button 
                             onClick={addExpense}
-                            className="ml-2 bg-gray-800 hover:bg-skillfi-neon hover:text-black text-white px-3 py-1 rounded-md text-xs font-bold transition-colors uppercase"
+                            className="bg-white/10 hover:bg-skillfi-neon hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide"
                         >
                             Add
                         </button>
                     </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-800">
+                <div className="pt-4 border-t border-white/5">
                     <button 
                         onClick={handleAuditBudget}
-                        className="w-full py-4 bg-gradient-to-r from-skillfi-neon/10 to-blue-500/10 border border-skillfi-neon/30 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+                        className="w-full py-4 bg-gradient-to-r from-skillfi-neon/5 to-blue-500/5 border border-skillfi-neon/20 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 group-hover:animate-spin-slow">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -349,20 +349,20 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         { label: 'Units', val: quantity, set: setQuantity },
                         { label: 'Fees (%)', val: fees, set: setFees }
                     ].map((field, i) => (
-                        <div key={i} className="space-y-1">
+                        <div key={i} className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{field.label}</label>
                             <input 
                                 type="number" 
                                 value={field.val} 
                                 onChange={(e) => field.set(Number(e.target.value))}
-                                className="w-full bg-[#080808] border border-gray-700 p-2.5 rounded-lg text-white outline-none focus:border-skillfi-neon text-sm font-bold font-mono"
+                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon text-sm font-bold font-mono transition-colors"
                             />
                         </div>
                     ))}
                  </div>
 
                  {/* Portfolio Galaxy Canvas */}
-                 <div className="relative w-full h-64 bg-black rounded-2xl border border-gray-800 overflow-hidden flex items-center justify-center">
+                 <div className="relative w-full h-64 bg-black rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
                     <canvas 
                         ref={galaxyCanvasRef} 
                         width={600} 
@@ -371,17 +371,17 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     />
                     
                     {/* Overlay Stats */}
-                    <div className="relative z-10 text-center pointer-events-none backdrop-blur-[2px] p-4 rounded-xl bg-black/30 border border-white/5">
+                    <div className="relative z-10 text-center pointer-events-none backdrop-blur-md p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl">
                         <div className="flex justify-center items-center gap-2 mb-1">
-                            <span className="text-xs font-bold text-gray-400">ROI</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">ROI Analysis</span>
                             <span className={`text-sm font-bold ${profitData.roi >= 0 ? 'text-green-400' : 'text-red-500'}`}>
                                 {profitData.roi >= 0 ? '+' : ''}{profitData.roi.toFixed(2)}%
                             </span>
                         </div>
-                        <div className={`text-5xl font-bold tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
+                        <div className={`text-5xl font-black tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
                             {profitData.profit >= 0 ? '+' : '-'}${Math.abs(profitData.profit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
-                        <div className="mt-2 text-[10px] text-gray-400 font-mono">
+                        <div className="mt-2 text-[10px] text-gray-400 font-mono bg-black/50 px-3 py-1 rounded-full inline-block">
                             LIQUIDITY: ${profitData.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                     </div>
@@ -390,7 +390,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                  <div className="pt-2">
                     <button 
                         onClick={handleAuditProfit}
-                        className="w-full py-3 bg-gradient-to-r from-purple-900/20 to-black border border-purple-500/30 text-purple-400 font-bold rounded-xl hover:bg-purple-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-gradient-to-r from-purple-900/10 to-black border border-purple-500/20 text-purple-400 font-bold rounded-xl hover:bg-purple-500 hover:text-white transition-all flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
@@ -411,20 +411,20 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         { label: 'Rate %', val: rate, set: setRate },
                         { label: 'Years', val: years, set: setYears }
                     ].map((field, i) => (
-                        <div key={i} className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase">{field.label}</label>
+                        <div key={i} className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{field.label}</label>
                             <input 
                                 type="number" 
                                 value={field.val} 
                                 onChange={(e) => field.set(Number(e.target.value))}
-                                className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon font-mono font-bold transition-colors"
                             />
                         </div>
                     ))}
                 </div>
 
                 {/* Net Worth Orb Visualization */}
-                <div className="mt-6 min-h-[250px] p-6 bg-[#080808] border border-gray-800 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-skillfi-neon/30 transition-colors">
+                <div className="mt-6 min-h-[250px] p-6 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-skillfi-neon/30 transition-colors">
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                          {/* The Orb */}
                          <div 
@@ -448,7 +448,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         <span className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
                             ${interestTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
-                        <div className="mt-3 text-[10px] text-gray-400 uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full inline-block border border-gray-800">
+                        <div className="mt-3 text-[10px] text-gray-400 uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full inline-block border border-gray-800 backdrop-blur-md">
                             Invested: ${(principal + (monthly * 12 * years)).toLocaleString()}
                         </div>
                     </div>
@@ -461,40 +461,40 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
             <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Gross Annual Income</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Gross Annual Income</label>
                         <input 
                             type="number" 
                             value={taxIncome} 
                             onChange={(e) => setTaxIncome(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                            className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon font-mono font-bold"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Deductions</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Deductions</label>
                         <input 
                             type="number" 
                             value={taxDeductions} 
                             onChange={(e) => setTaxDeductions(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                            className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon font-mono font-bold"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Rate (%)</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Rate (%)</label>
                         <input 
                             type="number" 
                             value={taxRate} 
                             onChange={(e) => setTaxRate(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                            className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon font-mono font-bold"
                         />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Tax Liability Card */}
-                    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Liability Vector</span>
-                        <div className="text-3xl font-bold text-red-400 tracking-tight">
+                        <div className="text-4xl font-bold text-red-400 tracking-tight">
                             -${taxData.taxAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
                         <div className="mt-4 w-full bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-800">
@@ -507,13 +507,13 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     </div>
 
                     {/* Net Income Card */}
-                    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Net Capital Retention</span>
-                        <div className="text-3xl font-bold text-green-400 tracking-tight">
+                        <div className="text-4xl font-bold text-green-400 tracking-tight">
                             ${taxData.netIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
-                        <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
+                        <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
                             <span className="text-xs text-gray-400">Monthly Avg:</span>
                             <span className="text-lg font-bold text-white">${taxData.monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                         </div>
