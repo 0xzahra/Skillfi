@@ -34,7 +34,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         className={`max-w-[95%] md:max-w-[85%] rounded-2xl px-5 py-4 shadow-sm backdrop-blur-md ${
           isUser 
             ? 'glass-panel rounded-tr-none border-skillfi-neon/20' 
-            : 'bg-white/5 border border-white/5 rounded-tl-none'
+            : 'bg-white/80 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-tl-none shadow-md'
         }`}
       >
         {/* User/System Header Label */}
@@ -45,7 +45,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
 
         {/* Attachment Preview */}
         {message.attachment && (
-          <div className="mb-4 rounded-lg overflow-hidden border border-gray-800 bg-black">
+          <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
              {message.attachment.mimeType.startsWith('image') ? (
                <img src={`data:${message.attachment.mimeType};base64,${message.attachment.data}`} alt="Content" className="max-w-full h-auto max-h-80 object-contain mx-auto" />
              ) : (
@@ -59,7 +59,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           </div>
         )}
 
-        <div className={`${isUser ? 'text-gray-200' : 'text-gray-300'}`}>
+        <div className={`${isUser ? 'text-slate-800 dark:text-gray-200' : 'text-slate-700 dark:text-gray-300'}`}>
           {isUser ? message.content : renderContent(message.content)}
         </div>
       </div>

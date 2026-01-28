@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { ChatInterface } from './components/ChatInterface';
@@ -31,6 +30,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
   const [activities, setActivities] = useState<ActivityLog[]>([
       { id: '1', title: 'System Initialization', desc: 'User logged in', time: 'Just now', type: 'SYSTEM' },
@@ -62,6 +62,23 @@ const App: React.FC = () => {
 
   // --- INITIALIZATION ---
   
+  useEffect(() => {
+      // Check Theme Preference
+      const savedTheme = localStorage.getItem('skillfi_theme') as 'dark' | 'light' | null;
+      if (savedTheme) {
+          setTheme(savedTheme);
+      }
+  }, []);
+
+  useEffect(() => {
+      if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+      } else {
+          document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('skillfi_theme', theme);
+  }, [theme]);
+
   // Init Lenis Smooth Scroll
   useEffect(() => {
     // @ts-ignore
@@ -474,15 +491,15 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className="relative h-screen w-full overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black"
+        className="relative h-screen w-full overflow-hidden font-sans selection:bg-skillfi-neon selection:text-black dark:text-white text-gray-900"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
     >
       
-      {/* Persistent Background Video for Intro/Auth */}
+      {/* Persistent Background Video for Intro/Auth - Fades out in Light Mode for clean look */}
       {isIntroOrAuth && (
-          <div className="fixed inset-0 z-0">
+          <div className="fixed inset-0 z-0 transition-opacity duration-500 dark:opacity-100 opacity-20">
               <video 
                   autoPlay 
                   muted 
@@ -542,6 +559,8 @@ const App: React.FC = () => {
                         navigator.clipboard.writeText(transcript);
                         alert("Session transcript copied to clipboard.");
                     }}
+                    onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    theme={theme}
                 />
 
                 <main className="flex-1 overflow-hidden relative flex flex-col w-full">
@@ -562,7 +581,7 @@ const App: React.FC = () => {
                   {currentView === 'CHAT' && (
                     <>
                       <ChatInterface messages={messages} isLoading={isLoading} />
-                      <div className="p-4 md:p-6 bg-transparent border-t border-white/5 w-full">
+                      <div className="p-4 md:p-6 bg-transparent border-t border-skillfi-neon/10 w-full">
                         <div className="max-w-4xl mx-auto w-full">
                             <InputArea 
                                 onSendMessage={handleSendMessage} 

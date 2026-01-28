@@ -13,6 +13,8 @@ interface HeaderProps {
     onViewInbox?: () => void;
     unreadNotifications?: number;
     unreadMessages?: number;
+    onToggleTheme?: () => void;
+    theme?: 'dark' | 'light';
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -25,6 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
     onLangChange,
     onViewNotifications,
     onViewInbox,
+    onToggleTheme,
+    theme = 'dark',
     unreadNotifications = 2,
     unreadMessages = 1
 }) => {
@@ -37,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-6">
         <button 
           onClick={onToggleMenu}
-          className="md:hidden p-2 text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30"
+          className="md:hidden p-2 text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -55,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <circle cx="75" cy="50" r="8" fill="currentColor" />
              </svg>
           </div>
-          <h1 className="text-2xl font-bold font-display tracking-[0.2em] text-white text-shadow-gold">
+          <h1 className="text-2xl font-bold font-display tracking-[0.2em] dark:text-white text-slate-900 text-shadow-gold">
             SKILLFI
           </h1>
         </div>
@@ -66,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Inbox Icon - Spaced out */}
         <button 
             onClick={onViewInbox}
-            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors relative"
+            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors relative"
             title="Inbox"
         >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -80,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Notifications Icon */}
         <button 
             onClick={onViewNotifications}
-            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors relative"
+            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors relative"
             title="Notifications"
         >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -93,10 +97,29 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="w-px h-6 bg-skillfi-neon/20 mx-1 hidden md:block"></div>
 
+        {/* Theme Toggle Button */}
+        {onToggleTheme && (
+            <button 
+                onClick={onToggleTheme}
+                className="hidden md:flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                title="Toggle Theme"
+            >
+                {theme === 'dark' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                    </svg>
+                )}
+            </button>
+        )}
+
         {/* Language Button */}
         <button 
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="hidden md:flex items-center gap-2 bg-transparent border border-white/10 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
+            className="hidden md:flex items-center gap-2 bg-transparent border border-black/10 dark:border-white/10 hover:border-skillfi-neon dark:text-white text-slate-900 text-xs font-bold px-3 py-2 rounded-lg transition-all"
         >
             <span className="text-base">{currentLangData.flag}</span>
         </button>
@@ -107,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold border transition-all duration-300 ${
                     isVoiceMode 
                     ? 'bg-skillfi-neon text-black border-skillfi-neon shadow-glow' 
-                    : 'bg-transparent text-gray-400 border-white/10 hover:border-skillfi-neon/50 hover:text-white'
+                    : 'bg-transparent text-gray-400 border-black/10 dark:border-white/10 hover:border-skillfi-neon/50 dark:hover:text-white hover:text-black'
                 }`}
                 title="Voice Output"
             >
@@ -141,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in" onClick={() => setShowLangMenu(false)}>
             <div className="glass-panel border border-skillfi-neon/20 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="p-6 border-b border-skillfi-neon/10 flex justify-between items-center bg-transparent">
-                    <h2 className="text-xl font-bold font-display text-white tracking-widest">Select Language</h2>
+                    <h2 className="text-xl font-bold font-display dark:text-white text-slate-900 tracking-widest">Select Language</h2>
                     <button onClick={() => setShowLangMenu(false)} className="text-gray-400 hover:text-skillfi-neon">✕</button>
                 </div>
                 <div className="overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-4 gap-3 scrollbar-hide">
@@ -154,8 +177,8 @@ export const Header: React.FC<HeaderProps> = ({
                             }}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left group ${
                                 currentLang === lang.code 
-                                ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' 
-                                : 'bg-transparent border-white/5 hover:border-skillfi-neon/50 text-gray-400 hover:text-white'
+                                ? 'bg-skillfi-neon/10 border-skillfi-neon dark:text-white text-black' 
+                                : 'bg-transparent border-black/5 dark:border-white/5 hover:border-skillfi-neon/50 text-gray-400 dark:hover:text-white hover:text-black'
                             }`}
                         >
                             <span className="text-2xl">{lang.flag}</span>
