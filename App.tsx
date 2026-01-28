@@ -15,7 +15,7 @@ import { Support } from './components/Support';
 import { Inbox } from './components/Inbox';
 import { Notifications } from './components/Notifications';
 import { CareerArsenal } from './components/CareerArsenal'; 
-import { EducationCenter } from './components/EducationCenter'; // New Import
+import { EducationCenter } from './components/EducationCenter'; 
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -563,7 +563,7 @@ const App: React.FC = () => {
                       />
                   )}
                   
-                  {currentView === 'CAREER' && <CareerArsenal />}
+                  {currentView === 'CAREER' && <CareerArsenal user={user!} />}
                   {currentView === 'EDUCATION' && <EducationCenter />}
 
                   {currentView === 'CHAT' && (
@@ -585,7 +585,7 @@ const App: React.FC = () => {
                     </>
                   )}
 
-                  {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
+                  {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} currentLang={currentLang} />}
                   
                   {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} />}
 

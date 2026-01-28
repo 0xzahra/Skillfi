@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AudioService } from '../services/audioService';
 
 export const EducationCenter: React.FC = () => {
     const [scanning, setScanning] = useState(true);
@@ -20,6 +21,8 @@ export const EducationCenter: React.FC = () => {
             ]);
             // Haptic Alert
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            // Audio Alert
+            AudioService.playSuccess();
         }, 3000);
 
         return () => clearTimeout(timer);

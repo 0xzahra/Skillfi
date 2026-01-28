@@ -133,6 +133,22 @@ export const generateProfessionalHeadshot = async (
     }
 };
 
+export const generateItemVisual = async (itemDescription: string): Promise<string | null> => {
+    const ai = getClient();
+    const prompt = `Create a hyper-realistic, cinematic product shot of: ${itemDescription}. Lighting: Studio, dramatic. Background: Minimalist luxury dark mode. Quality: 8k.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: { parts: [{ text: prompt }] }
+        });
+        return response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data || null;
+    } catch (error) {
+        console.error("Item Gen Error:", error);
+        return null;
+    }
+};
+
 // --- NEW FEATURES ---
 
 export interface ContentPack {
@@ -186,6 +202,60 @@ export const generatePitchDeck = async (topic: string): Promise<{title: string, 
         return JSON.parse(response.text || "[]");
     } catch (error) {
         console.error("Pitch Deck Error:", error);
+        return null;
+    }
+};
+
+export const generatePortfolioHTML = async (userContext: string): Promise<string | null> => {
+    const ai = getClient();
+    const prompt = `
+    Generate a modern, futuristic, single-page personal portfolio website HTML for a user with this context: "${userContext}".
+    
+    Requirements:
+    - Use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) for styling.
+    - Dark mode, cyber/tech aesthetics (black background, neon accents).
+    - Sections: Hero (Name, Role), About, Skills (as tags), Proof of Work (2 mock projects), Contact.
+    - Fully responsive.
+    - Return ONLY valid HTML code string. Do not include markdown code blocks like \`\`\`html.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] }
+        });
+        let html = response.text || "";
+        // Cleanup potential markdown blocks
+        html = html.replace(/```html/g, '').replace(/```/g, '');
+        return html;
+    } catch (error) {
+        console.error("Portfolio Gen Error:", error);
+        return null;
+    }
+};
+
+export const generateCVContent = async (userContext: string): Promise<string | null> => {
+    const ai = getClient();
+    const prompt = `
+    Generate a professional, ATS-optimized Resume/CV content for: "${userContext}".
+    
+    Structure:
+    1. Summary (Professional Profile)
+    2. Core Competencies (Skills)
+    3. Professional Experience (Create 2 realistic mock roles based on context)
+    4. Education
+    
+    Output Format: Clean plain text with clear section headers. No markdown symbols like ** or #.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("CV Gen Error:", error);
         return null;
     }
 };

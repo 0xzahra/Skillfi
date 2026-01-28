@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { generateItemVisual, sendMessageToSkillfi, initializeChat } from '../services/geminiService';
+import { LanguageCode } from '../types';
 
-type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'RWA' | 'TAX';
+type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'RWA' | 'TAX';
 
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
+    currentLang: LanguageCode;
 }
 
-export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
+export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLang }) => {
   const [activeTab, setActiveTab] = useState<FinanceTab>('BUDGET');
 
   // Budget State
@@ -32,8 +35,65 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   const [taxDeductions, setTaxDeductions] = useState(13850);
   const [taxRate, setTaxRate] = useState(22);
 
+  // Mastery State
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [enlightenment, setEnlightenment] = useState<string>('');
+  const [itemImage, setItemImage] = useState<string | null>(null);
+  const [isEnlightening, setIsEnlightening] = useState(false);
+
   // Canvas Refs
   const galaxyCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // --- Mastery Data ---
+  const masteryItems = {
+      assets: [
+          { name: 'Rental Real Estate', type: 'ASSET', icon: '🏢', desc: 'Positive Cash Flow' },
+          { name: 'Dividend Stocks', type: 'ASSET', icon: '📈', desc: 'Passive Income' },
+          { name: 'Intellectual Property', type: 'ASSET', icon: '💡', desc: 'Royalties' },
+          { name: 'Automated Business', type: 'ASSET', icon: '⚙️', desc: 'Scalable Revenue' }
+      ],
+      liabilities: [
+          { name: 'Luxury Car Loan', type: 'LIABILITY', icon: '🏎️', desc: 'Depreciating Debt' },
+          { name: 'Credit Card Debt', type: 'LIABILITY', icon: '💳', desc: 'High Interest' },
+          { name: 'Oversized Mortgage', type: 'LIABILITY', icon: '🏠', desc: 'Expense Heavy' },
+          { name: 'Unused Subscriptions', type: 'LIABILITY', icon: '📺', desc: 'Value Leak' }
+      ],
+      luxuries: [
+          { name: 'Designer Fashion', type: 'LUXURY', icon: '👜', desc: 'Status Signal' },
+          { name: 'First Class Travel', type: 'LUXURY', icon: '✈️', desc: 'Experience' },
+          { name: 'Fine Dining', type: 'LUXURY', icon: '🥂', desc: 'Consumable' },
+          { name: 'Tech Gadgets', type: 'LUXURY', icon: '📱', desc: 'Rapid Deprecation' }
+      ],
+      rareVault: [
+          { name: 'Patek Philippe Nautilus', type: 'RARE', icon: '⌚', desc: 'Appreciating Timepiece' },
+          { name: '1962 Ferrari 250 GTO', type: 'RARE', icon: '🚗', desc: 'Blue Chip Auto' },
+          { name: 'Basquiat Painting', type: 'RARE', icon: '🎨', desc: 'Fine Art Asset' },
+          { name: 'Prime Waterfront Land', type: 'RARE', icon: '🏝️', desc: 'Finite Resource' }
+      ]
+  };
+
+  const handleInspectItem = async (item: any) => {
+      setSelectedItem(item);
+      setEnlightenment('');
+      setItemImage(null);
+      setIsEnlightening(true);
+
+      // 1. Generate Explanation
+      try {
+          const chat = await initializeChat(currentLang);
+          const prompt = `Explain strictly the financial mechanics of: ${item.name}. Is it an Asset, Liability, or Luxury? Why? If it's rare, explain its exclusivity to high society. Max 50 words. Language: ${currentLang}`;
+          const text = await sendMessageToSkillfi(chat, prompt);
+          setEnlightenment(text);
+      } catch (e) {
+          setEnlightenment("Analysis Matrix Failed.");
+      }
+
+      // 2. Generate Image
+      const img = await generateItemVisual(item.name);
+      setItemImage(img ? `data:image/jpeg;base64,${img}` : null);
+      
+      setIsEnlightening(false);
+  };
 
   // --- Calculations ---
   const calculateBudget = () => {
@@ -187,14 +247,14 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
     <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20 scrollbar-hide">
       <header className="mb-6 flex justify-between items-end">
         <div>
-            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Wealth OS <span className="text-skillfi-neon text-shadow-neon">v4.0</span></h1>
+            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Wealth OS <span className="text-skillfi-neon text-shadow-neon">v4.2</span></h1>
             <p className="text-gray-500 text-sm mt-1">Sovereign Financial Control Center</p>
         </div>
       </header>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide">
-        {(['BUDGET', 'PROFIT', 'INTEREST', 'RWA', 'TAX'] as FinanceTab[]).map((tab) => (
+        {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'RWA', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -443,6 +503,114 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     </div>
                 </div>
             </div>
+        )}
+
+        {/* WEALTH MASTERY (NEW) */}
+        {activeTab === 'MASTERY' && (
+             <div className="space-y-8 animate-fade-in relative">
+                 {/* Item Inspector Modal */}
+                 {selectedItem && (
+                     <div className="absolute inset-0 z-20 bg-black/90 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center p-8 animate-fade-in border border-skillfi-neon/20">
+                         <button 
+                             onClick={() => setSelectedItem(null)}
+                             className="absolute top-4 right-4 text-gray-500 hover:text-white"
+                         >
+                             ✕
+                         </button>
+                         <div className="text-4xl mb-4">{selectedItem.icon}</div>
+                         <h3 className="text-2xl font-bold font-display text-white mb-2">{selectedItem.name}</h3>
+                         <div className={`text-[10px] font-bold px-3 py-1 rounded-full mb-6 ${
+                             selectedItem.type === 'ASSET' ? 'bg-green-500/20 text-green-400' :
+                             selectedItem.type === 'LIABILITY' ? 'bg-red-500/20 text-red-400' :
+                             selectedItem.type === 'RARE' ? 'bg-yellow-500/20 text-yellow-400' :
+                             'bg-purple-500/20 text-purple-400'
+                         }`}>
+                             {selectedItem.type} CLASS
+                         </div>
+
+                         {isEnlightening ? (
+                             <div className="text-center">
+                                 <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                 <p className="text-skillfi-neon font-mono text-xs animate-pulse">Consulting Wealth Database...</p>
+                             </div>
+                         ) : (
+                             <div className="w-full max-w-lg space-y-6">
+                                 {itemImage && (
+                                     <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl h-48 w-full">
+                                         <img src={itemImage} alt={selectedItem.name} className="w-full h-full object-cover" />
+                                     </div>
+                                 )}
+                                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                                     <p className="text-sm text-gray-200 leading-relaxed font-medium">"{enlightenment}"</p>
+                                 </div>
+                             </div>
+                         )}
+                     </div>
+                 )}
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     {/* ASSETS */}
+                     <div className="space-y-4">
+                         <h3 className="text-green-500 font-bold text-xs uppercase tracking-widest text-center">True Assets</h3>
+                         {masteryItems.assets.map((item, i) => (
+                             <div key={i} onClick={() => handleInspectItem(item)} className="glass-panel p-4 rounded-xl hover:bg-green-900/10 cursor-pointer transition-all border-l-2 border-l-green-500 flex items-center gap-4 group">
+                                 <div className="text-2xl">{item.icon}</div>
+                                 <div>
+                                     <div className="font-bold text-white text-sm group-hover:text-green-400 transition-colors">{item.name}</div>
+                                     <div className="text-[10px] text-gray-500">{item.desc}</div>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* LIABILITIES */}
+                     <div className="space-y-4">
+                         <h3 className="text-red-500 font-bold text-xs uppercase tracking-widest text-center">Liabilities</h3>
+                         {masteryItems.liabilities.map((item, i) => (
+                             <div key={i} onClick={() => handleInspectItem(item)} className="glass-panel p-4 rounded-xl hover:bg-red-900/10 cursor-pointer transition-all border-l-2 border-l-red-500 flex items-center gap-4 group">
+                                 <div className="text-2xl">{item.icon}</div>
+                                 <div>
+                                     <div className="font-bold text-white text-sm group-hover:text-red-400 transition-colors">{item.name}</div>
+                                     <div className="text-[10px] text-gray-500">{item.desc}</div>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* LUXURIES */}
+                     <div className="space-y-4">
+                         <h3 className="text-purple-500 font-bold text-xs uppercase tracking-widest text-center">Luxuries</h3>
+                         {masteryItems.luxuries.map((item, i) => (
+                             <div key={i} onClick={() => handleInspectItem(item)} className="glass-panel p-4 rounded-xl hover:bg-purple-900/10 cursor-pointer transition-all border-l-2 border-l-purple-500 flex items-center gap-4 group">
+                                 <div className="text-2xl">{item.icon}</div>
+                                 <div>
+                                     <div className="font-bold text-white text-sm group-hover:text-purple-400 transition-colors">{item.name}</div>
+                                     <div className="text-[10px] text-gray-500">{item.desc}</div>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+
+                 {/* 1% VAULT */}
+                 <div className="glass-panel p-8 rounded-2xl border border-yellow-500/20 bg-gradient-to-br from-black to-yellow-900/10 relative overflow-hidden">
+                     <div className="absolute top-0 right-0 p-6 opacity-5 text-8xl text-yellow-500 font-serif italic select-none">The 1%</div>
+                     <h3 className="text-yellow-500 font-bold text-lg font-display mb-6 flex items-center gap-3">
+                         <span className="text-2xl">🏆</span> High Society Vault
+                         <span className="text-[10px] bg-yellow-500/10 px-2 py-0.5 rounded text-yellow-500 border border-yellow-500/20">RARE ASSETS ONLY</span>
+                     </h3>
+                     
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                         {masteryItems.rareVault.map((item, i) => (
+                             <div key={i} onClick={() => handleInspectItem(item)} className="bg-black/40 border border-white/5 p-4 rounded-xl hover:border-yellow-500/50 cursor-pointer transition-all flex flex-col items-center text-center group">
+                                 <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{item.icon}</div>
+                                 <div className="text-white font-bold text-xs mb-1 group-hover:text-yellow-400">{item.name}</div>
+                                 <div className="text-[9px] text-gray-500 uppercase tracking-wide">{item.desc}</div>
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+             </div>
         )}
 
         {/* RWA MONITOR (Gold/Silver) */}
