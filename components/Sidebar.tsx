@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LanguageCode } from '../types';
 import { t } from '../translations';
@@ -15,6 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose,
 
   const navItems = [
     { id: 'dashboard', label: t('dashboard', currentLang), desc: 'Overview & Stats', icon: '⚡', action: 'DASHBOARD' },
+    { id: 'inbox', label: 'Inbox', desc: 'Secure Messaging', icon: '✉️', action: 'INBOX' },
     { id: 'tribes', label: t('tribes', currentLang), desc: 'Join Communities', icon: '✊', action: 'TRIBES' },
     { id: 'career', label: t('career', currentLang), desc: 'Web3 & Tech Strategy', icon: '🚀', action: 'CAREER' },
     { id: 'finance', label: t('finance', currentLang), desc: 'Wealth Tools', icon: '📊', action: 'FINANCE' },

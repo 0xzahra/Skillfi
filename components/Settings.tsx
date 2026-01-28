@@ -57,7 +57,7 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Codename / Username</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Username</label>
                             <input 
                                 name="username"
                                 type="text" 

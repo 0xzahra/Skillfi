@@ -9,7 +9,7 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         // Auth
         auth_title: "Career Guidance Counselor",
         auth_reg_title: "Identity Creation Protocol",
-        username: "Codename / Username",
+        username: "Username",
         email: "Secure Link (Email)",
         password: "Password",
         login_btn: "Login", // Changed from Authenticate
@@ -54,7 +54,7 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
     ha: { // Hausa
         auth_title: "Shiga Tsarin Tsaro",
         auth_reg_title: "Kirkiri Sabon Suna",
-        username: "Sunan Rada / Username",
+        username: "Username",
         email: "Imel (Email)",
         password: "Kalmar Sirri",
         login_btn: "Shiga",

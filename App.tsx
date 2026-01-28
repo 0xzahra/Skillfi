@@ -9,8 +9,11 @@ import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
 import { IntroSplash } from './components/IntroSplash';
+import { LanguageSelector } from './components/LanguageSelector';
 import { Tribes } from './components/Tribes';
 import { Support } from './components/Support'; 
+import { Inbox } from './components/Inbox';
+import { Notifications } from './components/Notifications';
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -19,6 +22,7 @@ import { INITIAL_GREETING } from './constants';
 const App: React.FC = () => {
   // --- STATE ---
   const [showSplash, setShowSplash] = useState(true);
+  const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
@@ -79,7 +83,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Check local storage for auth logic, but don't set view until splash is done
+    // Check local storage for auth logic
     const savedUser = localStorage.getItem('skillfi_user');
     if (savedUser) {
         // Migration check for old user objects that might lack new fields
@@ -125,9 +129,14 @@ const App: React.FC = () => {
     }
   }, [messages]);
 
-  const handleSplashComplete = (selectedLang: LanguageCode) => {
-      setCurrentLang(selectedLang);
+  const handleSplashComplete = () => {
       setShowSplash(false);
+      setShowLanguageSelect(true);
+  };
+
+  const handleLanguageSelect = (selectedLang: LanguageCode) => {
+      setCurrentLang(selectedLang);
+      setShowLanguageSelect(false);
       // If user was found during initial load, go to dashboard, else Auth
       if (localStorage.getItem('skillfi_user')) {
           setCurrentView('DASHBOARD');
@@ -273,7 +282,7 @@ const App: React.FC = () => {
       // Direct Navigation Views (No Chat Trigger)
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
-      } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY' || view === 'TRIBES' || view === 'SUPPORT') {
+      } else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS'].includes(view)) {
           setCurrentView(view as ViewMode);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
@@ -431,7 +440,7 @@ const App: React.FC = () => {
 
   // --- RENDERING ---
 
-  const isIntroOrAuth = showSplash || currentView === 'AUTH';
+  const isIntroOrAuth = showSplash || showLanguageSelect || currentView === 'AUTH';
 
   return (
     <div className="relative h-screen overflow-hidden bg-skillfi-bg text-white font-sans selection:bg-skillfi-neon selection:text-black">
@@ -463,15 +472,20 @@ const App: React.FC = () => {
           <IntroSplash onComplete={handleSplashComplete} />
       )}
 
+      {/* Language Selection (Shows after Splash) */}
+      {!showSplash && showLanguageSelect && (
+          <LanguageSelector onSelect={handleLanguageSelect} />
+      )}
+
       {/* Auth Screen (Overlaying Video) */}
-      {!showSplash && currentView === 'AUTH' && (
+      {!showSplash && !showLanguageSelect && currentView === 'AUTH' && (
           <div className="relative z-10 h-full overflow-y-auto">
               <Auth onLogin={handleLogin} currentLang={currentLang} />
           </div>
       )}
 
       {/* Main App (Dashboard/Chat/etc) */}
-      {!showSplash && currentView !== 'AUTH' && (
+      {!showSplash && !showLanguageSelect && currentView !== 'AUTH' && (
           <div className="flex h-screen overflow-hidden bg-[#050505] relative z-20">
               {/* Background gradient for depth */}
               <div className="absolute inset-0 bg-gradient-to-br from-skillfi-bg via-[#0a0a0a] to-[#050505] z-0 pointer-events-none"></div>
@@ -492,6 +506,8 @@ const App: React.FC = () => {
                     onToggleVoice={toggleVoiceMode}
                     currentLang={currentLang}
                     onLangChange={(l) => setCurrentLang(l)}
+                    onViewNotifications={() => handleNavigate('NOTIFICATIONS')}
+                    onViewInbox={() => handleNavigate('INBOX')}
                     onShare={() => {
                         const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
                         navigator.clipboard.writeText(transcript);
@@ -503,7 +519,6 @@ const App: React.FC = () => {
                   {currentView === 'DASHBOARD' && (
                       <Dashboard 
                         user={user!} 
-                        activities={activities}
                         onNavigate={handleNavigate}
                         onAddSkill={handleAddSkill}
                         currentLang={currentLang}
@@ -533,6 +548,10 @@ const App: React.FC = () => {
                   {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} />}
 
                   {currentView === 'SUPPORT' && <Support />}
+                  
+                  {currentView === 'INBOX' && <Inbox />}
+
+                  {currentView === 'NOTIFICATIONS' && <Notifications />}
 
                   {currentView === 'SETTINGS' && (
                       <Settings 

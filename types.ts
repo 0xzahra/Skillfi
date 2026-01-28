@@ -1,3 +1,4 @@
+
 export interface Message {
   id: string;
   role: 'user' | 'model';
@@ -19,7 +20,7 @@ export enum FileType {
   PDF = 'PDF'
 }
 
-export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY' | 'TRIBES' | 'SUPPORT';
+export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY' | 'TRIBES' | 'SUPPORT' | 'INBOX' | 'NOTIFICATIONS';
 
 export interface UserProfile {
   id: string;
@@ -42,6 +43,7 @@ export interface UserProfile {
   skills: string[];
   credits: number;
   isElite: boolean;
+  following?: string[];
 }
 
 export interface ActivityLog {
@@ -75,6 +77,37 @@ export interface FeedPost {
     content: string;
     likes: number;
     timestamp: string;
+    isUser?: boolean;
+}
+
+export interface TribeMember {
+    id: string;
+    username: string;
+    role: 'ADMIN' | 'MEMBER';
+    isFollowing: boolean;
+    avatar: string;
+}
+
+export interface Notification {
+    id: string;
+    type: 'LIKE' | 'FOLLOW' | 'SYSTEM' | 'MENTION';
+    text: string;
+    time: string;
+    isRead: boolean;
+}
+
+export interface DMConversation {
+    id: string;
+    contactName: string;
+    lastMessage: string;
+    timestamp: string;
+    unread: number;
+    messages: {
+        id: string;
+        text: string;
+        isMe: boolean;
+        time: string;
+    }[];
 }
 
 export type LanguageCode = string;
