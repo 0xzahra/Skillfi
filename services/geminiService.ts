@@ -164,3 +164,46 @@ export const generateVisionBoard = async (context: string): Promise<string | nul
         return null;
     }
 };
+
+// Generate a Career Avatar based on user photo and role description
+export const generateCareerAvatar = async (
+    imageBase64: string, 
+    roleDescription: string
+): Promise<string | null> => {
+    const ai = getClient();
+
+    // Prompt engineered for hyper-realism and professional role adaptation
+    const prompt = `
+    Transform this person into a hyper-realistic, confident ${roleDescription}.
+    Attire: High-end professional, futuristic yet practical for the role.
+    Setting: A sleek, modern high-tech environment matching the profession.
+    Lighting: Cinematic, dramatic lighting, 8k resolution, highly detailed face.
+    Style: Photorealistic, professional portrait.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } },
+                    { text: prompt }
+                ]
+            }
+        });
+
+        // Parse response for the generated image
+        if (response.candidates?.[0]?.content?.parts) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    return part.inlineData.data;
+                }
+            }
+        }
+        return null;
+
+    } catch (error) {
+        console.error("Career Avatar Gen Error:", error);
+        return null;
+    }
+};

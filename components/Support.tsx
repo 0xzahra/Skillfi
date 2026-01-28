@@ -37,19 +37,7 @@ export const Support: React.FC = () => {
         setInputText('');
         setIsTyping(true);
 
-        // Call Gemini with a specific "Support Agent" context override
-        // Note: we're using a fresh chat instance implicitly or just one-off message logic
-        // For simplicity in this component, we'll re-use the generic service but prompt it to act as support.
         try {
-            // We pass a dummy object or just re-import initializeChat if needed, 
-            // but here we will just assume the main service works. 
-            // Since we don't have the main 'chat' object prop here, let's just simulate a quick one-off or use a new instance.
-            // For this demo, we'll use a direct prompt engineering trick in the `sendMessageToSkillfi` if we had the chat object.
-            // To keep it simple and robust without prop drilling:
-            // We will make a new simple connection using the existing service helper if possible, 
-            // OR just simulate for now if the chat object isn't available.
-            
-            // ACTUALLY: The best way is to import `initializeChat` and make a local session.
             const { initializeChat, sendMessageToSkillfi } = await import('../services/geminiService');
             const chat = await initializeChat('en'); 
             
@@ -176,14 +164,10 @@ export const Support: React.FC = () => {
                 )}
             </div>
 
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl text-center">
-                <div className="p-4 rounded-xl border border-white/5 bg-black/20 backdrop-blur-sm">
+            <div className="mt-8 flex justify-center w-full max-w-4xl text-center">
+                <div className="p-4 rounded-xl border border-white/5 bg-black/20 backdrop-blur-sm w-full max-w-md">
                     <div className="text-gray-400 text-xs font-bold uppercase mb-1">Email Support</div>
                     <div className="text-skillfi-neon text-sm font-mono">ops@skillfi.ai</div>
-                </div>
-                <div className="p-4 rounded-xl border border-white/5 bg-black/20 backdrop-blur-sm">
-                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Global HQ</div>
-                    <div className="text-white text-sm">Dubai Silicon Oasis, UAE</div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LanguageCode, LANGUAGES } from '../types';
 
 interface HeaderProps {
@@ -20,7 +20,11 @@ export const Header: React.FC<HeaderProps> = ({
     currentLang,
     onLangChange
 }) => {
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const currentLangData = LANGUAGES.find(l => l.code === currentLang) || LANGUAGES[0];
+
   return (
+    <>
     <header className="px-4 md:px-6 py-4 bg-skillfi-bg/90 backdrop-blur-md border-b border-gray-800 flex items-center justify-between sticky top-0 z-40 shadow-lg shrink-0 font-sans">
       <div className="flex items-center gap-3">
         <button 
@@ -41,23 +45,17 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Language Selector */}
-        <div className="relative group">
-            <select 
-                value={currentLang}
-                onChange={(e) => onLangChange(e.target.value as LanguageCode)}
-                className="appearance-none bg-[#1a1a1a] border border-gray-700 text-white text-xs font-bold py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-skillfi-neon cursor-pointer hover:bg-[#222]"
-            >
-                {LANGUAGES.map(lang => (
-                    <option key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                    </option>
-                ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
-        </div>
+        {/* Custom Language Button */}
+        <button 
+            onClick={() => setShowLangMenu(!showLangMenu)}
+            className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-700 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
+        >
+            <span className="text-base">{currentLangData.flag}</span>
+            <span className="hidden md:inline">{currentLangData.name}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+        </button>
 
         {onToggleVoice && (
             <button
@@ -110,5 +108,40 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
     </header>
+
+    {/* Language Selection Modal */}
+    {showLangMenu && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setShowLangMenu(false)}>
+            <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#151515]">
+                    <h2 className="text-xl font-bold text-white">Select Protocol Language</h2>
+                    <button onClick={() => setShowLangMenu(false)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-4 gap-3 scrollbar-hide">
+                    {LANGUAGES.map((lang) => (
+                        <button
+                            key={lang.code}
+                            onClick={() => {
+                                onLangChange(lang.code);
+                                setShowLangMenu(false);
+                            }}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left group ${
+                                currentLang === lang.code 
+                                ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' 
+                                : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-white/10 text-gray-300'
+                            }`}
+                        >
+                            <span className="text-2xl">{lang.flag}</span>
+                            <div>
+                                <div className={`font-bold text-sm ${currentLang === lang.code ? 'text-skillfi-neon' : 'group-hover:text-white'}`}>{lang.name}</div>
+                                <div className="text-[10px] opacity-50 uppercase tracking-wider">{lang.code}</div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )}
+    </>
   );
 };

@@ -10,8 +10,8 @@ import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
 import { IntroSplash } from './components/IntroSplash';
 import { Tribes } from './components/Tribes';
-import { Support } from './components/Support'; // New Component
-import { initializeChat, sendMessageToSkillfi, generateSpeech } from './services/geminiService';
+import { Support } from './components/Support'; 
+import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
 import { INITIAL_GREETING } from './constants';
@@ -95,7 +95,8 @@ const App: React.FC = () => {
     }
   }, [messages]);
 
-  const handleSplashComplete = () => {
+  const handleSplashComplete = (selectedLang: LanguageCode) => {
+      setCurrentLang(selectedLang);
       setShowSplash(false);
       // If user was found during initial load, go to dashboard, else Auth
       if (localStorage.getItem('skillfi_user')) {
@@ -293,6 +294,62 @@ const App: React.FC = () => {
     setIsLoading(true);
     AudioService.playProcessing();
 
+    // Check for Image Generation Intent ("imagine me", "visualize", "create avatar")
+    const isImageGenIntent = attachment && attachment.mimeType.startsWith('image/') && 
+                             (text.toLowerCase().includes('imagine') || text.toLowerCase().includes('visualize') || text.toLowerCase().includes('avatar'));
+
+    if (isImageGenIntent) {
+        try {
+            // Add a temporary loading message for image gen
+            const loadingId = Date.now().toString() + '-gen';
+            setMessages(prev => [...prev, {
+                id: loadingId,
+                role: 'model',
+                content: "[PROCESSING IMAGE MATRIX] Analyzing biometric data... Generating future self projection...",
+                timestamp: Date.now()
+            }]);
+
+            // Construct role description from user profile and text
+            const skills = user?.skills.join(', ') || 'General Tech';
+            const roleContext = `${text}. Skills: ${skills}. Level: ${user?.level}.`;
+            
+            const generatedImageBase64 = await generateCareerAvatar(attachment.data, roleContext);
+
+            // Remove loading message
+            setMessages(prev => prev.filter(m => m.id !== loadingId));
+
+            if (generatedImageBase64) {
+                const imgMsg: Message = {
+                    id: Date.now().toString(),
+                    role: 'model',
+                    content: "Identity Projection Complete. Here is your visualized career avatar.",
+                    attachment: {
+                        data: generatedImageBase64,
+                        mimeType: 'image/jpeg'
+                    },
+                    timestamp: Date.now()
+                };
+                setMessages(prev => [...prev, imgMsg]);
+                AudioService.playSuccess();
+                setIsLoading(false);
+                return; // Exit early as we handled it
+            } else {
+                 throw new Error("Failed to generate image");
+            }
+
+        } catch (e) {
+            console.error("Avatar Gen Failed", e);
+             setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: 'model',
+                content: "Visual matrix failed. Please try uploading a clearer photo.",
+                timestamp: Date.now()
+            }]);
+            setIsLoading(false);
+            return;
+        }
+    }
+
     try {
       if (!chatSessionRef.current) {
         chatSessionRef.current = await initializeChat(currentLang);
@@ -391,7 +448,7 @@ const App: React.FC = () => {
       {/* Auth Screen (Overlaying Video) */}
       {!showSplash && currentView === 'AUTH' && (
           <div className="relative z-10 h-full overflow-y-auto">
-              <Auth onLogin={handleLogin} />
+              <Auth onLogin={handleLogin} currentLang={currentLang} />
           </div>
       )}
 
@@ -403,6 +460,7 @@ const App: React.FC = () => {
                 onModeSelect={handleNavigate}
                 onClose={() => setIsSidebarOpen(false)}
                 credits={user?.credits || 0}
+                currentLang={currentLang}
               />
 
               <div className="flex-1 flex flex-col h-full relative w-full">
@@ -427,6 +485,7 @@ const App: React.FC = () => {
                         activities={activities}
                         onNavigate={handleNavigate}
                         onAddSkill={handleAddSkill}
+                        currentLang={currentLang}
                       />
                   )}
                   
@@ -441,7 +500,7 @@ const App: React.FC = () => {
                                 isLoading={isLoading} 
                             />
                             <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                                Vibe coded by arewa.base.eth © 2026
+                                System v2.5 Online
                             </div>
                         </div>
                       </div>

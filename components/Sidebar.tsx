@@ -1,32 +1,35 @@
 import React from 'react';
+import { LanguageCode } from '../types';
+import { t } from '../translations';
 
 interface SidebarProps {
   isOpen: boolean;
   onModeSelect: (mode: string) => void;
   onClose: () => void;
   credits: number;
+  currentLang: LanguageCode;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose, credits }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose, credits, currentLang }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', desc: 'Overview & Stats', icon: '⚡', action: 'DASHBOARD' },
-    { id: 'tribes', label: 'Tribes', desc: 'Join Communities', icon: '✊', action: 'TRIBES' },
-    { id: 'career', label: 'Career Path', desc: 'Web3 & Tech Strategy', icon: '🚀', action: 'CAREER' },
-    { id: 'finance', label: 'Finance OS', desc: 'Wealth Tools', icon: '📊', action: 'FINANCE' },
+    { id: 'dashboard', label: t('dashboard', currentLang), desc: 'Overview & Stats', icon: '⚡', action: 'DASHBOARD' },
+    { id: 'tribes', label: t('tribes', currentLang), desc: 'Join Communities', icon: '✊', action: 'TRIBES' },
+    { id: 'career', label: t('career', currentLang), desc: 'Web3 & Tech Strategy', icon: '🚀', action: 'CAREER' },
+    { id: 'finance', label: t('finance', currentLang), desc: 'Wealth Tools', icon: '📊', action: 'FINANCE' },
     
     // Expanded Relationships Category
-    { id: 'rel_general', label: 'Relationships', desc: 'General Guidance', icon: '❤️', action: 'RELATIONSHIPS' },
-    { id: 'rel_rights', label: 'Marriage Rights', desc: 'Protected by Divine Law', icon: '⚖️', action: 'RIGHTS' },
-    { id: 'rel_duties', label: 'Duties & Obligations', desc: 'Roles & Responsibilities', icon: '🤝', action: 'DUTIES' },
-    { id: 'rel_criteria', label: 'Spouse Criteria', desc: 'Selection Standards', icon: '🔍', action: 'CRITERIA' },
+    { id: 'rel_general', label: t('relationships', currentLang), desc: 'General Guidance', icon: '❤️', action: 'RELATIONSHIPS' },
+    { id: 'rel_rights', label: t('rights', currentLang), desc: 'Protected Rights', icon: '⚖️', action: 'RIGHTS' },
+    { id: 'rel_duties', label: t('duties', currentLang), desc: 'Roles & Responsibilities', icon: '🤝', action: 'DUTIES' },
+    { id: 'rel_criteria', label: t('criteria', currentLang), desc: 'Selection Standards', icon: '🔍', action: 'CRITERIA' },
     
-    { id: 'elite', label: 'High Society', desc: 'Etiquette & Class', icon: '🎩', action: 'ELITE' },
-    { id: 'education', label: 'Education', desc: 'Academic Guidance', icon: '🧠', action: 'EDUCATION' },
-    { id: 'safety', label: 'OpSec & Safety', desc: 'Digital Security', icon: '🛡️', action: 'SAFETY' },
-    { id: 'support', label: 'Live Support', desc: 'Human Agent Uplink', icon: '🎧', action: 'SUPPORT' },
-    { id: 'history', label: 'History', desc: 'Archives', icon: '📜', action: 'HISTORY' },
-    { id: 'settings', label: 'Settings', desc: 'Configuration', icon: '⚙️', action: 'SETTINGS' },
-    { id: 'logout', label: 'Logout', desc: 'End Session', icon: '❌', action: 'LOGOUT' },
+    { id: 'elite', label: t('elite', currentLang), desc: 'Etiquette & Class', icon: '🎩', action: 'ELITE' },
+    { id: 'education', label: t('education', currentLang), desc: 'Academic Guidance', icon: '🧠', action: 'EDUCATION' },
+    { id: 'safety', label: t('safety', currentLang), desc: 'Digital Security', icon: '🛡️', action: 'SAFETY' },
+    { id: 'support', label: t('support', currentLang), desc: 'Human Agent Uplink', icon: '🎧', action: 'SUPPORT' },
+    { id: 'history', label: t('history', currentLang), desc: 'Archives', icon: '📜', action: 'HISTORY' },
+    { id: 'settings', label: t('settings', currentLang), desc: 'Configuration', icon: '⚙️', action: 'SETTINGS' },
+    { id: 'logout', label: t('logout', currentLang), desc: 'End Session', icon: '❌', action: 'LOGOUT' },
   ];
 
   return (
@@ -47,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose,
       `}>
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-skillfi-bg/50">
           <div>
-              <h2 className="font-bold text-white text-xl tracking-tight">Menu</h2>
+              <h2 className="font-bold text-white text-xl tracking-tight">{t('menu', currentLang)}</h2>
           </div>
           <button onClick={onClose} className="md:hidden text-gray-400 hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
