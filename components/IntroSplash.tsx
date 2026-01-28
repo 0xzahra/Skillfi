@@ -24,10 +24,10 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
         video.addEventListener('ended', handleEnd);
         video.play().catch(e => {
             console.warn("Autoplay blocked or video missing, using fallback timer", e);
-            setTimeout(handleEnd, 4000); // Fallback duration
+            setTimeout(handleEnd, 5000); // Fallback duration slightly longer for the new video
         });
     } else {
-        setTimeout(handleEnd, 4000);
+        setTimeout(handleEnd, 5000);
     }
 
     return () => {
@@ -48,29 +48,24 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
                 className="w-full h-full object-cover"
                 muted
                 playsInline
-                // Note: In a real environment, place 'intro.mp4' in your public/assets folder.
-                // Using a reliable CDN placeholder that matches the Gold/Abstract aesthetic for now.
-                src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" 
+                // Use the local asset if available, fallback to empty to force error handling if not found (or use previous as fallback)
+                // Assuming user places the file from prompt as 'assets/skillfi_intro.mp4'
             >
-                <source src="assets/intro.mp4" type="video/mp4" />
+                <source src="assets/skillfi_intro.mp4" type="video/mp4" />
+                {/* Fallback to Pexels if local not found, though visual style is different */}
+                <source src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" type="video/mp4" />
             </video>
-            {/* Overlay to tint the video to exact Navy brand color */}
-            <div className="absolute inset-0 bg-[#020409]/30 mix-blend-multiply"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#020409] via-transparent to-[#020409]"></div>
+            {/* Light Overlay to ensure text readability if needed, but keeping it minimal to show off the gold video */}
+            <div className="absolute inset-0 bg-[#020409]/20"></div>
         </div>
 
-        {/* Text Layer (Synced with video aesthetic) */}
-        <div className="relative z-20 text-center animate-fade-in">
-             {/* Logo mimicry if video fails to load visually */}
-            <div className="mb-6 relative w-24 h-24 mx-auto border-4 border-skillfi-neon rounded-full flex items-center justify-center animate-pulse">
-                <span className="text-4xl text-skillfi-neon">⚡</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold font-display tracking-[0.1em] text-white drop-shadow-xl">
+        {/* Text Layer - Positioned to complement the video center */}
+        <div className="relative z-20 text-center animate-fade-in mt-32 md:mt-48">
+            <h1 className="text-5xl md:text-7xl font-bold font-display tracking-[0.1em] text-white drop-shadow-2xl text-shadow-gold">
                 SKILLFI
             </h1>
-            <div className="h-px w-32 bg-skillfi-neon mx-auto my-4"></div>
-            <p className="text-skillfi-neon text-sm font-sans uppercase tracking-[0.3em] font-medium">
+            <div className="h-px w-32 bg-skillfi-neon mx-auto my-6 shadow-[0_0_10px_#D4AF37]"></div>
+            <p className="text-skillfi-neon text-sm font-sans uppercase tracking-[0.3em] font-medium drop-shadow-md bg-black/30 px-4 py-1 rounded-full backdrop-blur-sm inline-block border border-skillfi-neon/20">
                 Legacy . Wealth . Future
             </p>
         </div>
