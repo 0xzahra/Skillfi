@@ -81,7 +81,7 @@ export const AudioService = {
     playTone(150, 'sawtooth', 0.3, 0.1);
   },
 
-  // Standard Text to Speech (Browser)
+  // Standard Text to Speech (Browser Fallback) - Tuned for "Expert/ASMR" feel
   speak: (text: string) => {
     if (synth.speaking) synth.cancel();
     
@@ -89,13 +89,18 @@ export const AudioService = {
     const cleanText = text.replace(/\[.*?\]/g, '').replace(/https?:\/\/[^\s]+/g, 'link');
     
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.pitch = 0.9; // Slightly lower, more serious
-    utterance.rate = 1.1; // Faster, efficient
+    utterance.pitch = 0.8; // Lower pitch for authority
+    utterance.rate = 0.85; // Slower rate for "calm expert" vibe
     utterance.volume = 1.0;
     
-    // Try to find a good system voice
+    // Try to find a deep/good system voice
     const voices = synth.getVoices();
-    const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+    // Prioritize deep male voices or high quality voices
+    const preferredVoice = voices.find(v => 
+        v.name.includes('Google UK English Male') || 
+        v.name.includes('Daniel') || 
+        v.name.includes('Google US English')
+    );
     if (preferredVoice) utterance.voice = preferredVoice;
 
     synth.speak(utterance);

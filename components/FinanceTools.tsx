@@ -52,6 +52,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   // Canvas Refs
   const galaxyCanvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
       setDailyQuote(MONEY_QUOTES[Math.floor(Math.random() * MONEY_QUOTES.length)]);
@@ -149,11 +150,22 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   // Portfolio Galaxy Animation
   useEffect(() => {
-      if (activeTab === 'PROFIT' && galaxyCanvasRef.current) {
+      if (activeTab === 'PROFIT') {
           const canvas = galaxyCanvasRef.current;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas?.getContext('2d');
           
           if (!canvas || !ctx) return;
+
+          // Resize Handler
+          const handleResize = () => {
+             if (containerRef.current && canvas) {
+                 canvas.width = containerRef.current.clientWidth;
+                 canvas.height = containerRef.current.clientHeight;
+             }
+          };
+          
+          handleResize();
+          window.addEventListener('resize', handleResize);
 
           let animationFrameId: number;
           let particles: {x: number, y: number, size: number, speed: number, angle: number, radius: number}[] = [];
@@ -170,9 +182,9 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           }
 
           const render = () => {
-              // Double check context in loop just in case
               if (!ctx || !canvas) return;
 
+              // Use current canvas dimensions to avoid clearing wrong area on resize
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               const centerX = canvas.width / 2;
               const centerY = canvas.height / 2;
@@ -226,7 +238,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               animationFrameId = requestAnimationFrame(render);
           };
           render();
-          return () => cancelAnimationFrame(animationFrameId);
+          return () => {
+              window.removeEventListener('resize', handleResize);
+              cancelAnimationFrame(animationFrameId);
+          };
       }
   }, [activeTab, profitData]);
 
@@ -257,24 +272,24 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20 scrollbar-hide">
+    <div className="p-4 md:p-6 w-full mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-32 scrollbar-hide">
       <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools <span className="text-skillfi-neon text-shadow-neon">v4.2</span></h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools <span className="text-skillfi-neon text-shadow-neon">v4.2</span></h1>
             <p className="text-gray-500 text-sm mt-1">Control your financial future.</p>
         </div>
-        <div className="p-3 bg-white/5 border-l-4 border-green-500 rounded-r-xl max-w-sm">
+        <div className="p-3 bg-white/5 border-l-4 border-green-500 rounded-r-xl max-w-sm hidden md:block">
             <p className="text-xs text-gray-300 italic">"{dailyQuote}"</p>
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide">
+      {/* Tabs - Scrollable on mobile */}
+      <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide w-full">
         {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'RWA', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase ${
+                className={`px-4 md:px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase flex-shrink-0 ${
                     activeTab === tab 
                     ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-glow' 
                     : 'text-gray-500 hover:text-white bg-white/5 border-t-2 border-transparent'
@@ -285,7 +300,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         ))}
       </div>
 
-      <div className="glass-panel p-8 rounded-3xl shadow-2xl min-h-[500px]">
+      <div className="glass-panel p-4 md:p-8 rounded-3xl shadow-2xl w-full relative">
         
         {/* BUDGET TAB */}
         {activeTab === 'BUDGET' && (
@@ -298,7 +313,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                             type="number" 
                             value={salary} 
                             onChange={(e) => setSalary(Number(e.target.value))}
-                            className="w-full bg-transparent text-4xl font-bold font-display text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
+                            className="w-full bg-transparent text-3xl md:text-4xl font-bold font-display text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
                         />
                     </div>
 
@@ -320,7 +335,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                                     {budgetData.savingsRate.toFixed(1)}%
                                 </span>
                             </div>
-                            <div className={`text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
+                            <div className={`text-4xl md:text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
                                 ${budgetData.savings.toLocaleString()}
                             </div>
                         </div>
@@ -353,25 +368,25 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         ))}
                     </div>
 
-                    <div className="flex gap-2 p-1.5 bg-black/50 rounded-xl border border-white/10">
+                    <div className="flex flex-col md:flex-row gap-2 p-1.5 bg-black/50 rounded-xl border border-white/10">
                         <input 
                             type="text" 
-                            placeholder="New Expense (e.g. Netflix)" 
+                            placeholder="Expense Name" 
                             value={newExpenseName} 
                             onChange={(e) => setNewExpenseName(e.target.value)}
-                            className="flex-1 bg-transparent px-4 text-white text-sm focus:outline-none placeholder-gray-600 font-medium"
+                            className="flex-1 bg-transparent px-4 py-3 text-white text-sm focus:outline-none placeholder-gray-600 font-medium"
                         />
-                        <div className="w-px bg-white/10 my-2"></div>
+                        <div className="w-full md:w-px h-px md:h-auto bg-white/10 my-1 md:my-0"></div>
                         <input 
                             type="number" 
                             placeholder="$0.00" 
                             value={newExpenseCost} 
                             onChange={(e) => setNewExpenseCost(e.target.value)}
-                            className="w-24 bg-transparent px-2 text-white text-sm focus:outline-none placeholder-gray-600 text-right font-mono"
+                            className="w-full md:w-24 bg-transparent px-4 py-3 text-white text-sm focus:outline-none placeholder-gray-600 md:text-right font-mono"
                         />
                         <button 
                             onClick={addExpense}
-                            className="bg-white/10 hover:bg-skillfi-neon hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide"
+                            className="bg-white/10 hover:bg-skillfi-neon hover:text-black text-white px-6 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide w-full md:w-auto"
                         >
                             Add
                         </button>
@@ -396,7 +411,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {activeTab === 'PROFIT' && (
              <div className="space-y-6">
                  {/* Inputs */}
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                         { label: 'Buy Price ($)', val: buyPrice, set: setBuyPrice },
                         { label: 'Sell Price ($)', val: sellPrice, set: setSellPrice },
@@ -416,23 +431,21 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                  </div>
 
                  {/* Portfolio Galaxy Canvas */}
-                 <div className="relative w-full h-64 bg-black rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
+                 <div ref={containerRef} className="relative w-full h-64 bg-black rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
                     <canvas 
                         ref={galaxyCanvasRef} 
-                        width={600} 
-                        height={300} 
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                     />
                     
                     {/* Overlay Stats */}
-                    <div className="relative z-10 text-center pointer-events-none backdrop-blur-md p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl">
+                    <div className="relative z-10 text-center pointer-events-none backdrop-blur-md p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl mx-4">
                         <div className="flex justify-center items-center gap-2 mb-1">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Return</span>
                             <span className={`text-sm font-bold ${profitData.roi >= 0 ? 'text-green-400' : 'text-red-500'}`}>
                                 {profitData.roi >= 0 ? '+' : ''}{profitData.roi.toFixed(2)}%
                             </span>
                         </div>
-                        <div className={`text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
+                        <div className={`text-4xl md:text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
                             {profitData.profit >= 0 ? '+' : '-'}${Math.abs(profitData.profit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                         <div className="mt-2 text-[10px] text-gray-400 font-mono bg-black/50 px-3 py-1 rounded-full inline-block">
@@ -458,7 +471,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* INTEREST TAB (Net Worth Orb) */}
         {activeTab === 'INTEREST' && (
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                         { label: 'Start Money', val: principal, set: setPrincipal },
                         { label: 'Monthly Add', val: monthly, set: setMonthly },
@@ -518,41 +531,43 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                  </p>
                  {/* Item Inspector Modal */}
                  {selectedItem && (
-                     <div className="absolute inset-0 z-20 bg-black/90 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center p-8 animate-fade-in border border-skillfi-neon/20">
-                         <button 
-                             onClick={() => setSelectedItem(null)}
-                             className="absolute top-4 right-4 text-gray-500 hover:text-white"
-                         >
-                             ✕
-                         </button>
-                         <div className="text-4xl mb-4">{selectedItem.icon}</div>
-                         <h3 className="text-2xl font-bold font-display text-white mb-2">{selectedItem.name}</h3>
-                         <div className={`text-[10px] font-bold px-3 py-1 rounded-full mb-6 ${
-                             selectedItem.type === 'ASSET' ? 'bg-green-500/20 text-green-400' :
-                             selectedItem.type === 'LIABILITY' ? 'bg-red-500/20 text-red-400' :
-                             selectedItem.type === 'RARE' ? 'bg-yellow-500/20 text-yellow-400' :
-                             'bg-purple-500/20 text-purple-400'
-                         }`}>
-                             {selectedItem.type}
-                         </div>
+                     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-fade-in">
+                        <div className="glass-panel w-full max-w-lg rounded-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
+                             <button 
+                                 onClick={() => setSelectedItem(null)}
+                                 className="absolute top-4 right-4 text-gray-500 hover:text-white"
+                             >
+                                 ✕
+                             </button>
+                             <div className="text-4xl mb-4 text-center">{selectedItem.icon}</div>
+                             <h3 className="text-2xl font-bold font-display text-white mb-2 text-center">{selectedItem.name}</h3>
+                             <div className={`text-[10px] font-bold px-3 py-1 rounded-full mb-6 mx-auto w-fit ${
+                                 selectedItem.type === 'ASSET' ? 'bg-green-500/20 text-green-400' :
+                                 selectedItem.type === 'LIABILITY' ? 'bg-red-500/20 text-red-400' :
+                                 selectedItem.type === 'RARE' ? 'bg-yellow-500/20 text-yellow-400' :
+                                 'bg-purple-500/20 text-purple-400'
+                             }`}>
+                                 {selectedItem.type}
+                             </div>
 
-                         {isEnlightening ? (
-                             <div className="text-center">
-                                 <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                 <p className="text-skillfi-neon font-mono text-xs animate-pulse">Loading info...</p>
-                             </div>
-                         ) : (
-                             <div className="w-full max-w-lg space-y-6">
-                                 {itemImage && (
-                                     <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl h-48 w-full">
-                                         <img src={itemImage} alt={selectedItem.name} className="w-full h-full object-cover" />
-                                     </div>
-                                 )}
-                                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
-                                     <p className="text-sm text-gray-200 leading-relaxed font-medium">"{enlightenment}"</p>
+                             {isEnlightening ? (
+                                 <div className="text-center py-10">
+                                     <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                     <p className="text-skillfi-neon font-mono text-xs animate-pulse">Loading info...</p>
                                  </div>
-                             </div>
-                         )}
+                             ) : (
+                                 <div className="w-full space-y-6">
+                                     {itemImage && (
+                                         <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl h-48 w-full">
+                                             <img src={itemImage} alt={selectedItem.name} className="w-full h-full object-cover" />
+                                         </div>
+                                     )}
+                                     <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                                         <p className="text-sm text-gray-200 leading-relaxed font-medium">"{enlightenment}"</p>
+                                     </div>
+                                 </div>
+                             )}
+                        </div>
                      </div>
                  )}
 
@@ -668,7 +683,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* TAX TAB */}
         {activeTab === 'TAX' && (
             <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                      <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Yearly Income</label>
                         <input 

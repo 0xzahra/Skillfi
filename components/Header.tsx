@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
     <header className="px-4 md:px-6 py-4 glass-panel border-b-0 flex items-center justify-between sticky top-0 z-40 shadow-2xl shrink-0 mx-4 mt-2 rounded-xl">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         <button 
           onClick={onToggleMenu}
           className="md:hidden p-2 text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30"
@@ -44,30 +44,36 @@ export const Header: React.FC<HeaderProps> = ({
           </svg>
         </button>
         
-        <div className="flex items-center gap-3">
-          {/* Logo Mark */}
-          <div className="w-8 h-8 rounded-full border border-skillfi-neon/50 flex items-center justify-center bg-skillfi-neon/10">
-             <div className="w-4 h-4 bg-skillfi-neon rotate-45"></div>
+        <div className="flex items-center gap-3 select-none">
+          {/* Consistent System Logo */}
+          <div className="w-10 h-10 flex items-center justify-center">
+             <svg viewBox="0 0 100 100" className="w-full h-full text-skillfi-neon fill-current">
+                <path d="M50 0 L60 20 L40 20 Z" /> {/* Arrow Tip */}
+                <path d="M45 20 L55 20 L55 50 C55 65 75 65 75 50 C75 35 55 35 55 20" stroke="currentColor" strokeWidth="8" fill="none" />
+                <path d="M45 20 L45 50 C45 65 25 65 25 50 C25 35 45 35 45 20" stroke="currentColor" strokeWidth="8" fill="none" />
+                <circle cx="25" cy="50" r="8" fill="currentColor" />
+                <circle cx="75" cy="50" r="8" fill="currentColor" />
+             </svg>
           </div>
-          <h1 className="text-2xl font-bold font-display tracking-widest text-white text-shadow-gold">
+          <h1 className="text-2xl font-bold font-display tracking-[0.2em] text-white text-shadow-gold">
             SKILLFI
           </h1>
         </div>
       </div>
       
-      <div className="flex items-center gap-3 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         
-        {/* Inbox Icon */}
+        {/* Inbox Icon - Spaced out */}
         <button 
             onClick={onViewInbox}
             className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors relative"
             title="Inbox"
         >
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
              </svg>
              {unreadMessages > 0 && (
-                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-skillfi-neon rounded-full"></span>
+                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-skillfi-neon rounded-full border border-black"></span>
              )}
         </button>
 
@@ -77,23 +83,22 @@ export const Header: React.FC<HeaderProps> = ({
             className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-white/5 rounded-lg transition-colors relative"
             title="Notifications"
         >
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
              </svg>
              {unreadNotifications > 0 && (
-                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-black"></span>
              )}
         </button>
 
-        <div className="w-px h-6 bg-skillfi-neon/20 mx-1"></div>
+        <div className="w-px h-6 bg-skillfi-neon/20 mx-1 hidden md:block"></div>
 
         {/* Language Button */}
         <button 
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="flex items-center gap-2 bg-transparent border border-white/10 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
+            className="hidden md:flex items-center gap-2 bg-transparent border border-white/10 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
         >
             <span className="text-base">{currentLangData.flag}</span>
-            <span className="hidden md:inline font-display tracking-wide">{currentLangData.name}</span>
         </button>
 
         {onToggleVoice && (
@@ -109,12 +114,11 @@ export const Header: React.FC<HeaderProps> = ({
                 {isVoiceMode ? (
                     <>
                          <span className="animate-pulse">●</span>
-                        <span className="hidden md:inline font-display">VOICE ON</span>
+                        <span className="hidden lg:inline font-display">VOICE ON</span>
                     </>
                 ) : (
                     <>
                         <span>○</span>
-                        <span className="hidden md:inline font-display">VOICE OFF</span>
                     </>
                 )}
             </button>
@@ -125,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="p-2 text-skillfi-neon hover:bg-skillfi-neon hover:text-black rounded-lg transition-colors border border-skillfi-neon/30"
           title="New Chat"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
         </button>

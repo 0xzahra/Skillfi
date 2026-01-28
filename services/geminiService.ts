@@ -66,19 +66,23 @@ export const sendMessageToSkillfi = async (
 export const generateSpeech = async (text: string): Promise<string | null> => {
     const ai = getClient();
     try {
+        // Strip markdown links for speech
         const cleanText = text.replace(/\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]/g, '').substring(0, 400);
+        
+        // Use a prompt to guide the tone if the model allows, otherwise rely on the voice config
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: { parts: [{ text: cleanText }] },
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Fenrir' } }, // Fenrir is often deeper/more authoritative
                 },
             },
         });
         return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
     } catch (error) {
+        console.warn("Speech generation failed, falling back to browser TTS");
         return null;
     }
 };
@@ -135,7 +139,10 @@ export const generateProfessionalHeadshot = async (
 
 export const generateItemVisual = async (itemDescription: string): Promise<string | null> => {
     const ai = getClient();
-    const prompt = `Create a hyper-realistic, cinematic product shot of: ${itemDescription}. Lighting: Studio, dramatic. Background: Minimalist luxury dark mode. Quality: 8k.`;
+    // Enhanced prompt for luxury items
+    const prompt = `Create a hyper-realistic, cinematic product shot of: ${itemDescription}. 
+    If it is a watch or car, ensure brand details are accurate and lighting implies extreme luxury. 
+    Lighting: Studio, dramatic, dark mode aesthetic with gold accents. Quality: 8k.`;
 
     try {
         const response = await ai.models.generateContent({
@@ -234,18 +241,20 @@ export const generatePortfolioHTML = async (userContext: string): Promise<string
     }
 };
 
-export const generateCVContent = async (userContext: string): Promise<string | null> => {
+export const generateCVContent = async (userContext: string, format: 'DOC' | 'PDF' = 'DOC'): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
     Generate a professional, ATS-optimized Resume/CV content for: "${userContext}".
     
     Structure:
-    1. Summary (Professional Profile)
-    2. Core Competencies (Skills)
-    3. Professional Experience (Create 2 realistic mock roles based on context)
-    4. Education
+    1. Header (Name, Contact placeholders)
+    2. Professional Summary
+    3. Core Competencies (Skills)
+    4. Professional Experience (Create 2 realistic mock roles based on context if not provided)
+    5. Education
     
-    Output Format: Clean plain text with clear section headers. No markdown symbols like ** or #.
+    Output Format: HTML formatted for a word document. Use simple <h2> <h3> <p> <ul> <li> tags.
+    Make it look professional and clean. No markdown. Return raw HTML body content.
     `;
 
     try {
