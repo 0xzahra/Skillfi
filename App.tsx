@@ -276,83 +276,126 @@ const App: React.FC = () => {
       }
   };
 
-  if (showSplash) {
-      return <IntroSplash onComplete={handleSplashComplete} />;
-  }
+  // --- RENDERING ---
 
-  if (currentView === 'AUTH') {
-      return <Auth onLogin={handleLogin} />;
-  }
+  // Determine if we should show the intro video
+  // Video persists during Splash AND Auth (Login) screens
+  const isIntroOrAuth = showSplash || currentView === 'AUTH';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-skillfi-bg text-white font-sans selection:bg-skillfi-neon selection:text-black">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onModeSelect={handleNavigate}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+    <div className="relative h-screen overflow-hidden bg-skillfi-bg text-white font-sans selection:bg-skillfi-neon selection:text-black">
+      
+      {/* Persistent Background Video for Intro/Auth */}
+      {isIntroOrAuth && (
+          <div className="fixed inset-0 z-0">
+               {/* Diverse city crowd / busy market vibe - Represents 'Everyone and Everything' */}
+              <video 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline
+                  className="w-full h-full object-cover filter grayscale contrast-110 brightness-[0.6] opacity-60"
+              >
+                  {/* Using Pexels video as placeholder for the user's specific video content */}
+                  <source src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+                  <div className="w-full h-full bg-neutral-900"></div>
+              </video>
+              
+              {/* Tech Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 z-10"></div>
+              
+              {/* Scanline effect */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-50"></div>
+              
+              {/* Grain */}
+              <div className="absolute inset-0 opacity-20 pointer-events-none z-10 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+          </div>
+      )}
 
-      <div className="flex-1 flex flex-col h-full relative w-full">
-        <Header 
-            onNewChat={handleNewChat}
-            onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
-            isVoiceMode={isVoiceMode}
-            onToggleVoice={toggleVoiceMode}
-            onShare={() => {
-                const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
-                navigator.clipboard.writeText(transcript);
-                alert("Session transcript copied to clipboard.");
-            }}
-        />
+      {/* Intro Overlay */}
+      {showSplash && (
+          <IntroSplash onComplete={handleSplashComplete} />
+      )}
 
-        <main className="flex-1 overflow-hidden relative flex flex-col">
-          {currentView === 'DASHBOARD' && (
-              <Dashboard 
-                user={user!} 
-                activities={activities}
-                onNavigate={handleNavigate}
+      {/* Auth Screen (Overlaying Video) */}
+      {!showSplash && currentView === 'AUTH' && (
+          <div className="relative z-10 h-full overflow-y-auto">
+              <Auth onLogin={handleLogin} />
+          </div>
+      )}
+
+      {/* Main App (Dashboard/Chat/etc) */}
+      {!showSplash && currentView !== 'AUTH' && (
+          <div className="flex h-screen overflow-hidden bg-skillfi-bg relative z-20">
+              <Sidebar 
+                isOpen={isSidebarOpen} 
+                onModeSelect={handleNavigate}
+                onClose={() => setIsSidebarOpen(false)}
               />
-          )}
-          
-          {currentView === 'CHAT' && (
-            <>
-              <ChatInterface messages={messages} isLoading={isLoading} />
-              <div className="p-4 md:p-6 bg-skillfi-bg/95 backdrop-blur border-t border-gray-800">
-                <div className="max-w-4xl mx-auto">
-                    <InputArea 
-                        onSendMessage={handleSendMessage} 
-                        onStop={() => setIsLoading(false)}
-                        isLoading={isLoading} 
-                    />
-                    <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                        Vibe coded by arewa.base.eth © 2026
-                    </div>
-                </div>
+
+              <div className="flex-1 flex flex-col h-full relative w-full">
+                <Header 
+                    onNewChat={handleNewChat}
+                    onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
+                    isVoiceMode={isVoiceMode}
+                    onToggleVoice={toggleVoiceMode}
+                    onShare={() => {
+                        const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
+                        navigator.clipboard.writeText(transcript);
+                        alert("Session transcript copied to clipboard.");
+                    }}
+                />
+
+                <main className="flex-1 overflow-hidden relative flex flex-col">
+                  {currentView === 'DASHBOARD' && (
+                      <Dashboard 
+                        user={user!} 
+                        activities={activities}
+                        onNavigate={handleNavigate}
+                      />
+                  )}
+                  
+                  {currentView === 'CHAT' && (
+                    <>
+                      <ChatInterface messages={messages} isLoading={isLoading} />
+                      <div className="p-4 md:p-6 bg-skillfi-bg/95 backdrop-blur border-t border-gray-800">
+                        <div className="max-w-4xl mx-auto">
+                            <InputArea 
+                                onSendMessage={handleSendMessage} 
+                                onStop={() => setIsLoading(false)}
+                                isLoading={isLoading} 
+                            />
+                            <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
+                                Vibe coded by arewa.base.eth © 2026
+                            </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
+                  
+                  {currentView === 'SETTINGS' && (
+                      <Settings 
+                        user={user!}
+                        onUpdateUser={handleUpdateUser}
+                        onClearActivity={handleClearActivity}
+                        onDeleteAccount={handleDeleteAccount}
+                      />
+                  )}
+
+                  {currentView === 'HISTORY' && (
+                      <ChatHistory 
+                        sessions={sessions}
+                        onSelectSession={handleSelectSession}
+                        onDeleteSession={handleDeleteSession}
+                        onRenameSession={handleRenameSession}
+                      />
+                  )}
+                </main>
               </div>
-            </>
-          )}
-
-          {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
-          
-          {currentView === 'SETTINGS' && (
-              <Settings 
-                user={user!}
-                onUpdateUser={handleUpdateUser}
-                onClearActivity={handleClearActivity}
-                onDeleteAccount={handleDeleteAccount}
-              />
-          )}
-
-          {currentView === 'HISTORY' && (
-              <ChatHistory 
-                sessions={sessions}
-                onSelectSession={handleSelectSession}
-                onDeleteSession={handleDeleteSession}
-                onRenameSession={handleRenameSession}
-              />
-          )}
-        </main>
-      </div>
+          </div>
+      )}
     </div>
   );
 };

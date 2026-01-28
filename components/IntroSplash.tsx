@@ -52,39 +52,9 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
     };
   }, [onComplete]);
 
-  if (hide && progress === 100) {
-      // Return null or empty div to allow unmounting/fade logic from parent if needed, 
-      // but strictly we handle the fade via the container class below before onComplete is called.
-  }
-
   return (
-    <div className={`fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center overflow-hidden transition-opacity duration-1000 ease-in-out ${hide ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        {/* Background Video Layer */}
-        <div className="absolute inset-0 z-0">
-             {/* Diverse city crowd / busy market vibe - Represents 'Everyone and Everything' */}
-            <video 
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                className="w-full h-full object-cover filter grayscale contrast-110 brightness-[0.6] opacity-60"
-            >
-                <source src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-                {/* Fallback for video load fail */}
-                <div className="w-full h-full bg-neutral-900"></div>
-            </video>
-            
-            {/* Tech Overlays - Adjusted to be lighter so video is visible under logo */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 z-10"></div>
-            
-            {/* Scanline effect */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-50"></div>
-            
-            {/* Grain */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none z-10 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-        </div>
-
-        {/* Content Content */}
+    <div className={`fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-1000 ease-in-out bg-transparent ${hide ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        {/* Content Content - Sits on top of the App's video background */}
         <div className="relative z-20 w-full max-w-2xl px-8 flex flex-col items-center text-center">
             
             {/* Logo Animation */}

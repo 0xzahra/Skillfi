@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'TAX';
 
@@ -11,7 +11,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
 
   // Budget State
   const [salary, setSalary] = useState(5000);
-  const [expenses, setExpenses] = useState([{ id: 1, name: 'Rent', cost: 1200 }]);
+  const [expenses, setExpenses] = useState([{ id: 1, name: 'Rent', cost: 1200 }, { id: 2, name: 'Groceries', cost: 400 }]);
   const [newExpenseName, setNewExpenseName] = useState('');
   const [newExpenseCost, setNewExpenseCost] = useState('');
 
@@ -32,30 +32,21 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   const [taxDeductions, setTaxDeductions] = useState(13850);
   const [taxRate, setTaxRate] = useState(22);
 
-  // --- Handlers ---
-  const addExpense = () => {
-    if (newExpenseName && newExpenseCost) {
-      setExpenses([...expenses, { id: Date.now(), name: newExpenseName, cost: Number(newExpenseCost) }]);
-      setNewExpenseName('');
-      setNewExpenseCost('');
-    }
-  };
+  // Canvas Refs
+  const galaxyCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  const removeExpense = (id: number) => {
-    setExpenses(expenses.filter(e => e.id !== id));
-  };
-
+  // --- Calculations ---
   const calculateBudget = () => {
     const totalExpenses = expenses.reduce((acc, curr) => acc + curr.cost, 0);
     const savings = salary - totalExpenses;
-    return { totalExpenses, savings, savingsRate: (savings / salary) * 100 };
+    return { totalExpenses, savings, savingsRate: salary > 0 ? (savings / salary) * 100 : 0 };
   };
 
   const calculateProfit = () => {
     const costBasis = (buyPrice * quantity) * (1 + fees / 100);
     const saleValue = (sellPrice * quantity) * (1 - fees / 100);
     const profit = saleValue - costBasis;
-    const roi = (profit / costBasis) * 100;
+    const roi = costBasis > 0 ? (profit / costBasis) * 100 : 0;
     return { profit, roi, total: saleValue };
   };
 
@@ -72,7 +63,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
       const taxAmount = taxableIncome * (taxRate / 100);
       const netIncome = taxIncome - taxAmount;
       const monthlyNet = netIncome / 12;
-      const effectiveRate = (taxAmount / taxIncome) * 100;
+      const effectiveRate = taxIncome > 0 ? (taxAmount / taxIncome) * 100 : 0;
       return { taxableIncome, taxAmount, netIncome, monthlyNet, effectiveRate };
   };
 
@@ -80,6 +71,100 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   const profitData = calculateProfit();
   const interestTotal = calculateInterest();
   const taxData = calculateTax();
+
+  // --- Effects & Animations ---
+
+  // Portfolio Galaxy Animation
+  useEffect(() => {
+      if (activeTab === 'PROFIT' && galaxyCanvasRef.current) {
+          const canvas = galaxyCanvasRef.current;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
+          let animationFrameId: number;
+          let particles: {x: number, y: number, size: number, speed: number, angle: number, radius: number}[] = [];
+          
+          // Init Particles
+          for(let i=0; i<40; i++) {
+              particles.push({
+                  x: 0, y: 0,
+                  size: Math.random() * 2,
+                  speed: 0.005 + Math.random() * 0.01,
+                  angle: Math.random() * Math.PI * 2,
+                  radius: 50 + Math.random() * 80
+              });
+          }
+
+          const render = () => {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              const centerX = canvas.width / 2;
+              const centerY = canvas.height / 2;
+              
+              const isProfit = profitData.profit >= 0;
+              const primaryColor = isProfit ? '#00ffaa' : '#ff4444'; // Green/Cyan vs Red
+              const glowColor = isProfit ? 'rgba(0, 255, 170, 0.2)' : 'rgba(255, 68, 68, 0.2)';
+
+              // Draw Central Star (Asset)
+              const baseSize = 20;
+              const growth = Math.min(Math.abs(profitData.roi), 50) / 2; // Cap growth
+              const starSize = baseSize + growth;
+
+              // Glow
+              const gradient = ctx.createRadialGradient(centerX, centerY, starSize * 0.2, centerX, centerY, starSize * 3);
+              gradient.addColorStop(0, primaryColor);
+              gradient.addColorStop(1, 'transparent');
+              ctx.fillStyle = gradient;
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, starSize * 3, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Core
+              ctx.fillStyle = '#fff';
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, starSize * 0.5, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Particles (Orbiting Market)
+              particles.forEach(p => {
+                  p.angle += p.speed * (isProfit ? 1 : 0.5); // Fast market if profit
+                  p.x = centerX + Math.cos(p.angle) * p.radius;
+                  p.y = centerY + Math.sin(p.angle) * p.radius;
+                  
+                  ctx.fillStyle = isProfit ? '#ffffffaa' : '#ffaaaa';
+                  ctx.beginPath();
+                  ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                  ctx.fill();
+                  
+                  // Connect lines if close
+                  if (Math.random() > 0.95) {
+                       ctx.strokeStyle = glowColor;
+                       ctx.lineWidth = 0.5;
+                       ctx.beginPath();
+                       ctx.moveTo(centerX, centerY);
+                       ctx.lineTo(p.x, p.y);
+                       ctx.stroke();
+                  }
+              });
+
+              animationFrameId = requestAnimationFrame(render);
+          };
+          render();
+          return () => cancelAnimationFrame(animationFrameId);
+      }
+  }, [activeTab, profitData]);
+
+  // --- Handlers ---
+  const addExpense = () => {
+    if (newExpenseName && newExpenseCost) {
+      setExpenses([...expenses, { id: Date.now(), name: newExpenseName, cost: Number(newExpenseCost) }]);
+      setNewExpenseName('');
+      setNewExpenseCost('');
+    }
+  };
+
+  const removeExpense = (id: number) => {
+    setExpenses(expenses.filter(e => e.id !== id));
+  };
 
   // Audit Handlers
   const handleAuditBudget = () => {
@@ -95,7 +180,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20">
       <header className="mb-6 flex justify-between items-end">
         <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Finance OS <span className="text-skillfi-neon">v2.1</span></h1>
@@ -120,70 +205,121 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
         ))}
       </div>
 
-      <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl shadow-xl min-h-[400px]">
+      <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl shadow-xl min-h-[500px]">
         
         {/* BUDGET TAB */}
         {activeTab === 'BUDGET' && (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-black/40 p-4 rounded-xl border border-gray-800">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Monthly Income ($)</label>
+                    {/* Income Input */}
+                    <div className="bg-black/40 p-5 rounded-xl border border-gray-800">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Monthly Income Flow ($)</label>
                         <input 
                             type="number" 
                             value={salary} 
                             onChange={(e) => setSalary(Number(e.target.value))}
-                            className="w-full bg-transparent text-2xl font-bold text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-1"
+                            className="w-full bg-transparent text-3xl font-bold text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
                         />
                     </div>
-                    <div className="bg-black/40 p-4 rounded-xl border border-gray-800 flex flex-col justify-center">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs font-bold text-gray-500 uppercase">Disposable Income</span>
-                            <span className={`text-xs font-bold ${budgetData.savings >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                {budgetData.savingsRate.toFixed(1)}% Rate
-                            </span>
+
+                    {/* Savings Bloom Visualization */}
+                    <div className="relative bg-black/40 p-5 rounded-xl border border-gray-800 flex flex-col justify-center items-center overflow-hidden min-h-[160px]">
+                        {/* Bloom Animation Layer */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+                            <div 
+                                className={`w-32 h-32 rounded-full blur-2xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
+                                style={{ transform: `scale(${Math.min(Math.max(budgetData.savingsRate / 20, 0.5), 1.5)})` }}
+                            ></div>
+                             {/* Geometric Petals */}
+                             {[...Array(6)].map((_, i) => (
+                                <div 
+                                    key={i}
+                                    className={`absolute w-40 h-1 rounded-full transition-colors duration-500 ${budgetData.savings >= 0 ? 'bg-skillfi-neon' : 'bg-red-500'}`}
+                                    style={{ 
+                                        transform: `rotate(${i * 30}deg)`,
+                                        opacity: 0.2
+                                    }}
+                                ></div>
+                             ))}
                         </div>
-                        <div className={`text-3xl font-bold ${budgetData.savings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            ${budgetData.savings.toLocaleString()}
+
+                        {/* Text Layer */}
+                        <div className="relative z-10 text-center">
+                            <div className="flex justify-center items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Net Savings</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${budgetData.savingsRate >= 20 ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                    {budgetData.savingsRate.toFixed(1)}%
+                                </span>
+                            </div>
+                            <div className={`text-4xl md:text-5xl font-black tracking-tighter ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
+                                ${budgetData.savings.toLocaleString()}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <h3 className="text-sm font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-                        Expenses Stream
-                        <span className="text-xs normal-case bg-gray-800 px-2 rounded-full text-white">${budgetData.totalExpenses.toLocaleString()}</span>
+                        Expense Rivers
+                        <span className="text-xs normal-case bg-gray-800 px-2 rounded-full text-white">${budgetData.totalExpenses.toLocaleString()} Total</span>
                     </h3>
-                    <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                    
+                    {/* Expense Rivers List */}
+                    <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2">
                         {expenses.map((exp) => (
-                            <div key={exp.id} className="flex justify-between items-center p-3 bg-[#1a1a1a] rounded-lg border border-gray-800 hover:border-skillfi-accent/50 transition-colors">
-                                <span className="text-gray-300 font-medium">{exp.name}</span>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-white font-bold">${exp.cost}</span>
-                                    <button onClick={() => removeExpense(exp.id)} className="text-gray-600 hover:text-red-500 transition-colors">×</button>
+                            <div key={exp.id} className="relative group overflow-hidden rounded-lg border border-gray-800 bg-[#151515]">
+                                {/* River Flow Animation Background */}
+                                <div 
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                                    style={{ 
+                                        backgroundSize: '200% 100%',
+                                        animation: 'flow 2s linear infinite' 
+                                    }}
+                                ></div>
+                                <style>{`
+                                    @keyframes flow {
+                                        0% { background-position: 100% 0; }
+                                        100% { background-position: -100% 0; }
+                                    }
+                                `}</style>
+
+                                <div className="relative z-10 flex justify-between items-center p-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1 h-8 bg-red-500/50 rounded-full"></div>
+                                        <span className="text-gray-300 font-medium">{exp.name}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-white font-bold font-mono">${exp.cost}</span>
+                                        <button onClick={() => removeExpense(exp.id)} className="text-gray-600 hover:text-red-500 transition-colors">×</button>
+                                    </div>
                                 </div>
+                                {/* Bar Proportion */}
+                                <div className="absolute bottom-0 left-0 h-0.5 bg-red-500/30" style={{ width: `${Math.min((exp.cost / (salary || 1)) * 100, 100)}%` }}></div>
                             </div>
                         ))}
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex gap-2 p-4 bg-[#0a0a0a] rounded-xl border border-gray-800">
                         <input 
                             type="text" 
-                            placeholder="Expense Name" 
+                            placeholder="New Stream (e.g. Netflix)" 
                             value={newExpenseName} 
                             onChange={(e) => setNewExpenseName(e.target.value)}
-                            className="flex-1 bg-[#080808] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-skillfi-neon outline-none"
+                            className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-600"
                         />
+                        <div className="w-px bg-gray-700 mx-2"></div>
                         <input 
                             type="number" 
-                            placeholder="Cost" 
+                            placeholder="$0.00" 
                             value={newExpenseCost} 
                             onChange={(e) => setNewExpenseCost(e.target.value)}
-                            className="w-24 bg-[#080808] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-skillfi-neon outline-none"
+                            className="w-24 bg-transparent text-white text-sm focus:outline-none placeholder-gray-600 text-right"
                         />
                         <button 
                             onClick={addExpense}
-                            className="bg-gray-800 hover:bg-skillfi-neon hover:text-black text-white px-4 py-2 rounded-lg font-bold transition-colors"
+                            className="ml-2 bg-gray-800 hover:bg-skillfi-neon hover:text-black text-white px-3 py-1 rounded-md text-xs font-bold transition-colors uppercase"
                         >
-                            +
+                            Add
                         </button>
                     </div>
                 </div>
@@ -191,14 +327,13 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                 <div className="pt-4 border-t border-gray-800">
                     <button 
                         onClick={handleAuditBudget}
-                        className="w-full py-3 bg-gradient-to-r from-skillfi-neon/20 to-blue-500/20 border border-skillfi-neon/50 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group"
+                        className="w-full py-4 bg-gradient-to-r from-skillfi-neon/10 to-blue-500/10 border border-skillfi-neon/30 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 animate-pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 group-hover:animate-spin-slow">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                         </svg>
-                        RUN AI TACTICAL AUDIT
+                        RUN TACTICAL AUDIT
                     </button>
-                    <p className="text-[10px] text-gray-500 text-center mt-2">Sends current budget data to Skillfi for ruthless optimization.</p>
                 </div>
             </div>
         )}
@@ -206,69 +341,61 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
         {/* PROFIT TAB */}
         {activeTab === 'PROFIT' && (
              <div className="space-y-6">
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Buy Price ($)</label>
-                        <input 
-                            type="number" 
-                            value={buyPrice} 
-                            onChange={(e) => setBuyPrice(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Sell Price ($)</label>
-                        <input 
-                            type="number" 
-                            value={sellPrice} 
-                            onChange={(e) => setSellPrice(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Quantity</label>
-                        <input 
-                            type="number" 
-                            value={quantity} 
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Fee (%)</label>
-                        <input 
-                            type="number" 
-                            value={fees} 
-                            onChange={(e) => setFees(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
+                 {/* Inputs */}
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { label: 'Entry ($)', val: buyPrice, set: setBuyPrice },
+                        { label: 'Exit ($)', val: sellPrice, set: setSellPrice },
+                        { label: 'Units', val: quantity, set: setQuantity },
+                        { label: 'Fees (%)', val: fees, set: setFees }
+                    ].map((field, i) => (
+                        <div key={i} className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{field.label}</label>
+                            <input 
+                                type="number" 
+                                value={field.val} 
+                                onChange={(e) => field.set(Number(e.target.value))}
+                                className="w-full bg-[#080808] border border-gray-700 p-2.5 rounded-lg text-white outline-none focus:border-skillfi-neon text-sm font-bold font-mono"
+                            />
+                        </div>
+                    ))}
+                 </div>
+
+                 {/* Portfolio Galaxy Canvas */}
+                 <div className="relative w-full h-64 bg-black rounded-2xl border border-gray-800 overflow-hidden flex items-center justify-center">
+                    <canvas 
+                        ref={galaxyCanvasRef} 
+                        width={600} 
+                        height={300} 
+                        className="absolute inset-0 w-full h-full object-cover opacity-80"
+                    />
+                    
+                    {/* Overlay Stats */}
+                    <div className="relative z-10 text-center pointer-events-none backdrop-blur-[2px] p-4 rounded-xl bg-black/30 border border-white/5">
+                        <div className="flex justify-center items-center gap-2 mb-1">
+                            <span className="text-xs font-bold text-gray-400">ROI</span>
+                            <span className={`text-sm font-bold ${profitData.roi >= 0 ? 'text-green-400' : 'text-red-500'}`}>
+                                {profitData.roi >= 0 ? '+' : ''}{profitData.roi.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div className={`text-5xl font-bold tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
+                            {profitData.profit >= 0 ? '+' : '-'}${Math.abs(profitData.profit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="mt-2 text-[10px] text-gray-400 font-mono">
+                            LIQUIDITY: ${profitData.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
                     </div>
                  </div>
 
-                 <div className="mt-8 bg-gradient-to-r from-[#151515] to-[#0a0a0a] border border-gray-800 p-6 rounded-2xl">
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-sm font-bold text-gray-400">NET PROFIT / LOSS</span>
-                        <span className={`text-lg font-bold ${profitData.roi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {profitData.roi >= 0 ? '+' : ''}{profitData.roi.toFixed(2)}% ROI
-                        </span>
-                    </div>
-                    <div className={`text-5xl font-bold tracking-tighter ${profitData.profit >= 0 ? 'text-green-400' : 'text-red-500'}`}>
-                        {profitData.profit >= 0 ? '+' : '-'}${Math.abs(profitData.profit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div className="mt-2 text-xs text-gray-600 font-mono">
-                        TOTAL EXIT VALUE: ${profitData.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </div>
-                 </div>
-
-                 <div className="pt-4 border-t border-gray-800">
+                 <div className="pt-2">
                     <button 
                         onClick={handleAuditProfit}
-                        className="w-full py-3 bg-gradient-to-r from-skillfi-neon/20 to-purple-500/20 border border-skillfi-neon/50 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-gradient-to-r from-purple-900/20 to-black border border-purple-500/30 text-purple-400 font-bold rounded-xl hover:bg-purple-500 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                         </svg>
-                        ANALYZE RISK & REWARD
+                        ANALYZE TRADE GALAXY
                     </button>
                  </div>
              </div>
@@ -277,53 +404,53 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
         {/* INTEREST TAB */}
         {activeTab === 'INTEREST' && (
             <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Initial Principal ($)</label>
-                        <input 
-                            type="number" 
-                            value={principal} 
-                            onChange={(e) => setPrincipal(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Monthly Contribution ($)</label>
-                        <input 
-                            type="number" 
-                            value={monthly} 
-                            onChange={(e) => setMonthly(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Annual Rate (%)</label>
-                        <input 
-                            type="number" 
-                            value={rate} 
-                            onChange={(e) => setRate(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Years</label>
-                        <input 
-                            type="number" 
-                            value={years} 
-                            onChange={(e) => setYears(Number(e.target.value))}
-                            className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
-                        />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                    {[
+                        { label: 'Principal', val: principal, set: setPrincipal },
+                        { label: 'Monthly +', val: monthly, set: setMonthly },
+                        { label: 'Rate %', val: rate, set: setRate },
+                        { label: 'Years', val: years, set: setYears }
+                    ].map((field, i) => (
+                        <div key={i} className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">{field.label}</label>
+                            <input 
+                                type="number" 
+                                value={field.val} 
+                                onChange={(e) => field.set(Number(e.target.value))}
+                                className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white outline-none focus:border-skillfi-neon"
+                            />
+                        </div>
+                    ))}
                 </div>
 
-                <div className="mt-6 p-6 bg-[#080808] border border-skillfi-neon/30 rounded-xl flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 font-bold text-6xl text-skillfi-neon select-none">$</div>
-                    <span className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2">Projected Future Wealth</span>
-                    <span className="text-4xl md:text-5xl font-bold text-white tracking-tighter">
-                        ${interestTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                    </span>
-                    <div className="mt-2 text-[10px] text-gray-600 uppercase tracking-widest">
-                        Total Invested: ${(principal + (monthly * 12 * years)).toLocaleString()}
+                {/* Net Worth Orb Visualization */}
+                <div className="mt-6 min-h-[250px] p-6 bg-[#080808] border border-gray-800 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-skillfi-neon/30 transition-colors">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         {/* The Orb */}
+                         <div 
+                            className="rounded-full transition-all duration-1000 relative"
+                            style={{
+                                width: '180px',
+                                height: '180px',
+                                background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), #000)',
+                                boxShadow: `0 0 30px ${interestTotal > 100000 ? '#00ffff' : '#444'}, inset 0 0 20px ${interestTotal > 100000 ? 'rgba(0,255,255,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                                transform: `scale(${1 + Math.min(interestTotal / 500000, 0.5)})`
+                            }}
+                         >
+                             {/* Inner Pulse */}
+                             <div className="absolute inset-0 rounded-full animate-pulse bg-skillfi-neon/5"></div>
+                         </div>
+                    </div>
+
+                    {/* Orb Data */}
+                    <div className="relative z-10 text-center">
+                        <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block text-shadow-sm">Future Wealth Event</span>
+                        <span className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
+                            ${interestTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                        <div className="mt-3 text-[10px] text-gray-400 uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full inline-block border border-gray-800">
+                            Invested: ${(principal + (monthly * 12 * years)).toLocaleString()}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -334,7 +461,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
             <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Gross Annual Income ($)</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Gross Annual Income</label>
                         <input 
                             type="number" 
                             value={taxIncome} 
@@ -343,7 +470,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Total Deductions ($)</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Deductions</label>
                         <input 
                             type="number" 
                             value={taxDeductions} 
@@ -352,7 +479,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Est. Tax Rate (%)</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Rate (%)</label>
                         <input 
                             type="number" 
                             value={taxRate} 
@@ -365,44 +492,32 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Tax Liability Card */}
                     <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl -mr-8 -mt-8"></div>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimated Tax Bill</span>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Liability Vector</span>
                         <div className="text-3xl font-bold text-red-400 tracking-tight">
                             -${taxData.taxAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
-                        <div className="mt-3 w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="mt-4 w-full bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-800">
                             <div 
-                                className="h-full bg-red-500 rounded-full" 
+                                className="h-full bg-red-600 rounded-full shadow-[0_0_10px_#ff0000]" 
                                 style={{ width: `${Math.min(taxData.effectiveRate, 100)}%` }}
                             ></div>
                         </div>
-                        <span className="text-[10px] text-gray-500 mt-2 text-right">Effective Rate: {taxData.effectiveRate.toFixed(1)}%</span>
+                        <span className="text-[10px] text-gray-500 mt-2 text-right">Effective Drag: {taxData.effectiveRate.toFixed(1)}%</span>
                     </div>
 
                     {/* Net Income Card */}
                     <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl -mr-8 -mt-8"></div>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Net Take-Home (Annual)</span>
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Net Capital Retention</span>
                         <div className="text-3xl font-bold text-green-400 tracking-tight">
                             ${taxData.netIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
                         <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
-                            <span className="text-xs text-gray-400">Monthly Average:</span>
+                            <span className="text-xs text-gray-400">Monthly Avg:</span>
                             <span className="text-lg font-bold text-white">${taxData.monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                         </div>
                     </div>
-                </div>
-
-                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl flex gap-3 items-start">
-                    <div className="text-blue-400 mt-0.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                        </svg>
-                    </div>
-                    <p className="text-xs text-blue-300 leading-relaxed">
-                        <strong className="text-blue-200">Advisory:</strong> This is a simplified estimation. Tax laws are complex and vary by jurisdiction. 
-                        Always consult with a qualified accountant or use official government tools for filing.
-                    </p>
                 </div>
             </div>
         )}

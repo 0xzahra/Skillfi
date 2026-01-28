@@ -44,8 +44,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-[#050505] font-sans p-4 overflow-y-auto">
-            <div className={`w-full max-w-lg p-8 bg-[#111] border border-gray-800 rounded-2xl shadow-2xl relative transition-all duration-500 ${isRegister ? 'mt-10 mb-10' : ''}`}>
+        <div className="flex items-center justify-center min-h-screen bg-transparent font-sans p-4">
+            <div className={`w-full max-w-lg p-8 bg-[#111]/90 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl relative transition-all duration-500 ${isRegister ? 'mt-10 mb-10' : ''}`}>
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-skillfi-neon to-skillfi-accent"></div>
                 
                 <div className="text-center mb-8">
@@ -68,7 +68,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                 type="text" 
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-[#080808] border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors text-base placeholder-gray-600"
+                                className="w-full bg-[#080808]/50 border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors text-base placeholder-gray-600"
                                 placeholder="Enter your alias"
                             />
                         </div>
@@ -80,7 +80,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                 type="email" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-[#080808] border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors text-base placeholder-gray-600"
+                                className="w-full bg-[#080808]/50 border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors text-base placeholder-gray-600"
                                 placeholder="you@example.com"
                             />
                         </div>
@@ -95,7 +95,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                 <button
                                     type="button"
                                     onClick={() => setUserType('CHILD')}
-                                    className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${userType === 'CHILD' ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' : 'bg-[#080808] border-gray-700 text-gray-500 hover:border-gray-500'}`}
+                                    className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${userType === 'CHILD' ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' : 'bg-[#080808]/50 border-gray-700 text-gray-500 hover:border-gray-500'}`}
                                 >
                                     <span className="text-2xl">🎓</span>
                                     <span className="text-xs font-bold uppercase">Student / Child</span>
@@ -103,7 +103,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                 <button
                                     type="button"
                                     onClick={() => setUserType('ADULT')}
-                                    className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${userType === 'ADULT' ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' : 'bg-[#080808] border-gray-700 text-gray-500 hover:border-gray-500'}`}
+                                    className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${userType === 'ADULT' ? 'bg-skillfi-neon/10 border-skillfi-neon text-white' : 'bg-[#080808]/50 border-gray-700 text-gray-500 hover:border-gray-500'}`}
                                 >
                                     <span className="text-2xl">💼</span>
                                     <span className="text-xs font-bold uppercase">Adult / Pro</span>
@@ -117,7 +117,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                         type="number" 
                                         value={age}
                                         onChange={(e) => setAge(e.target.value)}
-                                        className="w-full bg-[#080808] border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors placeholder-gray-600"
+                                        className="w-full bg-[#080808]/50 border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors placeholder-gray-600"
                                         placeholder="Age"
                                         min="5"
                                         max="100"
@@ -128,7 +128,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                      <button
                                         type="button"
                                         onClick={() => setIsTechie(!isTechie)}
-                                        className={`w-full p-3.5 rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 ${isTechie ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-[#080808] border-gray-700 text-gray-500'}`}
+                                        className={`w-full p-3.5 rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 ${isTechie ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-[#080808]/50 border-gray-700 text-gray-500'}`}
                                      >
                                          {isTechie ? '💻 Techie' : '📄 Non-Techie'}
                                      </button>
@@ -143,7 +143,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                                     type="text" 
                                     value={qualification}
                                     onChange={(e) => setQualification(e.target.value)}
-                                    className="w-full bg-[#080808] border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors placeholder-gray-600"
+                                    className="w-full bg-[#080808]/50 border border-gray-700 p-3.5 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors placeholder-gray-600"
                                     placeholder={userType === 'CHILD' ? 'e.g., 10th Grade, High School' : 'e.g., BSc Computer Science, MBA'}
                                 />
                             </div>
