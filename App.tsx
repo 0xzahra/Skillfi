@@ -302,6 +302,10 @@ const App: React.FC = () => {
           setCurrentView('CHAT');
           handleSendMessage("What are the recommended Criteria for selecting a spouse for long-term success?");
       }
+      else if (view === 'TRADING') {
+          setCurrentView('CHAT');
+          handleSendMessage("ACTIVATE MODE: TRADING DOJO. Focus on risk management, technical analysis, and psychology.");
+      }
       // General Chat Modes
       else {
           setCurrentView('CHAT');
@@ -443,7 +447,7 @@ const App: React.FC = () => {
   const isIntroOrAuth = showSplash || showLanguageSelect || currentView === 'AUTH';
 
   return (
-    <div className="relative h-screen overflow-hidden bg-skillfi-bg text-white font-sans selection:bg-skillfi-neon selection:text-black">
+    <div className="relative h-screen overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black">
       
       {/* Persistent Background Video for Intro/Auth */}
       {isIntroOrAuth && (
@@ -460,10 +464,6 @@ const App: React.FC = () => {
               </video>
               
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 z-10"></div>
-              
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-50"></div>
-              
-              <div className="absolute inset-0 opacity-20 pointer-events-none z-10 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
           </div>
       )}
 
@@ -486,10 +486,8 @@ const App: React.FC = () => {
 
       {/* Main App (Dashboard/Chat/etc) */}
       {!showSplash && !showLanguageSelect && currentView !== 'AUTH' && (
-          <div className="flex h-screen overflow-hidden bg-[#050505] relative z-20">
-              {/* Background gradient for depth */}
-              <div className="absolute inset-0 bg-gradient-to-br from-skillfi-bg via-[#0a0a0a] to-[#050505] z-0 pointer-events-none"></div>
-
+          <div className="flex h-screen overflow-hidden relative z-20">
+              
               <Sidebar 
                 isOpen={isSidebarOpen} 
                 onModeSelect={handleNavigate}
@@ -535,8 +533,9 @@ const App: React.FC = () => {
                                 onStop={() => setIsLoading(false)}
                                 isLoading={isLoading} 
                             />
-                            <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                                © Vibe coded by Zahra Usman
+                            <div className="text-center mt-3 text-[10px] text-gray-500 font-mono flex items-center justify-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                Vibe coded by arewa.base.eth
                             </div>
                         </div>
                       </div>

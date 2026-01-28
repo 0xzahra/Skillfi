@@ -14,21 +14,36 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose, credits, currentLang }) => {
   const [isRelExpanded, setIsRelExpanded] = useState(false);
 
+  // Updated Order: Career > Education > Wealth Tools > Trading > Relationships > Elite > Tribes
   const navItems = [
-    { id: 'dashboard', label: t('dashboard', currentLang), desc: 'Overview & Stats', icon: '⚡', action: 'DASHBOARD' },
-    { id: 'inbox', label: 'Inbox', desc: 'Secure Messaging', icon: '✉️', action: 'INBOX' },
-    { id: 'tribes', label: t('tribes', currentLang), desc: 'Join Communities', icon: '✊', action: 'TRIBES' },
-    { id: 'career', label: t('career', currentLang), desc: 'Web3 & Tech Strategy', icon: '🚀', action: 'CAREER' },
-    { id: 'finance', label: t('finance', currentLang), desc: 'Wealth Tools', icon: '📊', action: 'FINANCE' },
+    { id: 'dashboard', label: t('dashboard', currentLang), desc: 'Overview', icon: '⚡', action: 'DASHBOARD' },
     
-    // Expanded Relationships Category
+    // 1. Career
+    { id: 'career', label: t('career', currentLang), desc: 'Web3 & Tech Strategy', icon: '🚀', action: 'CAREER' },
+    
+    // 2. Education
+    { id: 'education', label: t('education', currentLang), desc: 'Academic Guidance', icon: '🧠', action: 'EDUCATION' },
+    
+    // 3. Wealth Tools (Finance)
+    { id: 'finance', label: 'Wealth Tools', desc: 'Net Worth & Calc', icon: '📊', action: 'FINANCE' },
+    
+    // 4. Trading Dojo
+    { id: 'trading', label: 'Trading Dojo', desc: 'Risk & Technicals', icon: '📈', action: 'TRADING' },
+
+    // 5. Relationships
     { id: 'rel_general', label: t('relationships', currentLang), desc: 'General Guidance', icon: '❤️', action: 'RELATIONSHIPS' },
     { id: 'rel_rights', label: t('rights', currentLang), desc: 'Protected Rights', icon: '⚖️', action: 'RIGHTS' },
     { id: 'rel_duties', label: t('duties', currentLang), desc: 'Roles & Responsibilities', icon: '🤝', action: 'DUTIES' },
     { id: 'rel_criteria', label: t('criteria', currentLang), desc: 'Selection Standards', icon: '🔍', action: 'CRITERIA' },
     
+    // 6. High Society (Elite)
     { id: 'elite', label: t('elite', currentLang), desc: 'Etiquette & Class', icon: '🎩', action: 'ELITE' },
-    { id: 'education', label: t('education', currentLang), desc: 'Academic Guidance', icon: '🧠', action: 'EDUCATION' },
+    
+    // 7. Tribes
+    { id: 'tribes', label: t('tribes', currentLang), desc: 'Join Communities', icon: '✊', action: 'TRIBES' },
+
+    // Utilities
+    { id: 'inbox', label: 'Inbox', desc: 'Secure Messaging', icon: '✉️', action: 'INBOX' },
     { id: 'safety', label: t('safety', currentLang), desc: 'Digital Security', icon: '🛡️', action: 'SAFETY' },
     { id: 'support', label: t('support', currentLang), desc: 'Human Agent Uplink', icon: '🎧', action: 'SUPPORT' },
     { id: 'history', label: t('history', currentLang), desc: 'Archives', icon: '📜', action: 'HISTORY' },
