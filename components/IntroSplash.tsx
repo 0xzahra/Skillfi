@@ -5,74 +5,68 @@ interface IntroSplashProps {
 }
 
 export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'VORTEX' | 'LOGO' | 'EXPLODE' | 'DONE'>('VORTEX');
+  const [phase, setPhase] = useState<'START' | 'EXPLODE' | 'DONE'>('START');
   
-  // Specific symbols requested: 📈, 💎, 🎨, 🥂, ✈️, 🩺, 🎓
-  const symbols = ['📈', '💎', '🎨', '🥂', '✈️', '🩺', '🎓', '📈', '💎', '🎨', '🥂', '✈️', '🩺', '🎓'];
+  // Expanded symbol set covering many careers
+  const symbols = [
+      '📈', '💎', '🎨', '🥂', '✈️', '🩺', '🎓', '⚖️', '💻', '🏗️', 
+      '🎤', '🚒', '🚀', '🌱', '🍳', '📽️', '⚽', '🔬', '🔧', '📚'
+  ];
 
   useEffect(() => {
-    // Phase 1: Vortex Suck In (High Velocity - 1.5s)
-    setTimeout(() => setPhase('LOGO'), 1500);
+    // Phase 1: Logo appears (0s)
+    
+    // Phase 2: Symbols Explode Out (1s)
+    setTimeout(() => setPhase('EXPLODE'), 800);
 
-    // Phase 2: Logo Hold (0.8s) -> Explode
-    setTimeout(() => setPhase('EXPLODE'), 2300);
-
-    // Phase 3: Handover
+    // Phase 3: Finish (3.5s)
     setTimeout(() => {
         setPhase('DONE');
         onComplete();
-    }, 3300);
+    }, 3500);
   }, [onComplete]);
 
   if (phase === 'DONE') return null;
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-[#121212] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-1000 ${phase === 'EXPLODE' ? 'pointer-events-none' : ''}`}>
+    <div className="fixed inset-0 z-[100] bg-[#121212] flex flex-col items-center justify-center overflow-hidden">
         
-        {/* Kinetic Vortex & Explosion Container */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {/* Main Logo Container */}
+        <div className="relative z-20 flex flex-col items-center justify-center">
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl animate-pulse">
+                SKILLFI<span className="text-skillfi-neon">.</span>
+            </h1>
+            <p className="text-gray-400 mt-4 text-sm md:text-base font-medium animate-fade-in text-center max-w-xs md:max-w-md">
+                Fixing career confusion.
+            </p>
+        </div>
+
+        {/* Symbols Explosion Container */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             {symbols.map((sym, i) => {
-                // Calculation for explosion trajectories
+                // Calculate random trajectory for explosion
                 const angle = (i / symbols.length) * Math.PI * 2;
-                const dist = 100; // view units
-                const flyX = Math.cos(angle) * dist;
-                const flyY = Math.sin(angle) * dist;
+                // Random distance between 30vw and 50vw
+                const dist = 30 + Math.random() * 20; 
+                const x = Math.cos(angle) * dist;
+                const y = Math.sin(angle) * dist;
+                const rotate = Math.random() * 360;
                 
                 return (
                     <div 
                         key={i}
-                        className={`absolute text-4xl md:text-6xl transition-all ease-in-out
-                            ${phase === 'VORTEX' ? 'animate-vortex-in opacity-0' : ''}
-                            ${phase === 'LOGO' ? 'scale-0 opacity-0 duration-300' : ''}
-                            ${phase === 'EXPLODE' ? 'opacity-20 duration-[1000ms]' : ''}
-                        `}
+                        className={`absolute text-4xl transition-all duration-[2000ms] ease-out`}
                         style={{
-                            transform: phase === 'EXPLODE' ? `translate(${flyX}vw, ${flyY}vh) scale(0.5) rotate(${Math.random()*360}deg)` : undefined,
-                            animationDelay: phase === 'VORTEX' ? `${i * 0.05}s` : '0s'
+                            opacity: phase === 'EXPLODE' ? 0.6 : 0,
+                            transform: phase === 'EXPLODE' 
+                                ? `translate(${x}vw, ${y}vh) rotate(${rotate}deg) scale(1.5)` 
+                                : `translate(0, 0) scale(0)`,
                         }}
                     >
                         {sym}
                     </div>
                 );
             })}
-        </div>
-
-        {/* The Converged Logo */}
-        <div className={`relative z-20 flex flex-col items-center justify-center transition-all duration-300 ${phase === 'VORTEX' ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}>
-            <div className={`relative ${phase === 'EXPLODE' ? 'animate-glass-break' : ''}`}>
-                <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white relative z-10 drop-shadow-2xl">
-                    SKILLFI<span className="text-skillfi-neon">.</span>
-                </h1>
-                {/* Glow behind logo */}
-                <div className="absolute -inset-10 bg-skillfi-neon/5 rounded-full blur-[100px]"></div>
-            </div>
-
-            {/* Sleek Neon Loading Bar - NO TEXT */}
-            {phase !== 'EXPLODE' && (
-                <div className="absolute -bottom-16 w-32 h-[2px] bg-gray-900 rounded-full overflow-hidden">
-                    <div className="h-full bg-skillfi-neon w-full origin-left animate-[scanLine_0.8s_ease-in-out_infinite] shadow-[0_0_10px_#00ffff]"></div>
-                </div>
-            )}
         </div>
     </div>
   );

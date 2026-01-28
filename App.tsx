@@ -16,6 +16,8 @@ import { Inbox } from './components/Inbox';
 import { Notifications } from './components/Notifications';
 import { CareerArsenal } from './components/CareerArsenal'; 
 import { EducationCenter } from './components/EducationCenter'; 
+import { RelationshipsDash } from './components/RelationshipsDash';
+import { MentalHealth } from './components/MentalHealth';
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -26,7 +28,7 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
+  const [currentView, setCurrentView] = useState<ViewMode | 'RELATIONSHIPS_DASH' | 'MENTAL_HEALTH'>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
   
   const [activities, setActivities] = useState<ActivityLog[]>([
@@ -294,25 +296,13 @@ const App: React.FC = () => {
       else if (view === 'EDUCATION') {
           setCurrentView('EDUCATION');
       }
-      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS'].includes(view)) {
-          setCurrentView(view as ViewMode);
+      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS', 'RELATIONSHIPS_DASH', 'MENTAL_HEALTH'].includes(view)) {
+          setCurrentView(view as any);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
           setUser(null);
           setCurrentView('AUTH');
       } 
-      else if (view === 'RIGHTS') {
-          setCurrentView('CHAT');
-          handleSendMessage("Explain Marriage Rights (Protected by Divine/Universal Law) in detail.");
-      }
-      else if (view === 'DUTIES') {
-          setCurrentView('CHAT');
-          handleSendMessage("Outline the detailed Duties & Obligations in a standard marriage contract.");
-      }
-      else if (view === 'CRITERIA') {
-          setCurrentView('CHAT');
-          handleSendMessage("What are the recommended Criteria for selecting a spouse for long-term success?");
-      }
       else if (view === 'TRADING') {
           setCurrentView('CHAT');
           handleSendMessage("ACTIVATE MODE: TRADING DOJO. Focus on risk management, technical analysis, and psychology.");
@@ -483,7 +473,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className="relative h-screen overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black"
+        className="relative h-screen w-full overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -519,14 +509,14 @@ const App: React.FC = () => {
 
       {/* Auth Screen (Overlaying Video) */}
       {!showSplash && !showLanguageSelect && currentView === 'AUTH' && (
-          <div className="relative z-10 h-full overflow-y-auto">
+          <div className="relative z-10 h-full w-full overflow-y-auto">
               <Auth onLogin={handleLogin} currentLang={currentLang} />
           </div>
       )}
 
       {/* Main App (Dashboard/Chat/etc) */}
       {!showSplash && !showLanguageSelect && currentView !== 'AUTH' && (
-          <div className="flex h-screen overflow-hidden relative z-20">
+          <div className="flex h-screen w-full overflow-hidden relative z-20">
               
               <Sidebar 
                 isOpen={isSidebarOpen} 
@@ -536,7 +526,7 @@ const App: React.FC = () => {
                 currentLang={currentLang}
               />
 
-              <div className="flex-1 flex flex-col h-full relative w-full z-10">
+              <div className="flex-1 flex flex-col h-full relative w-full z-10 overflow-hidden">
                 <Header 
                     onNewChat={handleNewChat}
                     onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -553,7 +543,7 @@ const App: React.FC = () => {
                     }}
                 />
 
-                <main className="flex-1 overflow-hidden relative flex flex-col">
+                <main className="flex-1 overflow-hidden relative flex flex-col w-full">
                   {currentView === 'DASHBOARD' && (
                       <Dashboard 
                         user={user!} 
@@ -565,12 +555,14 @@ const App: React.FC = () => {
                   
                   {currentView === 'CAREER' && <CareerArsenal user={user!} />}
                   {currentView === 'EDUCATION' && <EducationCenter />}
+                  {currentView === 'RELATIONSHIPS_DASH' && <RelationshipsDash />}
+                  {currentView === 'MENTAL_HEALTH' && <MentalHealth />}
 
                   {currentView === 'CHAT' && (
                     <>
                       <ChatInterface messages={messages} isLoading={isLoading} />
-                      <div className="p-4 md:p-6 bg-transparent border-t border-white/5">
-                        <div className="max-w-4xl mx-auto">
+                      <div className="p-4 md:p-6 bg-transparent border-t border-white/5 w-full">
+                        <div className="max-w-4xl mx-auto w-full">
                             <InputArea 
                                 onSendMessage={handleSendMessage} 
                                 onStop={() => setIsLoading(false)}

@@ -13,12 +13,12 @@
           extend: {
             colors: {
               skillfi: {
-                bg: '#050505',
-                neon: '#00ffff',
-                accent: '#ff6600',
-                surface: '#0f0f0f',
-                text: '#ffffff',
-                dim: '#888888'
+                bg: '#020408',      /* Deepest Navy/Black */
+                neon: '#D4AF37',    /* Old Money Gold */
+                accent: '#C5A059',  /* Champagne / Muted Gold */
+                surface: '#0B1221', /* Navy Surface */
+                text: '#E2E8F0',    /* Platinum / Off-white */
+                dim: '#64748B'      /* Slate Grey */
               }
             },
             fontFamily: {
@@ -72,8 +72,8 @@
       .lenis.lenis-scrolling iframe { pointer-events: none; }
 
       body {
-        background-color: #121212; /* Deep Charcoal */
-        color: white;
+        background-color: #020408; /* Deepest Navy/Black */
+        color: #E2E8F0;
         font-family: 'Inter', sans-serif;
         overflow-x: hidden;
         perspective: 1000px; 
@@ -81,12 +81,12 @@
         overscroll-behavior-y: none;
       }
 
-      /* --- DEEP SPACE MESH --- */
+      /* --- DEEP SPACE MESH (Updated to Navy/Gold) --- */
       .deep-space-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: 
-          radial-gradient(circle at 50% 50%, rgba(20, 20, 25, 1) 0%, rgba(5, 5, 5, 1) 100%);
+          radial-gradient(circle at 50% 50%, #0F172A 0%, #020408 100%);
         z-index: -2;
       }
       
@@ -94,22 +94,22 @@
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background-image: 
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+          linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
         background-size: 40px 40px;
         z-index: -1;
         pointer-events: none;
       }
 
-      /* --- GLASSMORPHISM 3.0 --- */
+      /* --- GLASSMORPHISM 3.0 (Navy Tint) --- */
       .glass-panel {
-        background: rgba(20, 20, 25, 0.6);
+        background: rgba(11, 18, 33, 0.7); /* Navy Tint */
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: 
           0 4px 30px rgba(0, 0, 0, 0.5),
-          inset 0 0 20px rgba(0, 0, 0, 0.2);
+          inset 0 0 20px rgba(2, 6, 23, 0.3); /* Darker Inset */
         position: relative;
         overflow: hidden;
       }
@@ -118,13 +118,13 @@
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.15), transparent); /* Gold Highlight */
         opacity: 0.5;
       }
 
-      /* Neon Text Shadow */
+      /* Neon Text Shadow (Updated to Gold) */
       .text-shadow-neon {
-        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3);
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.4), 0 0 20px rgba(212, 175, 55, 0.2);
       }
 
       /* Scrollbar Hide */

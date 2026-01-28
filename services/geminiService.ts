@@ -259,3 +259,47 @@ export const generateCVContent = async (userContext: string): Promise<string | n
         return null;
     }
 };
+
+export interface CareerRoadmap {
+    web2: { role: string; skills: string[]; action: string };
+    web3: { role: string; skills: string[]; action: string };
+    advice: string;
+}
+
+export const generateCareerRoadmap = async (userContext: string): Promise<CareerRoadmap | null> => {
+    const ai = getClient();
+    const prompt = `
+    Analyze this user context: "${userContext}".
+    
+    Based on their background, suggest 2 distinct career paths:
+    1. Web2: A traditional, stable corporate or tech role.
+    2. Web3: An emerging, decentralized, or blockchain-based role (high potential).
+    
+    Return STRICT JSON format:
+    {
+      "web2": { 
+        "role": "Role Title", 
+        "skills": ["Skill1", "Skill2"], 
+        "action": "Specific first step (e.g. Learn X, Build Y)" 
+      },
+      "web3": { 
+        "role": "Role Title", 
+        "skills": ["Skill1", "Skill2"], 
+        "action": "Specific first step" 
+      },
+      "advice": "One sentence strategic advice bridging both worlds."
+    }
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: { responseMimeType: 'application/json' }
+        });
+        return JSON.parse(response.text || "{}");
+    } catch (error) {
+        console.error("Roadmap Gen Error:", error);
+        return null;
+    }
+};
