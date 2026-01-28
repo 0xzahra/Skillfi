@@ -79,7 +79,8 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
       if (activeTab === 'PROFIT' && galaxyCanvasRef.current) {
           const canvas = galaxyCanvasRef.current;
           const ctx = canvas.getContext('2d');
-          if (!ctx) return;
+          
+          if (!canvas || !ctx) return;
 
           let animationFrameId: number;
           let particles: {x: number, y: number, size: number, speed: number, angle: number, radius: number}[] = [];
@@ -96,6 +97,9 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
           }
 
           const render = () => {
+              // Double check context in loop just in case
+              if (!ctx || !canvas) return;
+
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               const centerX = canvas.width / 2;
               const centerY = canvas.height / 2;
