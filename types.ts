@@ -20,7 +20,7 @@ export enum FileType {
   PDF = 'PDF'
 }
 
-export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY' | 'TRIBES' | 'SUPPORT' | 'INBOX' | 'NOTIFICATIONS';
+export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY' | 'TRIBES' | 'SUPPORT' | 'INBOX' | 'NOTIFICATIONS' | 'CAREER' | 'EDUCATION' | 'RELATIONSHIPS_DASH' | 'MENTAL_HEALTH';
 
 export interface UserProfile {
   id: string;

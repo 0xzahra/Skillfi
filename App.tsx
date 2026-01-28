@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { ChatInterface } from './components/ChatInterface';
@@ -28,7 +29,7 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentView, setCurrentView] = useState<ViewMode | 'RELATIONSHIPS_DASH' | 'MENTAL_HEALTH'>('AUTH');
+  const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
   
   const [activities, setActivities] = useState<ActivityLog[]>([
