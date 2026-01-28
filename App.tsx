@@ -18,6 +18,7 @@ import { CareerArsenal } from './components/CareerArsenal';
 import { EducationCenter } from './components/EducationCenter'; 
 import { RelationshipsDash } from './components/RelationshipsDash';
 import { MentalHealth } from './components/MentalHealth';
+import { Forbes } from './components/Forbes';
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -314,7 +315,7 @@ const App: React.FC = () => {
       else if (view === 'EDUCATION') {
           setCurrentView('EDUCATION');
       }
-      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS', 'RELATIONSHIPS_DASH', 'MENTAL_HEALTH'].includes(view)) {
+      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS', 'RELATIONSHIPS_DASH', 'MENTAL_HEALTH', 'FORBES'].includes(view)) {
           setCurrentView(view as any);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
@@ -577,6 +578,7 @@ const App: React.FC = () => {
                   {currentView === 'EDUCATION' && <EducationCenter />}
                   {currentView === 'RELATIONSHIPS_DASH' && <RelationshipsDash />}
                   {currentView === 'MENTAL_HEALTH' && <MentalHealth />}
+                  {currentView === 'FORBES' && <Forbes />}
 
                   {currentView === 'CHAT' && (
                     <>
@@ -599,7 +601,7 @@ const App: React.FC = () => {
 
                   {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} currentLang={currentLang} />}
                   
-                  {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} />}
+                  {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} onNavigate={handleNavigate} />}
 
                   {currentView === 'SUPPORT' && <Support />}
                   
@@ -631,5 +633,4 @@ const App: React.FC = () => {
     </div>
   );
 };
-
 export default App;

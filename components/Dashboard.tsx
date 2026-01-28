@@ -51,6 +51,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
                 </div>
             </div>
 
+            {/* Influencer Spotlight Widget (New) */}
+            <div className="mb-10 w-full" onClick={() => onNavigate('FORBES')}>
+                 <div className="glass-panel rounded-2xl overflow-hidden cursor-pointer group relative border border-white/10 hover:border-skillfi-neon/50 transition-all">
+                    <div className="flex flex-col md:flex-row">
+                        {/* Magazine Cover Section */}
+                        <div className="w-full md:w-1/3 relative h-64 md:h-auto overflow-hidden bg-gray-900">
+                             <img 
+                                src="https://images.pexels.com/photos/11831618/pexels-photo-11831618.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+                                alt="Person of the Year" 
+                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 grayscale contrast-125"
+                             />
+                             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                             <div className="absolute top-4 left-0 w-full text-center">
+                                 <h2 className="text-4xl font-black font-display text-white tracking-tighter opacity-90 drop-shadow-xl">FORBES</h2>
+                             </div>
+                             <div className="absolute bottom-4 left-4">
+                                 <span className="bg-skillfi-neon text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide mb-1 inline-block">Person of the Year</span>
+                                 <h3 className="text-white font-bold text-xl font-display leading-none">Elon Musk</h3>
+                             </div>
+                        </div>
+                        
+                        {/* Text / CTA Section */}
+                        <div className="w-full md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-gradient-to-r from-black via-[#0a0a0a] to-transparent">
+                             <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-2">Editor's Pick</h3>
+                             <h2 className="text-2xl font-bold text-white mb-3">The Architect of Tomorrow</h2>
+                             <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                                 Dive into the psychology of the world's wealthiest man. Learn how First Principles Thinking can restructure your career path.
+                             </p>
+                             <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest group-hover:text-skillfi-neon transition-colors">
+                                 <span>Read Biography</span>
+                                 <span className="group-hover:translate-x-1 transition-transform">→</span>
+                             </div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
             {/* Main Navigation Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 

@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Tribe, FeedPost, TribeMember } from '../types';
 
 interface TribesProps {
     userCredits: number;
+    onNavigate: (view: string) => void;
 }
 
-export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
+export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
     const [activeTab, setActiveTab] = useState<'DISCOVER' | 'MY_TRIBES'>('DISCOVER');
     const [viewMode, setViewMode] = useState<'FEED' | 'MEMBERS'>('FEED');
     const [activeTribeId, setActiveTribeId] = useState<string | null>(null);
@@ -27,6 +27,8 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
         { id: '101', author: 'CryptoKing', content: 'Just deployed my first smart contract on Base! 🚀', likes: 45, timestamp: '2m ago' },
         { id: '102', author: 'AiArtist', content: 'Midjourney v6 is changing the game. Check this render.', likes: 128, timestamp: '15m ago' },
         { id: '103', author: 'DevOps_Dan', content: 'Remember to audit your code. Security first.', likes: 89, timestamp: '1h ago' },
+        { id: '104', author: 'Satoshi_N', content: 'The mempool is congested today. Fees are high.', likes: 21, timestamp: '2h ago' },
+        { id: '105', author: 'Alice_Web3', content: 'Anyone going to ETH Denver next month?', likes: 56, timestamp: '4h ago' },
     ]);
 
     const [members, setMembers] = useState<TribeMember[]>([
@@ -41,7 +43,10 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
 
     // Actions
     const handleJoin = (id: string) => {
-        setTribes(tribes.map(t => t.id === id ? { ...t, isJoined: !t.isJoined } : t));
+        // Toggle join state
+        setTribes(prev => prev.map(t => t.id === id ? { ...t, isJoined: !t.isJoined } : t));
+        // Force view mode to FEED so they see messages immediately
+        setViewMode('FEED');
     };
 
     const handleCreate = () => {
@@ -58,6 +63,8 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
         setIsCreating(false);
         setNewTribeName('');
         setActiveTab('MY_TRIBES');
+        setActiveTribeId(newTribe.id);
+        setViewMode('FEED');
     };
 
     const handlePost = () => {
@@ -82,6 +89,8 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
     const visibleTribes = activeTab === 'MY_TRIBES' 
         ? tribes.filter(t => t.isJoined)
         : tribes;
+
+    const activeTribe = tribes.find(t => t.id === activeTribeId);
 
     return (
         <div className="p-4 md:p-6 h-full overflow-y-auto pb-24 font-sans animate-fade-in scrollbar-hide">
@@ -158,7 +167,10 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
                     ) : visibleTribes.map(tribe => (
                         <div 
                             key={tribe.id} 
-                            onClick={() => setActiveTribeId(tribe.id)}
+                            onClick={() => {
+                                setActiveTribeId(tribe.id);
+                                if (tribe.isJoined) setViewMode('FEED');
+                            }}
                             className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group glass-panel ${
                                 activeTribeId === tribe.id 
                                 ? 'bg-skillfi-neon/10 border-skillfi-neon/50 shadow-glow' 
@@ -182,16 +194,6 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
                             <p className="text-gray-500 text-xs mt-1 mb-4 relative z-10 font-medium leading-relaxed">{tribe.description}</p>
                             <div className="flex justify-between items-center relative z-10">
                                 <span className="text-[10px] text-gray-600 font-mono">{tribe.members.toLocaleString()} OPERATIVES</span>
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); handleJoin(tribe.id); }}
-                                    className={`text-[10px] px-4 py-2 rounded-lg font-bold uppercase tracking-wider transition-all ${
-                                        tribe.isJoined 
-                                        ? 'border border-white/10 text-gray-400 hover:text-white' 
-                                        : 'bg-white text-black hover:bg-skillfi-neon hover:shadow-[0_0_10px_#00ffff]'
-                                    }`}
-                                >
-                                    {tribe.isJoined ? 'Leave' : 'Join'}
-                                </button>
                             </div>
                         </div>
                     ))}
@@ -199,105 +201,134 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
 
                 {/* Tribe Feed / Members Area */}
                 <div className="md:col-span-2 glass-panel rounded-2xl p-6 flex flex-col h-[600px] shadow-2xl relative overflow-hidden">
-                    {activeTribeId ? (
+                    {activeTribe ? (
                         <>
                             <div className="mb-4 pb-4 border-b border-white/10 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <h2 className="text-xl font-bold font-display text-white flex items-center gap-3">
-                                    {tribes.find(t => t.id === activeTribeId)?.name}
-                                    <span className="flex items-center gap-1 text-[10px] font-normal text-green-500 bg-green-900/20 px-2 py-0.5 rounded-full border border-green-500/20">
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                        LIVE
-                                    </span>
+                                    {activeTribe.name}
+                                    {activeTribe.isJoined && (
+                                        <span className="flex items-center gap-1 text-[10px] font-normal text-green-500 bg-green-900/20 px-2 py-0.5 rounded-full border border-green-500/20">
+                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                            LIVE
+                                        </span>
+                                    )}
                                 </h2>
 
-                                <div className="flex bg-black/40 p-1 rounded-lg">
-                                    <button 
-                                        onClick={() => setViewMode('FEED')}
-                                        className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${viewMode === 'FEED' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        Feed
-                                    </button>
-                                    <button 
-                                        onClick={() => setViewMode('MEMBERS')}
-                                        className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${viewMode === 'MEMBERS' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        Members
-                                    </button>
-                                </div>
+                                {activeTribe.isJoined && (
+                                    <div className="flex bg-black/40 p-1 rounded-lg">
+                                        <button 
+                                            onClick={() => setViewMode('FEED')}
+                                            className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${viewMode === 'FEED' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            Feed
+                                        </button>
+                                        <button 
+                                            onClick={() => setViewMode('MEMBERS')}
+                                            className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${viewMode === 'MEMBERS' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            Members
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             
-                            {viewMode === 'FEED' ? (
-                                <>
-                                    <div className="flex-1 overflow-y-auto space-y-4 pr-2 relative z-10 scrollbar-hide">
-                                        {feed.map(post => (
-                                            <div key={post.id} className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-black border border-white/10 flex items-center justify-center text-xs font-bold text-white">
-                                                            {post.author[0]}
+                            {activeTribe.isJoined ? (
+                                viewMode === 'FEED' ? (
+                                    <>
+                                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 relative z-10 scrollbar-hide">
+                                            {feed.map(post => (
+                                                <div key={post.id} className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors animate-fade-in">
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-black border border-white/10 flex items-center justify-center text-xs font-bold text-white">
+                                                                {post.author[0]}
+                                                            </div>
+                                                            <span className="font-bold text-white text-sm hover:text-skillfi-neon cursor-pointer transition-colors">@{post.author}</span>
+                                                            {post.isUser && <span className="text-[10px] bg-white/10 px-1.5 rounded text-gray-400">YOU</span>}
                                                         </div>
-                                                        <span className="font-bold text-white text-sm hover:text-skillfi-neon cursor-pointer transition-colors">@{post.author}</span>
-                                                        {post.isUser && <span className="text-[10px] bg-white/10 px-1.5 rounded text-gray-400">YOU</span>}
+                                                        <span className="text-[10px] text-gray-500 font-mono">{post.timestamp}</span>
                                                     </div>
-                                                    <span className="text-[10px] text-gray-500 font-mono">{post.timestamp}</span>
+                                                    <p className="text-gray-300 text-sm leading-relaxed pl-10">{post.content}</p>
+                                                    <div className="mt-4 pl-10 flex items-center gap-6 text-xs text-gray-500 font-bold">
+                                                        <button className="hover:text-red-400 flex items-center gap-1.5 transition-colors group">
+                                                            <span className="group-hover:scale-125 transition-transform">❤️</span> {post.likes}
+                                                        </button>
+                                                        <button className="hover:text-skillfi-neon flex items-center gap-1.5 transition-colors">
+                                                            💬 Reply
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <p className="text-gray-300 text-sm leading-relaxed pl-10">{post.content}</p>
-                                                <div className="mt-4 pl-10 flex items-center gap-6 text-xs text-gray-500 font-bold">
-                                                    <button className="hover:text-red-400 flex items-center gap-1.5 transition-colors group">
-                                                        <span className="group-hover:scale-125 transition-transform">❤️</span> {post.likes}
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-4 flex gap-3 relative z-10">
+                                            <input 
+                                                type="text" 
+                                                value={postText}
+                                                onChange={(e) => setPostText(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handlePost()}
+                                                placeholder={`Post to ${activeTribe.name}...`}
+                                                className="flex-1 bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-skillfi-neon/50 outline-none transition-all placeholder-gray-600 text-sm"
+                                            />
+                                            <button 
+                                                onClick={handlePost}
+                                                className="bg-skillfi-neon text-black px-8 rounded-xl font-bold uppercase tracking-wider hover:bg-white hover:shadow-[0_0_15px_#00ffff] transition-all"
+                                            >
+                                                SEND
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-2 relative z-10 scrollbar-hide">
+                                        {members.map(member => (
+                                            <div key={member.id} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/5 transition-all animate-fade-in">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10 flex items-center justify-center font-bold text-white">
+                                                        {member.avatar}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-white text-sm">@{member.username}</div>
+                                                        <div className="text-[10px] text-gray-500 font-mono uppercase">{member.role}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); onNavigate('INBOX'); }}
+                                                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/20 text-white transition-all border border-white/10"
+                                                    >
+                                                        Message
                                                     </button>
-                                                    <button className="hover:text-skillfi-neon flex items-center gap-1.5 transition-colors">
-                                                        💬 Reply
-                                                    </button>
-                                                    <button className="hover:text-white transition-colors ml-auto">
-                                                        Share
+                                                    <button 
+                                                        onClick={() => toggleFollow(member.id)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                                            member.isFollowing 
+                                                            ? 'bg-transparent text-gray-400 border border-white/10' 
+                                                            : 'bg-skillfi-neon/10 text-skillfi-neon border border-skillfi-neon/30 hover:bg-skillfi-neon hover:text-black'
+                                                        }`}
+                                                    >
+                                                        {member.isFollowing ? 'Following' : 'Follow'}
                                                     </button>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-
-                                    <div className="mt-4 flex gap-3 relative z-10">
-                                        <input 
-                                            type="text" 
-                                            value={postText}
-                                            onChange={(e) => setPostText(e.target.value)}
-                                            placeholder={`Post to ${tribes.find(t => t.id === activeTribeId)?.name}...`}
-                                            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-skillfi-neon/50 outline-none transition-all placeholder-gray-600 text-sm"
-                                        />
-                                        <button 
-                                            onClick={handlePost}
-                                            className="bg-skillfi-neon text-black px-8 rounded-xl font-bold uppercase tracking-wider hover:bg-white hover:shadow-[0_0_15px_#00ffff] transition-all"
-                                        >
-                                            SEND
-                                        </button>
-                                    </div>
-                                </>
+                                )
                             ) : (
-                                <div className="flex-1 overflow-y-auto space-y-2 pr-2 relative z-10 scrollbar-hide">
-                                    {members.map(member => (
-                                        <div key={member.id} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/5 transition-all">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10 flex items-center justify-center font-bold text-white">
-                                                    {member.avatar}
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-white text-sm">@{member.username}</div>
-                                                    <div className="text-[10px] text-gray-500 font-mono uppercase">{member.role}</div>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => toggleFollow(member.id)}
-                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                                    member.isFollowing 
-                                                    ? 'bg-white/10 text-white border border-white/20' 
-                                                    : 'bg-skillfi-neon/10 text-skillfi-neon border border-skillfi-neon/30 hover:bg-skillfi-neon hover:text-black'
-                                                }`}
-                                            >
-                                                {member.isFollowing ? 'Following' : 'Follow'}
-                                            </button>
-                                        </div>
-                                    ))}
+                                // LOCKED STATE
+                                <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-8 text-center animate-fade-in">
+                                    <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                                        <span className="text-5xl">🔒</span>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white mb-2">Access Restricted</h2>
+                                    <p className="text-gray-400 text-sm max-w-md mb-8">
+                                        This tribe's communications are encrypted. You must be an operative to view the feed and member list.
+                                    </p>
+                                    <button 
+                                        onClick={() => handleJoin(activeTribe.id)}
+                                        className="bg-skillfi-neon text-black px-10 py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-white hover:shadow-[0_0_30px_#00ffff] transition-all transform hover:scale-105"
+                                    >
+                                        Join Tribe
+                                    </button>
                                 </div>
                             )}
                         </>
