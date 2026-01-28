@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Skillfi Ultra - Hyper-Tech Guidance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -66,6 +66,8 @@
         font-family: 'Inter', sans-serif;
         overflow-x: hidden;
         perspective: 1000px; /* Enable 3D space */
+        touch-action: pan-x pan-y; /* Enable panning but not zooming */
+        overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
       }
 
       /* --- DEEP SPACE MESH --- */

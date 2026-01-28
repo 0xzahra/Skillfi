@@ -51,6 +51,10 @@ const App: React.FC = () => {
 
   const chatSessionRef = useRef<any>(null);
 
+  // --- GESTURE STATE ---
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+
   // --- INITIALIZATION ---
   
   // Init Lenis Smooth Scroll
@@ -442,12 +446,44 @@ const App: React.FC = () => {
       }
   };
 
+  // --- GESTURE LOGIC ---
+  const handleTouchStart = (e: React.TouchEvent) => {
+      touchStart.current = e.targetTouches[0].clientX;
+      touchEnd.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+      touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+      if (!touchStart.current || !touchEnd.current) return;
+      const distance = touchStart.current - touchEnd.current;
+      const isLeftSwipe = distance > 70; // Swipe Left (dragged > 70px)
+      const isRightSwipe = distance < -70; // Swipe Right (dragged < -70px)
+
+      // Swipe Right from edge (Open Sidebar)
+      if (isRightSwipe && touchStart.current < 50) {
+          setIsSidebarOpen(true);
+      }
+      
+      // Swipe Left (Close Sidebar)
+      if (isLeftSwipe && isSidebarOpen) {
+          setIsSidebarOpen(false);
+      }
+  };
+
   // --- RENDERING ---
 
   const isIntroOrAuth = showSplash || showLanguageSelect || currentView === 'AUTH';
 
   return (
-    <div className="relative h-screen overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black">
+    <div 
+        className="relative h-screen overflow-hidden text-white font-sans selection:bg-skillfi-neon selection:text-black"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+    >
       
       {/* Persistent Background Video for Intro/Auth */}
       {isIntroOrAuth && (
