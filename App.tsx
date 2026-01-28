@@ -14,7 +14,8 @@ import { Tribes } from './components/Tribes';
 import { Support } from './components/Support'; 
 import { Inbox } from './components/Inbox';
 import { Notifications } from './components/Notifications';
-import { CareerArsenal } from './components/CareerArsenal'; // New Import
+import { CareerArsenal } from './components/CareerArsenal'; 
+import { EducationCenter } from './components/EducationCenter'; // New Import
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -281,13 +282,17 @@ const App: React.FC = () => {
   };
 
   const handleNavigate = (view: string) => {
+      if (navigator.vibrate) navigator.vibrate(10); // Haptic feedback on nav
+
       // Routing Logic
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
       } 
       else if (view === 'CAREER') {
-          // Directs to the new Arsenal UI instead of Chat
           setCurrentView('CAREER');
+      }
+      else if (view === 'EDUCATION') {
+          setCurrentView('EDUCATION');
       }
       else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS'].includes(view)) {
           setCurrentView(view as ViewMode);
@@ -296,7 +301,6 @@ const App: React.FC = () => {
           setUser(null);
           setCurrentView('AUTH');
       } 
-      // Chat Fallbacks
       else if (view === 'RIGHTS') {
           setCurrentView('CHAT');
           handleSendMessage("Explain Marriage Rights (Protected by Divine/Universal Law) in detail.");
@@ -559,8 +563,8 @@ const App: React.FC = () => {
                       />
                   )}
                   
-                  {/* The Career Arsenal View (Anti-AI Interface) */}
                   {currentView === 'CAREER' && <CareerArsenal />}
+                  {currentView === 'EDUCATION' && <EducationCenter />}
 
                   {currentView === 'CHAT' && (
                     <>
