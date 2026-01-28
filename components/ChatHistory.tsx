@@ -45,7 +45,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
         <div className="p-6 max-w-5xl mx-auto font-sans animate-fade-in h-full overflow-y-auto pb-20">
             <header className="mb-8 border-b border-gray-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Mission Logs</h1>
+                    <h1 className="text-3xl font-bold font-display text-white tracking-tight kinetic-type">Mission Logs</h1>
                     <p className="text-gray-500 text-sm mt-1">Access and manage archived strategic sessions.</p>
                 </div>
                 <div className="relative w-full md:w-64">
@@ -63,7 +63,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
             </header>
 
             {filteredSessions.length === 0 ? (
-                <div className="text-center py-20 bg-[#111] rounded-2xl border border-dashed border-gray-800">
+                <div className="text-center py-20 bg-[#111] rounded-2xl border border-dashed border-gray-800 glass-panel">
                     <div className="text-gray-600 text-5xl mb-4">📜</div>
                     <h3 className="text-gray-400 font-bold mb-1">No Archives Found</h3>
                     <p className="text-gray-600 text-sm">Start a new chat to build your history.</p>
@@ -74,7 +74,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
                         <div 
                             key={session.id}
                             onClick={() => onSelectSession(session.id)}
-                            className="group relative bg-[#111] hover:bg-[#161616] border border-gray-800 hover:border-skillfi-neon/30 p-5 rounded-xl cursor-pointer transition-all duration-200 shadow-md flex items-center justify-between overflow-hidden"
+                            className="group relative glass-panel hover:bg-white/5 border border-white/5 hover:border-skillfi-neon/30 p-5 rounded-xl cursor-pointer transition-all duration-200 shadow-md flex items-center justify-between overflow-hidden"
                         >
                             {/* Content Layer (z-0) */}
                             <div className="flex-1 min-w-0 pr-4 relative z-0">
@@ -92,7 +92,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ sessions, onSelectSess
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     ) : (
-                                        <h3 className="font-bold text-gray-200 truncate">{session.title}</h3>
+                                        <h3 className="font-bold font-display text-gray-200 truncate">{session.title}</h3>
                                     )}
                                 </div>
                                 <p className="text-gray-500 text-xs truncate font-medium pl-5">{session.preview}</p>

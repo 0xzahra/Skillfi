@@ -24,11 +24,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
         <div className="p-6 md:p-8 overflow-y-auto h-full font-sans pb-24 scrollbar-hide">
             <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight flex items-center gap-3 drop-shadow-md">
+                    <h1 className="text-4xl md:text-5xl font-bold font-display text-white mb-2 tracking-tight flex items-center gap-3 drop-shadow-md kinetic-type">
                         {t('welcome', currentLang)} <span className="text-skillfi-neon text-shadow-neon">{user.username}</span>
                         {user.isElite && (
                             <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shadow-[0_0_15px_rgba(234,179,8,0.2)] animate-pulse">
-                                ELITE OPERATOR
+                                ELITE
                             </span>
                         )}
                     </h1>
@@ -56,35 +56,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* Main Stats Card */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-2xl p-6 relative overflow-hidden group shadow-2xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-skillfi-neon/5 rounded-full blur-[80px] group-hover:bg-skillfi-neon/10 transition-colors duration-700"></div>
+                <div className="glass-panel lg:col-span-2 rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-skillfi-neon/10 rounded-full blur-[80px] group-hover:bg-skillfi-neon/20 transition-colors duration-700"></div>
                     
-                    <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-1 relative z-10">{t('net_worth', currentLang)}</h3>
-                    <div className="text-5xl md:text-6xl font-black text-white tracking-tighter mb-6 relative z-10 drop-shadow-lg">
+                    <h3 className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1 relative z-10">{t('net_worth', currentLang)}</h3>
+                    <div className="text-5xl md:text-7xl font-bold font-display text-white tracking-tighter mb-6 relative z-10 drop-shadow-lg kinetic-type" style={{ animationDelay: '0.1s' }}>
                         ${user.netWorth.toLocaleString()}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 relative z-10">
                         <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-skillfi-neon/30 transition-colors backdrop-blur-sm">
-                            <div className="text-skillfi-neon text-2xl font-bold mb-1">{user.xp.toLocaleString()}</div>
+                            <div className="text-skillfi-neon text-2xl font-bold mb-1 font-display">{user.xp.toLocaleString()}</div>
                             <div className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">XP Earned</div>
                         </div>
                         <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-skillfi-neon/30 transition-colors backdrop-blur-sm">
-                            <div className="text-white text-2xl font-bold mb-1">{user.credits.toLocaleString()}</div>
+                            <div className="text-white text-2xl font-bold mb-1 font-display">{user.credits.toLocaleString()}</div>
                             <div className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">x404 Credits</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Skill Vault */}
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col shadow-xl">
-                    <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <div className="glass-panel rounded-2xl p-6 flex flex-col">
+                    <h3 className="text-white font-bold font-display text-lg mb-4 flex items-center gap-2">
                         <span className="text-skillfi-neon">❖</span> {t('skill_vault', currentLang)}
                     </h3>
                     
                     <div className="flex-1 space-y-2 mb-4 overflow-y-auto max-h-[150px] scrollbar-hide">
                         {user.skills.length > 0 ? user.skills.map((skill, i) => (
-                            <div key={i} className="flex items-center justify-between bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                            <div key={i} className="flex items-center justify-between bg-white/5 px-3 py-2 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
                                 <span className="text-sm text-gray-300 font-medium">{skill}</span>
                                 <span className="text-[10px] text-skillfi-neon font-bold">Lvl 1</span>
                             </div>
@@ -125,7 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
                     <button 
                         key={i}
                         onClick={() => onNavigate(item.action)}
-                        className={`${item.bg} ${item.border} border p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:scale-[1.02] transition-transform duration-200 group shadow-lg`}
+                        className={`glass-panel border-transparent p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:scale-[1.02] transition-transform duration-200 group hover:border-white/20`}
                     >
                         <span className="text-2xl group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
                         <span className={`text-xs font-bold uppercase tracking-wide ${item.color} group-hover:text-white transition-colors`}>{item.label}</span>
@@ -135,10 +135,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
 
             {/* Recent Activity */}
             <div className="mt-8">
-                <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-4 pl-1">System Logs</h3>
+                <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-4 pl-1 kinetic-type" style={{ animationDelay: '0.2s' }}>System Logs</h3>
                 <div className="space-y-3">
                     {activities.map((act) => (
-                        <div key={act.id} className="flex items-center gap-4 p-4 bg-black/40 border border-white/5 rounded-xl hover:bg-white/5 transition-colors group">
+                        <div key={act.id} className="glass-panel flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group">
                             <div className={`w-2 h-2 rounded-full ${act.type === 'SYSTEM' ? 'bg-skillfi-neon' : 'bg-skillfi-accent'} group-hover:animate-pulse`}></div>
                             <div className="flex-1">
                                 <div className="text-white font-bold text-sm">{act.title}</div>

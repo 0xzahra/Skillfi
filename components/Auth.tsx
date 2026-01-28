@@ -28,13 +28,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
                 alert("Please enter email to recover account.");
                 return;
             }
-            // Simulate Password Reset
             alert(`${t('reset_link', currentLang)} ${email}`);
             setIsForgotPass(false);
             return;
         }
 
-        // Basic validation
         if (isRegister) {
             if (!age) {
                 alert(t('age', currentLang) + " is required.");
@@ -46,7 +44,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
             }
         }
 
-        // Simulate Backend Login/Register
         const mockUser: UserProfile = {
             id: `SKF-${Math.floor(Math.random() * 9000) + 1000}`,
             username: username || 'User',
@@ -70,8 +67,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
     if (isForgotPass) {
         return (
              <div className="flex items-center justify-center min-h-screen bg-transparent font-sans p-4 relative z-50">
-                <div className="w-full max-w-lg p-8 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl relative">
-                    <h2 className="text-xl font-bold text-white mb-6 text-center">{t('forgot_pass', currentLang)}</h2>
+                <div className="glass-panel w-full max-w-lg p-8 rounded-3xl relative">
+                    <h2 className="text-xl font-bold font-display text-white mb-6 text-center kinetic-type">{t('forgot_pass', currentLang)}</h2>
                     <div className="space-y-4">
                          <div className="group">
                             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">{t('email', currentLang)}</label>
@@ -80,12 +77,12 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
                                 type="email" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon transition-colors"
+                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon transition-colors backdrop-blur-sm"
                             />
                         </div>
                         <button 
                             onClick={handleSubmit}
-                            className="w-full py-4 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg"
+                            className="w-full py-4 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg font-display tracking-widest"
                         >
                             {t('reset_link', currentLang)}
                         </button>
@@ -103,15 +100,13 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-transparent font-sans p-4 relative z-40">
-            <div className={`w-full max-w-lg p-8 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl relative transition-all duration-500 overflow-hidden ${isRegister ? 'mt-10 mb-10' : ''}`}>
-                {/* Decorative Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-skillfi-neon/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none"></div>
+            <div className={`glass-panel w-full max-w-lg p-8 rounded-3xl relative transition-all duration-500 overflow-hidden ${isRegister ? 'mt-10 mb-10' : ''}`}>
                 
                 <div className="text-center mb-10 relative z-10">
-                    <h2 className="text-5xl font-black text-white tracking-tighter mb-2 drop-shadow-lg">
+                    <h2 className="text-5xl font-bold font-display text-white tracking-tighter mb-2 drop-shadow-lg kinetic-type">
                         Skillfi<span className="text-skillfi-neon">.</span>
                     </h2>
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] font-mono">
                         {isRegister ? t('auth_reg_title', currentLang) : t('auth_title', currentLang)}
                     </p>
                 </div>
@@ -161,11 +156,9 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
                         )}
                     </div>
 
-                    {/* Extended Registration Fields */}
                     {isRegister && (
                         <div className="space-y-6 pt-6 border-t border-white/5 animate-fade-in">
                             
-                            {/* User Type Selection */}
                             <div className="grid grid-cols-2 gap-4">
                                 <button
                                     type="button"
@@ -229,7 +222,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
 
                     <button 
                         type="submit"
-                        className="w-full py-4 bg-skillfi-neon text-black font-black text-sm tracking-widest uppercase rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] mt-6 relative overflow-hidden group"
+                        className="w-full py-4 bg-skillfi-neon text-black font-bold font-display text-sm tracking-widest uppercase rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] mt-6 relative overflow-hidden group"
                     >
                         <span className="relative z-10">{isRegister ? t('init_btn', currentLang) : t('login_btn', currentLang)}</span>
                         <div className="absolute inset-0 bg-white/40 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>

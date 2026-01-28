@@ -183,7 +183,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
     <div className="p-4 md:p-6 max-w-5xl mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-20 scrollbar-hide">
       <header className="mb-6 flex justify-between items-end">
         <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-md">Finance OS <span className="text-skillfi-neon text-shadow-neon">v2.1</span></h1>
+            <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Finance OS <span className="text-skillfi-neon text-shadow-neon">v2.1</span></h1>
             <p className="text-gray-500 text-sm mt-1">Tactical Wealth Management System</p>
         </div>
       </header>
@@ -196,7 +196,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase ${
                     activeTab === tab 
-                    ? 'bg-skillfi-neon text-black border-t-2 border-white' 
+                    ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-glow' 
                     : 'text-gray-500 hover:text-white bg-white/5 border-t-2 border-transparent'
                 }`}
             >
@@ -205,7 +205,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
         ))}
       </div>
 
-      <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl min-h-[500px]">
+      <div className="glass-panel p-8 rounded-3xl shadow-2xl min-h-[500px]">
         
         {/* BUDGET TAB */}
         {activeTab === 'BUDGET' && (
@@ -218,7 +218,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                             type="number" 
                             value={salary} 
                             onChange={(e) => setSalary(Number(e.target.value))}
-                            className="w-full bg-transparent text-4xl font-bold text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
+                            className="w-full bg-transparent text-4xl font-bold font-display text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
                         />
                     </div>
 
@@ -251,7 +251,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                                     {budgetData.savingsRate.toFixed(1)}%
                                 </span>
                             </div>
-                            <div className={`text-5xl font-black tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
+                            <div className={`text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
                                 ${budgetData.savings.toLocaleString()}
                             </div>
                         </div>
@@ -268,21 +268,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
                         {expenses.map((exp) => (
                             <div key={exp.id} className="relative group overflow-hidden rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
-                                {/* River Flow Animation Background */}
-                                <div 
-                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                                    style={{ 
-                                        backgroundSize: '200% 100%',
-                                        animation: 'flow 2s linear infinite' 
-                                    }}
-                                ></div>
-                                <style>{`
-                                    @keyframes flow {
-                                        0% { background-position: 100% 0; }
-                                        100% { background-position: -100% 0; }
-                                    }
-                                `}</style>
-
                                 <div className="relative z-10 flex justify-between items-center p-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-1 h-8 bg-red-500/50 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
@@ -378,7 +363,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                                 {profitData.roi >= 0 ? '+' : ''}{profitData.roi.toFixed(2)}%
                             </span>
                         </div>
-                        <div className={`text-5xl font-black tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
+                        <div className={`text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${profitData.profit >= 0 ? 'text-white' : 'text-red-400'}`}>
                             {profitData.profit >= 0 ? '+' : '-'}${Math.abs(profitData.profit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                         <div className="mt-2 text-[10px] text-gray-400 font-mono bg-black/50 px-3 py-1 rounded-full inline-block">
@@ -445,7 +430,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     {/* Orb Data */}
                     <div className="relative z-10 text-center">
                         <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block text-shadow-sm">Future Wealth Event</span>
-                        <span className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
+                        <span className="text-4xl md:text-6xl font-black font-display text-white tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
                             ${interestTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                         <div className="mt-3 text-[10px] text-gray-400 uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full inline-block border border-gray-800 backdrop-blur-md">
@@ -494,7 +479,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Liability Vector</span>
-                        <div className="text-4xl font-bold text-red-400 tracking-tight">
+                        <div className="text-4xl font-bold font-display text-red-400 tracking-tight">
                             -${taxData.taxAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
                         <div className="mt-4 w-full bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-800">
@@ -510,7 +495,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze }) => {
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Net Capital Retention</span>
-                        <div className="text-4xl font-bold text-green-400 tracking-tight">
+                        <div className="text-4xl font-bold font-display text-green-400 tracking-tight">
                             ${taxData.netIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
                         <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">

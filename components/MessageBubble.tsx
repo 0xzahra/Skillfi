@@ -31,10 +31,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   return (
     <div className={`flex w-full mb-6 font-sans ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div 
-        className={`max-w-[95%] md:max-w-[85%] rounded-2xl px-5 py-4 shadow-sm ${
+        className={`max-w-[95%] md:max-w-[85%] rounded-2xl px-5 py-4 shadow-sm backdrop-blur-md ${
           isUser 
-            ? 'bg-[#1a1a1a] border border-gray-700 rounded-tr-none' 
-            : 'bg-[#111] border border-gray-800 rounded-tl-none'
+            ? 'glass-panel rounded-tr-none border-skillfi-neon/20' 
+            : 'bg-white/5 border border-white/5 rounded-tl-none'
         }`}
       >
         {/* User/System Header Label */}

@@ -7,7 +7,7 @@ interface TranslationSet {
 export const TRANSLATIONS: Record<string, TranslationSet> = {
     en: {
         // Auth
-        auth_title: "Secure System Uplink",
+        auth_title: "Career Guidance Counselor",
         auth_reg_title: "Identity Creation Protocol",
         username: "Codename / Username",
         email: "Secure Link (Email)",

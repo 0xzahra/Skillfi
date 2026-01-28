@@ -63,7 +63,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
         <div className="p-4 md:p-6 h-full overflow-y-auto pb-24 font-sans animate-fade-in scrollbar-hide">
             <header className="mb-6 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-md">Career Tribes</h1>
+                    <h1 className="text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Career Tribes</h1>
                     <p className="text-gray-500 text-sm mt-1">Join elite circles or forge your own path.</p>
                 </div>
                 <button 
@@ -75,7 +75,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
             </header>
 
             {isCreating && (
-                <div className="mb-8 p-6 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl animate-fade-in shadow-xl">
+                <div className="glass-panel mb-8 p-6 rounded-2xl animate-fade-in shadow-xl">
                     <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                         <span className="w-2 h-2 bg-skillfi-neon rounded-full animate-pulse"></span>
                         Launch New Tribe
@@ -114,10 +114,10 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
                         <div 
                             key={tribe.id} 
                             onClick={() => setActiveTribeId(tribe.id)}
-                            className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                            className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group glass-panel ${
                                 activeTribeId === tribe.id 
-                                ? 'bg-skillfi-neon/5 border-skillfi-neon/50 shadow-[0_0_20px_rgba(0,255,255,0.1)]' 
-                                : 'bg-black/40 border-white/5 hover:border-white/20 hover:bg-white/5'
+                                ? 'bg-skillfi-neon/10 border-skillfi-neon/50 shadow-glow' 
+                                : 'hover:border-white/20 hover:bg-white/5'
                             }`}
                         >
                             {/* Hover Gradient */}
@@ -134,7 +134,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
                                 </span>
                                 {tribe.isJoined && <span className="text-skillfi-neon text-[10px] font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-1.5 h-1.5 bg-skillfi-neon rounded-full"></span> Joined</span>}
                             </div>
-                            <h3 className="text-lg font-bold text-white relative z-10 group-hover:text-skillfi-neon transition-colors">{tribe.name}</h3>
+                            <h3 className="text-lg font-bold font-display text-white relative z-10 group-hover:text-skillfi-neon transition-colors">{tribe.name}</h3>
                             <p className="text-gray-500 text-xs mt-1 mb-4 relative z-10 font-medium leading-relaxed">{tribe.description}</p>
                             <div className="flex justify-between items-center relative z-10">
                                 <span className="text-[10px] text-gray-600 font-mono">{tribe.members.toLocaleString()} OPERATIVES</span>
@@ -154,14 +154,11 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits }) => {
                 </div>
 
                 {/* Tribe Feed */}
-                <div className="md:col-span-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col h-[600px] shadow-2xl relative overflow-hidden">
-                    {/* Background Grid */}
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
-
+                <div className="md:col-span-2 glass-panel rounded-2xl p-6 flex flex-col h-[600px] shadow-2xl relative overflow-hidden">
                     {activeTribeId ? (
                         <>
                             <div className="mb-4 pb-4 border-b border-white/10 relative z-10">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                <h2 className="text-xl font-bold font-display text-white flex items-center gap-3">
                                     {tribes.find(t => t.id === activeTribeId)?.name} Feed
                                     <span className="flex items-center gap-1 text-[10px] font-normal text-green-500 bg-green-900/20 px-2 py-0.5 rounded-full border border-green-500/20">
                                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>

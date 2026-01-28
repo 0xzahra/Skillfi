@@ -48,6 +48,36 @@ const App: React.FC = () => {
   const chatSessionRef = useRef<any>(null);
 
   // --- INITIALIZATION ---
+  
+  // Init Lenis Smooth Scroll
+  useEffect(() => {
+    // @ts-ignore
+    if (window.Lenis) {
+        // @ts-ignore
+        const lenis = new window.Lenis({
+            duration: 1.2,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+        });
+
+        function raf(time: number) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+
+        requestAnimationFrame(raf);
+        
+        return () => {
+             lenis.destroy();
+        };
+    }
+  }, []);
+
   useEffect(() => {
     // Check local storage for auth logic, but don't set view until splash is done
     const savedUser = localStorage.getItem('skillfi_user');
@@ -294,13 +324,12 @@ const App: React.FC = () => {
     setIsLoading(true);
     AudioService.playProcessing();
 
-    // Check for Image Generation Intent ("imagine me", "visualize", "create avatar")
+    // Check for Image Generation Intent
     const isImageGenIntent = attachment && attachment.mimeType.startsWith('image/') && 
                              (text.toLowerCase().includes('imagine') || text.toLowerCase().includes('visualize') || text.toLowerCase().includes('avatar'));
 
     if (isImageGenIntent) {
         try {
-            // Add a temporary loading message for image gen
             const loadingId = Date.now().toString() + '-gen';
             setMessages(prev => [...prev, {
                 id: loadingId,
@@ -309,13 +338,11 @@ const App: React.FC = () => {
                 timestamp: Date.now()
             }]);
 
-            // Construct role description from user profile and text
             const skills = user?.skills.join(', ') || 'General Tech';
             const roleContext = `${text}. Skills: ${skills}. Level: ${user?.level}.`;
             
             const generatedImageBase64 = await generateCareerAvatar(attachment.data, roleContext);
 
-            // Remove loading message
             setMessages(prev => prev.filter(m => m.id !== loadingId));
 
             if (generatedImageBase64) {
@@ -332,7 +359,7 @@ const App: React.FC = () => {
                 setMessages(prev => [...prev, imgMsg]);
                 AudioService.playSuccess();
                 setIsLoading(false);
-                return; // Exit early as we handled it
+                return;
             } else {
                  throw new Error("Failed to generate image");
             }
@@ -368,16 +395,14 @@ const App: React.FC = () => {
       
       // Voice Output Logic
       if (isVoiceMode) {
-          // Attempt High-Fidelity TTS first
           const speechData = await generateSpeech(responseText);
           if (speechData) {
               AudioService.playPCM(speechData);
           } else {
-              // Fallback to browser TTS if API fails/limits
               AudioService.speak(responseText);
           }
       } else {
-          AudioService.playSuccess(); // Just a beep if voice off
+          AudioService.playSuccess();
       }
 
     } catch (error) {
@@ -406,8 +431,6 @@ const App: React.FC = () => {
 
   // --- RENDERING ---
 
-  // Determine if we should show the intro video
-  // Video persists during Splash AND Auth (Login) screens
   const isIntroOrAuth = showSplash || currentView === 'AUTH';
 
   return (
@@ -416,7 +439,6 @@ const App: React.FC = () => {
       {/* Persistent Background Video for Intro/Auth */}
       {isIntroOrAuth && (
           <div className="fixed inset-0 z-0">
-               {/* Diverse city crowd / busy market vibe - Represents 'Everyone and Everything' */}
               <video 
                   autoPlay 
                   muted 
@@ -424,18 +446,14 @@ const App: React.FC = () => {
                   playsInline
                   className="w-full h-full object-cover filter grayscale contrast-110 brightness-[0.6] opacity-60"
               >
-                  {/* Using Pexels video as placeholder for the user's specific video content */}
                   <source src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" type="video/mp4" />
                   <div className="w-full h-full bg-neutral-900"></div>
               </video>
               
-              {/* Tech Overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 z-10"></div>
               
-              {/* Scanline effect */}
               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-50"></div>
               
-              {/* Grain */}
               <div className="absolute inset-0 opacity-20 pointer-events-none z-10 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
           </div>
       )}
@@ -454,7 +472,10 @@ const App: React.FC = () => {
 
       {/* Main App (Dashboard/Chat/etc) */}
       {!showSplash && currentView !== 'AUTH' && (
-          <div className="flex h-screen overflow-hidden bg-skillfi-bg relative z-20">
+          <div className="flex h-screen overflow-hidden bg-[#050505] relative z-20">
+              {/* Background gradient for depth */}
+              <div className="absolute inset-0 bg-gradient-to-br from-skillfi-bg via-[#0a0a0a] to-[#050505] z-0 pointer-events-none"></div>
+
               <Sidebar 
                 isOpen={isSidebarOpen} 
                 onModeSelect={handleNavigate}
@@ -463,7 +484,7 @@ const App: React.FC = () => {
                 currentLang={currentLang}
               />
 
-              <div className="flex-1 flex flex-col h-full relative w-full">
+              <div className="flex-1 flex flex-col h-full relative w-full z-10">
                 <Header 
                     onNewChat={handleNewChat}
                     onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -492,7 +513,7 @@ const App: React.FC = () => {
                   {currentView === 'CHAT' && (
                     <>
                       <ChatInterface messages={messages} isLoading={isLoading} />
-                      <div className="p-4 md:p-6 bg-skillfi-bg/95 backdrop-blur border-t border-gray-800">
+                      <div className="p-4 md:p-6 bg-transparent border-t border-white/5">
                         <div className="max-w-4xl mx-auto">
                             <InputArea 
                                 onSendMessage={handleSendMessage} 
@@ -500,7 +521,7 @@ const App: React.FC = () => {
                                 isLoading={isLoading} 
                             />
                             <div className="text-center mt-3 text-[10px] text-gray-600 font-mono">
-                                System v2.5 Online
+                                © Vibe coded by Zahra Usman
                             </div>
                         </div>
                       </div>

@@ -133,7 +133,7 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
                     Skillfi<span className="text-skillfi-neon animate-pulse">.</span>
                 </h1>
                 <div className="text-sm md:text-base font-mono text-white/90 tracking-[0.6em] text-center mt-4 uppercase select-none font-bold drop-shadow-lg bg-black/40 backdrop-blur-md py-2 px-6 rounded-full border border-white/20">
-                    Tactical Guidance System
+                    Career Guidance Counselor
                 </div>
             </div>
 

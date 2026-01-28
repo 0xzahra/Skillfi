@@ -64,11 +64,11 @@ export const Support: React.FC = () => {
 
     return (
         <div className="p-6 md:p-8 h-full overflow-y-auto animate-fade-in font-sans flex flex-col items-center justify-center">
-            <div className="max-w-3xl w-full bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden flex flex-col min-h-[600px]">
+            <div className="glass-panel max-w-3xl w-full rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden flex flex-col min-h-[600px]">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-skillfi-neon to-purple-600"></div>
                 
                 <header className="text-center mb-6">
-                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Live Command Support</h1>
+                    <h1 className="text-3xl font-bold font-display text-white tracking-tight mb-2 kinetic-type">Live Command Support</h1>
                     <p className="text-gray-500 text-sm">Direct encrypted line to Skillfi Human Operators.</p>
                 </header>
 
@@ -165,7 +165,7 @@ export const Support: React.FC = () => {
             </div>
 
             <div className="mt-8 flex justify-center w-full max-w-4xl text-center">
-                <div className="p-4 rounded-xl border border-white/5 bg-black/20 backdrop-blur-sm w-full max-w-md">
+                <div className="glass-panel p-4 rounded-xl w-full max-w-md">
                     <div className="text-gray-400 text-xs font-bold uppercase mb-1">Email Support</div>
                     <div className="text-skillfi-neon text-sm font-mono">ops@skillfi.ai</div>
                 </div>

@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-    <header className="px-4 md:px-6 py-4 bg-skillfi-bg/90 backdrop-blur-md border-b border-gray-800 flex items-center justify-between sticky top-0 z-40 shadow-lg shrink-0 font-sans">
+    <header className="px-4 md:px-6 py-4 glass-panel border-b-0 border-white/5 flex items-center justify-between sticky top-0 z-40 shadow-lg shrink-0 font-sans mx-4 mt-2 rounded-2xl">
       <div className="flex items-center gap-3">
         <button 
           onClick={onToggleMenu}
@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
         
         <div className="flex items-center gap-2.5">
           <div className="w-3.5 h-3.5 bg-skillfi-neon rounded-full shadow-[0_0_12px_#00ffff]"></div>
-          <h1 className="text-xl font-bold tracking-tight text-white">
+          <h1 className="text-xl font-bold font-display tracking-tight text-white">
             Skillfi<span className="text-skillfi-neon">.</span>
           </h1>
         </div>
@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Custom Language Button */}
         <button 
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-700 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
+            className="flex items-center gap-2 bg-white/5 border border-white/10 hover:border-skillfi-neon text-white text-xs font-bold px-3 py-2 rounded-lg transition-all"
         >
             <span className="text-base">{currentLangData.flag}</span>
             <span className="hidden md:inline">{currentLangData.name}</span>
@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold border transition-all duration-300 ${
                     isVoiceMode 
                     ? 'bg-skillfi-neon text-black border-skillfi-neon shadow-[0_0_15px_rgba(0,255,255,0.4)]' 
-                    : 'bg-[#1a1a1a] text-gray-400 border-gray-700 hover:border-gray-500'
+                    : 'bg-white/5 text-gray-400 border-white/10 hover:border-gray-500'
                 }`}
                 title={isVoiceMode ? "Disable Voice Output" : "Enable Voice Output"}
             >
@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button 
           onClick={onNewChat}
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors border border-transparent hover:border-gray-700"
+          className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10"
           title="New Chat"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -112,9 +112,9 @@ export const Header: React.FC<HeaderProps> = ({
     {/* Language Selection Modal */}
     {showLangMenu && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setShowLangMenu(false)}>
-            <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#151515]">
-                    <h2 className="text-xl font-bold text-white">Select Protocol Language</h2>
+            <div className="glass-panel border border-white/10 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-transparent">
+                    <h2 className="text-xl font-bold font-display text-white">Select Protocol Language</h2>
                     <button onClick={() => setShowLangMenu(false)} className="text-gray-400 hover:text-white">✕</button>
                 </div>
                 <div className="overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-4 gap-3 scrollbar-hide">
