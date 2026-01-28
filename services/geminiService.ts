@@ -1,5 +1,6 @@
 import { GoogleGenAI, Chat, Content, Part, Modality } from "@google/genai";
-import { SKILLFI_SYSTEM_INSTRUCTION } from "../constants";
+import { getSystemInstruction } from "../constants";
+import { LanguageCode } from "../types";
 
 const getClient = () => {
     const apiKey = process.env.API_KEY;
@@ -11,14 +12,14 @@ const getClient = () => {
 };
 
 // Initialize a persistent chat session
-export const initializeChat = async (): Promise<Chat> => {
+export const initializeChat = async (language: LanguageCode = 'en'): Promise<Chat> => {
     const ai = getClient();
     
     // Using gemini-3-flash-preview for the main conversational intelligence
     const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
-            systemInstruction: SKILLFI_SYSTEM_INSTRUCTION,
+            systemInstruction: getSystemInstruction(language),
             temperature: 0.7,
             tools: [{ googleSearch: {} }] // Enable Google Search Grounding for real-time info
         }

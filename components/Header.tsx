@@ -1,4 +1,5 @@
 import React from 'react';
+import { LanguageCode, LANGUAGES } from '../types';
 
 interface HeaderProps {
     onShare?: () => void;
@@ -6,9 +7,19 @@ interface HeaderProps {
     onToggleMenu: () => void;
     isVoiceMode?: boolean;
     onToggleVoice?: () => void;
+    currentLang: LanguageCode;
+    onLangChange: (lang: LanguageCode) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onShare, onNewChat, onToggleMenu, isVoiceMode, onToggleVoice }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+    onShare, 
+    onNewChat, 
+    onToggleMenu, 
+    isVoiceMode, 
+    onToggleVoice,
+    currentLang,
+    onLangChange
+}) => {
   return (
     <header className="px-4 md:px-6 py-4 bg-skillfi-bg/90 backdrop-blur-md border-b border-gray-800 flex items-center justify-between sticky top-0 z-40 shadow-lg shrink-0 font-sans">
       <div className="flex items-center gap-3">
@@ -30,6 +41,24 @@ export const Header: React.FC<HeaderProps> = ({ onShare, onNewChat, onToggleMenu
       </div>
       
       <div className="flex items-center gap-2 md:gap-3">
+        {/* Language Selector */}
+        <div className="relative group">
+            <select 
+                value={currentLang}
+                onChange={(e) => onLangChange(e.target.value as LanguageCode)}
+                className="appearance-none bg-[#1a1a1a] border border-gray-700 text-white text-xs font-bold py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-skillfi-neon cursor-pointer hover:bg-[#222]"
+            >
+                {LANGUAGES.map(lang => (
+                    <option key={lang.code} value={lang.code}>
+                        {lang.flag} {lang.name}
+                    </option>
+                ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        </div>
+
         {onToggleVoice && (
             <button
                 onClick={onToggleVoice}
@@ -42,18 +71,17 @@ export const Header: React.FC<HeaderProps> = ({ onShare, onNewChat, onToggleMenu
             >
                 {isVoiceMode ? (
                     <>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 animate-pulse">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 animate-pulse">
                             <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 2.485.554 4.84 1.54 6.913.253.518.598.988 1.019 1.39l.17.16c.365.347.852.537 1.356.537h1.415l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z" />
-                            <path d="M15.932 7.757a.75.75 0 011.061 0 6 6 0 010 8.486.75.75 0 01-1.06-1.061 4.5 4.5 0 000-6.364.75.75 0 010-1.06z" />
                         </svg>
-                        <span className="hidden md:inline">VOICE ON</span>
+                        <span className="hidden md:inline">ON</span>
                     </>
                 ) : (
                     <>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                             <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 2.485.554 4.84 1.54 6.913.253.518.598.988 1.019 1.39l.17.16c.365.347.852.537 1.356.537h1.415l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 101.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 10-1.06-1.06l-1.72 1.72-1.72-1.72z" />
                         </svg>
-                        <span className="hidden md:inline">VOICE OFF</span>
+                        <span className="hidden md:inline">OFF</span>
                     </>
                 )}
             </button>

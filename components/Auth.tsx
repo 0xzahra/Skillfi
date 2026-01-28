@@ -36,7 +36,10 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             age: isRegister ? parseInt(age) : undefined,
             userType: isRegister ? userType : undefined,
             qualification: isRegister ? qualification : undefined,
-            isTechie: isRegister ? isTechie : undefined
+            isTechie: isRegister ? isTechie : undefined,
+            skills: [],
+            credits: 0,
+            isElite: false
         };
         
         localStorage.setItem('skillfi_user', JSON.stringify(mockUser));

@@ -4,11 +4,13 @@ interface SidebarProps {
   isOpen: boolean;
   onModeSelect: (mode: string) => void;
   onClose: () => void;
+  credits: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose, credits }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', desc: 'Overview & Stats', icon: '⚡', action: 'DASHBOARD' },
+    { id: 'tribes', label: 'Career Tribes', desc: 'Join Groups', icon: '✊', action: 'TRIBES' }, // New Item
     { id: 'career', label: 'Career Path', desc: 'Web3 & Tech', icon: '🚀', action: 'CAREER' },
     { id: 'finance', label: 'Financial Tools', desc: 'Calculator & Wealth', icon: '📊', action: 'FINANCE' },
     { id: 'elite', label: 'High Class', desc: 'Refinement Skills', icon: '🎩', action: 'ELITE' },
@@ -46,6 +48,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose 
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+        </div>
+
+        {/* x404 Balance Display */}
+        <div className="p-4 border-b border-gray-800 bg-[#0c0c0c]">
+             <div className="bg-[#151515] border border-gray-800 p-3 rounded-lg shadow-inner flex justify-between items-center">
+                 <div>
+                    <span className="text-[10px] font-bold text-gray-500 tracking-wider block">x404 BALANCE</span>
+                    <span className="text-xl font-bold text-skillfi-neon tracking-tighter shadow-skillfi-neon/20 drop-shadow-sm">{credits.toLocaleString()}</span>
+                 </div>
+                 <div className="w-8 h-8 rounded-full bg-skillfi-neon/10 flex items-center justify-center text-skillfi-neon">
+                    💎
+                 </div>
+             </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">

@@ -9,9 +9,10 @@ import { Auth } from './components/Auth';
 import { Settings } from './components/Settings';
 import { ChatHistory } from './components/ChatHistory';
 import { IntroSplash } from './components/IntroSplash';
+import { Tribes } from './components/Tribes'; // New Component
 import { initializeChat, sendMessageToSkillfi, generateSpeech } from './services/geminiService';
 import { AudioService } from './services/audioService';
-import { Message, ViewMode, UserProfile, ActivityLog, ChatSession } from './types';
+import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
 import { INITIAL_GREETING } from './constants';
 
 const App: React.FC = () => {
@@ -19,6 +20,8 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
+  const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
+  
   const [activities, setActivities] = useState<ActivityLog[]>([
       { id: '1', title: 'System Initialization', desc: 'User logged in', time: 'Just now', type: 'SYSTEM' },
       { id: '2', title: 'Market Scan', desc: 'Analyzed Web3 trends', time: '2h ago', type: 'SYSTEM' },
@@ -48,8 +51,15 @@ const App: React.FC = () => {
     // Check local storage for auth logic, but don't set view until splash is done
     const savedUser = localStorage.getItem('skillfi_user');
     if (savedUser) {
-        setUser(JSON.parse(savedUser));
-        initChat();
+        // Migration check for old user objects that might lack new fields
+        const parsed = JSON.parse(savedUser);
+        const migratedUser: UserProfile = {
+            ...parsed,
+            skills: parsed.skills || [],
+            credits: parsed.credits || 0,
+            isElite: parsed.isElite || false
+        };
+        setUser(migratedUser);
     }
     
     // Load Chat History
@@ -57,7 +67,17 @@ const App: React.FC = () => {
     if (savedSessions) {
         setSessions(JSON.parse(savedSessions));
     }
+
+    // Init Chat with default lang
+    initChat('en');
   }, []);
+
+  // Re-initialize chat if language changes
+  useEffect(() => {
+      if (user) {
+          initChat(currentLang);
+      }
+  }, [currentLang]);
 
   // Save Sessions to LocalStorage whenever they change
   useEffect(() => {
@@ -84,9 +104,9 @@ const App: React.FC = () => {
       }
   };
 
-  const initChat = async () => {
+  const initChat = async (lang: LanguageCode) => {
     try {
-      chatSessionRef.current = await initializeChat();
+      chatSessionRef.current = await initializeChat(lang);
     } catch (error) {
       console.error("Failed to initialize chat", error);
     }
@@ -118,10 +138,16 @@ const App: React.FC = () => {
   // --- HANDLERS ---
 
   const handleLogin = (loggedInUser: UserProfile) => {
-      setUser(loggedInUser);
+      const uWithDefaults = {
+          ...loggedInUser,
+          skills: [],
+          credits: 0,
+          isElite: false
+      };
+      setUser(uWithDefaults);
       setCurrentView('DASHBOARD');
       AudioService.playSuccess();
-      initChat();
+      initChat(currentLang);
   };
 
   const handleUpdateUser = (updatedUser: UserProfile) => {
@@ -133,6 +159,37 @@ const App: React.FC = () => {
           desc: 'User settings modified',
           time: 'Just now',
           type: 'USER'
+      }, ...prev]);
+  };
+
+  const handleAddSkill = (skill: string) => {
+      if (!user) return;
+      
+      const updatedSkills = [...user.skills, skill];
+      const newCredits = user.credits + 100;
+      const eliteStatus = updatedSkills.length >= 5;
+
+      const updatedUser: UserProfile = {
+          ...user,
+          skills: updatedSkills,
+          credits: newCredits,
+          isElite: user.isElite || eliteStatus // Once elite, always elite? or dynamic? Let's say dynamic but sticky.
+      };
+
+      if (eliteStatus && !user.isElite) {
+          AudioService.playSuccess();
+          alert("ELITE STATUS UNLOCKED! USDC SIMULATION ACTIVATED.");
+      } else {
+          AudioService.playSuccess(); // Credit earned sound
+      }
+
+      handleUpdateUser(updatedUser);
+      setActivities(prev => [{
+        id: Date.now().toString(),
+        title: 'Skill Verified',
+        desc: `Added ${skill} (+100 x404)`,
+        time: 'Just now',
+        type: 'USER'
       }, ...prev]);
   };
 
@@ -157,7 +214,7 @@ const App: React.FC = () => {
       setMessages([{ id: Date.now().toString(), role: 'model', content: INITIAL_GREETING, timestamp: Date.now() }]);
       setCurrentSessionId(null);
       setCurrentView('CHAT');
-      initChat();
+      initChat(currentLang);
   };
 
   const handleSelectSession = (id: string) => {
@@ -184,7 +241,7 @@ const App: React.FC = () => {
       // Direct Navigation Views (No Chat Trigger)
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
-      } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY') {
+      } else if (view === 'DASHBOARD' || view === 'PROFILE' || view === 'SETTINGS' || view === 'HISTORY' || view === 'TRIBES') {
           setCurrentView(view as ViewMode);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
@@ -224,7 +281,7 @@ const App: React.FC = () => {
 
     try {
       if (!chatSessionRef.current) {
-        chatSessionRef.current = await initializeChat();
+        chatSessionRef.current = await initializeChat(currentLang);
       }
 
       const responseText = await sendMessageToSkillfi(chatSessionRef.current, text, attachment);
@@ -331,6 +388,7 @@ const App: React.FC = () => {
                 isOpen={isSidebarOpen} 
                 onModeSelect={handleNavigate}
                 onClose={() => setIsSidebarOpen(false)}
+                credits={user?.credits || 0}
               />
 
               <div className="flex-1 flex flex-col h-full relative w-full">
@@ -339,6 +397,8 @@ const App: React.FC = () => {
                     onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
                     isVoiceMode={isVoiceMode}
                     onToggleVoice={toggleVoiceMode}
+                    currentLang={currentLang}
+                    onLangChange={(l) => setCurrentLang(l)}
                     onShare={() => {
                         const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
                         navigator.clipboard.writeText(transcript);
@@ -352,6 +412,7 @@ const App: React.FC = () => {
                         user={user!} 
                         activities={activities}
                         onNavigate={handleNavigate}
+                        onAddSkill={handleAddSkill}
                       />
                   )}
                   
@@ -375,6 +436,8 @@ const App: React.FC = () => {
 
                   {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} />}
                   
+                  {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} />}
+
                   {currentView === 'SETTINGS' && (
                       <Settings 
                         user={user!}

@@ -1,19 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserProfile, ActivityLog } from '../types';
 
 interface DashboardProps {
     user: UserProfile;
     activities: ActivityLog[];
     onNavigate: (view: string) => void;
+    onAddSkill?: (skill: string) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNavigate, onAddSkill }) => {
+    const [newSkill, setNewSkill] = useState('');
+
+    const handleAddSkill = () => {
+        if (newSkill.trim() && onAddSkill) {
+            onAddSkill(newSkill.trim());
+            setNewSkill('');
+        }
+    };
+
     return (
-        <div className="p-6 md:p-8 overflow-y-auto h-full font-sans">
+        <div className="p-6 md:p-8 overflow-y-auto h-full font-sans pb-24">
             <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
                         Welcome back, <span className="text-skillfi-neon">{user.username}</span>
+                        {user.isElite && (
+                            <span className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shadow-[0_0_10px_rgba(234,179,8,0.3)] animate-pulse">
+                                ELITE OPERATOR
+                            </span>
+                        )}
                     </h1>
                     <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
                         <span className="bg-[#1a1a1a] px-2 py-1 rounded border border-gray-800">ID: {user.id}</span>
@@ -54,20 +69,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
                     <div className="text-3xl font-bold text-white tracking-tight">${user.netWorth.toLocaleString()}</div>
                 </div>
 
-                {/* Status Card */}
-                <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl hover:border-purple-500/30 transition-all shadow-lg group">
-                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-400 group-hover:bg-purple-500/20 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                            </svg>
+                 {/* USDC Reward Card (Simulated) */}
+                 <div className={`bg-[#111] border p-6 rounded-2xl transition-all shadow-lg group relative overflow-hidden ${user.isElite ? 'border-yellow-500/30' : 'border-gray-800'}`}>
+                    {user.isElite && <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl -mr-8 -mt-8"></div>}
+                     <div className="flex justify-between items-start mb-4 relative z-10">
+                        <div className={`p-2.5 rounded-xl transition-colors ${user.isElite ? 'bg-yellow-500/10 text-yellow-500' : 'bg-gray-800 text-gray-600'}`}>
+                            <span className="text-xl">$</span>
                         </div>
+                        {user.isElite ? (
+                            <span className="text-[10px] font-bold bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">UNLOCKED</span>
+                        ) : (
+                            <span className="text-[10px] font-bold bg-gray-800 text-gray-500 px-2 py-1 rounded">LOCKED</span>
+                        )}
                     </div>
-                    <div className="text-gray-500 text-sm font-medium mb-1">System Status</div>
-                    <div className="text-2xl font-bold text-white tracking-tight">OPTIMAL</div>
-                    <div className="w-full bg-gray-800 h-1.5 mt-3 rounded-full overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"></div>
-                    </div>
+                    <div className="text-gray-500 text-sm font-medium mb-1">Elite Sim Allocation (USDC)</div>
+                    <div className={`text-2xl font-bold tracking-tight ${user.isElite ? 'text-white' : 'text-gray-600 blur-[2px]'}`}>$10.00</div>
+                    {!user.isElite && <div className="text-[10px] text-gray-500 mt-1">Unlock 5 skills to claim</div>}
                 </div>
 
                 {/* Quick Tool */}
@@ -91,6 +108,54 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activities, onNaviga
                     </div>
                 </div>
             </div>
+
+            {/* SKILL VAULT - PROOF OF SKILL */}
+            <section className="bg-[#111] border border-gray-800 rounded-2xl p-6 mb-10">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                            <span className="text-skillfi-neon">⚡</span> Skill Vault
+                        </h2>
+                        <p className="text-gray-500 text-xs mt-1">Proof of Skill Protocol: 1 Verified Skill = 100 x404 Credits.</p>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-2xl font-bold text-skillfi-neon">{user.skills.length}/5</div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Progress to Elite</div>
+                    </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden mb-6">
+                    <div className="h-full bg-skillfi-neon transition-all duration-500" style={{ width: `${Math.min((user.skills.length / 5) * 100, 100)}%` }}></div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mb-6">
+                    {user.skills.length === 0 && <span className="text-gray-600 italic text-sm">No skills vaulted yet.</span>}
+                    {user.skills.map((skill, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-[#1a1a1a] border border-gray-700 rounded-lg text-sm text-gray-200 flex items-center gap-2">
+                            {skill}
+                            <svg className="w-3 h-3 text-skillfi-neon" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                        </span>
+                    ))}
+                </div>
+
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="Add a new skill (e.g., Solidity, Copywriting)"
+                        className="flex-1 bg-[#080808] border border-gray-700 rounded-xl px-4 py-2 text-white focus:border-skillfi-neon outline-none"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
+                    />
+                    <button 
+                        onClick={handleAddSkill}
+                        className="bg-skillfi-neon hover:bg-white text-black font-bold px-6 py-2 rounded-xl transition-colors"
+                    >
+                        Vault
+                    </button>
+                </div>
+            </section>
         </div>
     );
 };

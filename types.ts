@@ -19,7 +19,7 @@ export enum FileType {
   PDF = 'PDF'
 }
 
-export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY';
+export type ViewMode = 'DASHBOARD' | 'CHAT' | 'TOOLS_CALC' | 'PROFILE' | 'AUTH' | 'SETTINGS' | 'HISTORY' | 'TRIBES';
 
 export interface UserProfile {
   id: string;
@@ -38,6 +38,10 @@ export interface UserProfile {
     linkedin?: string;
     github?: string;
   };
+  // x404 System
+  skills: string[];
+  credits: number;
+  isElite: boolean;
 }
 
 export interface ActivityLog {
@@ -55,3 +59,35 @@ export interface ChatSession {
     lastModified: number;
     preview: string;
 }
+
+export interface Tribe {
+    id: string;
+    name: string;
+    description: string;
+    members: number;
+    category: 'TECH' | 'ART' | 'FINANCE' | 'HEALTH' | 'SCIENCE';
+    isJoined?: boolean;
+}
+
+export interface FeedPost {
+    id: string;
+    author: string;
+    content: string;
+    likes: number;
+    timestamp: string;
+}
+
+export type LanguageCode = 'en' | 'es' | 'fr' | 'de' | 'jp' | 'cn' | 'ru' | 'ar' | 'hi' | 'pt';
+
+export const LANGUAGES: { code: LanguageCode; name: string; flag: string }[] = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'jp', name: '日本語', flag: '🇯🇵' },
+    { code: 'cn', name: '中文', flag: '🇨🇳' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+];
