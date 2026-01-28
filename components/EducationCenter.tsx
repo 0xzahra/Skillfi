@@ -4,6 +4,7 @@ import { AudioService } from '../services/audioService';
 export const EducationCenter: React.FC = () => {
     const [scanning, setScanning] = useState(true);
     const [matches, setMatches] = useState<any[]>([]);
+    const [showCurriculum, setShowCurriculum] = useState(false);
     
     // Simulate Background Scanning
     useEffect(() => {
@@ -33,11 +34,41 @@ export const EducationCenter: React.FC = () => {
     };
 
     return (
-        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in">
+        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in relative">
              <header className="mb-8">
                 <h1 className="text-3xl font-bold font-display text-white tracking-tight kinetic-type">Scholarship Sniper</h1>
                 <p className="text-gray-500 text-sm mt-1">Autonomous Education Funding Agent</p>
             </header>
+
+            {showCurriculum && (
+                <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl p-4 flex flex-col items-center justify-center animate-fade-in">
+                    <div className="glass-panel w-full max-w-2xl rounded-2xl p-6 relative max-h-[80vh] overflow-y-auto">
+                        <button onClick={() => setShowCurriculum(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+                        <h2 className="text-2xl font-bold font-display text-white mb-6">Active Curriculum</h2>
+                        
+                        <div className="space-y-4">
+                            {[
+                                { title: "Financial Literacy 101", status: "In Progress", progress: 65, color: "text-green-400", border: "border-green-500" },
+                                { title: "Web3 Security Basics", status: "Pending", progress: 0, color: "text-blue-400", border: "border-blue-500" },
+                                { title: "AI Prompt Engineering", status: "Locked", progress: 0, color: "text-gray-500", border: "border-gray-700" }
+                            ].map((course, i) => (
+                                <div key={i} className={`bg-white/5 border-l-4 ${course.border} p-4 rounded-r-xl flex justify-between items-center`}>
+                                    <div>
+                                        <h3 className="font-bold text-white">{course.title}</h3>
+                                        <span className={`text-xs uppercase tracking-wide ${course.color}`}>{course.status}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-white">{course.progress}%</div>
+                                        <button className="text-[10px] underline text-gray-400 hover:text-white">
+                                            {course.status === 'Locked' ? 'Unlock' : 'Continue'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* SCANNER STATUS */}
             <div className="mb-8">
@@ -106,15 +137,25 @@ export const EducationCenter: React.FC = () => {
                 ))}
             </div>
 
-            {/* Education Roadmap (Static for now) */}
-            <div className="mt-8 grid grid-cols-2 gap-4 opacity-50">
-                 <div className="glass-panel p-4 rounded-xl">
-                     <h3 className="text-gray-400 text-xs font-bold uppercase mb-2">Course Progress</h3>
+            {/* Education Roadmap (Interactive) */}
+            <div className="mt-8 grid grid-cols-2 gap-4">
+                 <div 
+                    onClick={() => setShowCurriculum(true)}
+                    className="glass-panel p-4 rounded-xl cursor-pointer hover:bg-white/10 hover:border-skillfi-neon/30 transition-all group"
+                 >
+                     <h3 className="text-gray-400 text-xs font-bold uppercase mb-2 group-hover:text-skillfi-neon">Course Progress</h3>
                      <div className="text-2xl font-bold text-white">12%</div>
+                     <div className="w-full bg-gray-800 h-1 mt-2 rounded-full overflow-hidden">
+                         <div className="h-full bg-skillfi-neon w-[12%]"></div>
+                     </div>
                  </div>
-                 <div className="glass-panel p-4 rounded-xl">
-                     <h3 className="text-gray-400 text-xs font-bold uppercase mb-2">Certifications</h3>
+                 <div 
+                    onClick={() => setShowCurriculum(true)}
+                    className="glass-panel p-4 rounded-xl cursor-pointer hover:bg-white/10 hover:border-skillfi-neon/30 transition-all group"
+                 >
+                     <h3 className="text-gray-400 text-xs font-bold uppercase mb-2 group-hover:text-skillfi-neon">Certifications</h3>
                      <div className="text-2xl font-bold text-white">0</div>
+                     <span className="text-[10px] text-gray-500">Click to view roadmap</span>
                  </div>
             </div>
         </div>

@@ -24,6 +24,58 @@ const CAREER_QUOTES = [
     "Growth and comfort do not coexist.",
 ];
 
+// --- RICH KNOWLEDGE BASE ---
+const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: string; advanced: string; pro_tip: string }> = {
+    'Dining Etiquette': {
+        philosophy: "The meal is never about the food; it is about the conversation and the comfort of others. Your table manners signal your awareness and discipline.",
+        mechanics: "1. **The Place Setting:** Utensils are used from the outside in. Forks on the left, knives/spoons on the right. Solids (bread) on the left, liquids (drinks) on the right (BMW: Bread, Meal, Water).\n2. **The Napkin:** Place it on your lap immediately. If you leave the table, place it on the chair, not the table. When finished, place it loosely to the left of the plate.\n3. **Eating:** Cut one bite at a time. Rest wrists on the table edge (continental style), never elbows.",
+        advanced: "**The Silent Service Code:** To signal you are pausing, place knife and fork in an inverted 'V' (knife blade inward). To signal you are finished, place them parallel at the 4 o'clock position (handles at 4, tips at 10). Never season food before tasting; it insults the chef.",
+        pro_tip: "If you drop a utensil, do not dive for it. Simply signal the server for a replacement. Treat the server with the same respect as the CEO; this is the ultimate test of character."
+    },
+    'Networking': {
+        philosophy: "Networking is not asking for favors; it is farming. It is planting seeds of value today to harvest relationships years from now. Be the 'Host', not the 'Guest'.",
+        mechanics: "1. **The Entry:** Enter a room, pause, scan, and smile. Do not rush to the bar or your phone.\n2. **The Handshake:** Firm, dry, web-to-web contact, 2-3 pumps. Eye contact is mandatory.\n3. **The Name:** Repeat their name immediately ('Nice to meet you, Sarah'). Use it once more in conversation.",
+        advanced: "**The 'Host' Mentality:** Even if it's not your event, act like a host. Introduce people to each other. 'John, have you met Lisa? She works in Fintech.' You become the connector, the node of value. People will gravitate toward you because you make them feel comfortable.",
+        pro_tip: "Never ask 'What do you do?' immediately. Ask 'What are you working on that excites you right now?' It opens up passion, not just job titles."
+    },
+    'Sartorial Excellence': {
+        philosophy: "Dress is a language. Before you speak, your clothes tell people if you respect yourself, the occasion, and them. 'Sprezzatura' is the art of looking effortless.",
+        mechanics: "1. **Fit is King:** A $200 suit tailored perfectly looks better than a $2,000 suit off the rack. Shoulders must line up exactly. Sleeves should reveal 1/2 inch of shirt cuff.\n2. **The Shoes:** They must be polished. Oxford (closed lacing) for formal, Derby (open lacing) for business casual. Belt must match shoes.",
+        advanced: "**Fabric & Texture:** Move beyond plain navy. Experiment with texture (flannel, linen, tweed) rather than loud colors. Understand 'Super numbers' (Super 120s vs 180s) - higher isn't always better for daily wear (it's more fragile).",
+        pro_tip: "Always dress one notch above what is expected. If the code is casual, wear a blazer. If it's business casual, wear a tie. You can always take the jacket off, but you can't add authority if you didn't bring it."
+    },
+    'Horology': {
+        philosophy: "A watch is the only piece of jewelry a man can wear that represents engineering, history, and investment simultaneously. It signals appreciation for mechanics over digital obsolescence.",
+        mechanics: "1. **Movements:** Quartz (battery, ticks once/sec) vs. Mechanical (spring-driven, sweeping hand). High society respects Mechanical (Automatic or Manual).\n2. **Categories:** Dress (thin, leather strap), Diver (rotating bezel, steel), Chronograph (stopwatch function), Complication (Calendar, Moonphase).",
+        advanced: "**The Holy Trinity:** Patek Philippe, Audemars Piguet, Vacheron Constantin. Understand why a 'Tourbillon' exists (to counter gravity) even if it's unnecessary today. It's art. Vintage watches (pre-1980) often hold value better than modern ones.",
+        pro_tip: "Never wear a massive diver watch with a tuxedo (James Bond is the exception, not the rule). With black tie, the watch should be slim, simple, and on a black leather strap—or wear no watch at all, implying time doesn't matter."
+    },
+    'Oenology (Wine)': {
+        philosophy: "Wine is geography in a bottle. Knowing it shows you are cultured and patient. It's about describing the experience, not just drinking alcohol.",
+        mechanics: "1. **The 5 S's:** See (color/viscosity), Swirl (release aromas), Smell (80% of taste), Sip (let it roll over tongue), Savor/Spit.\n2. **Key Regions:** Bordeaux (Cabernet/Merlot blends), Burgundy (Pinot Noir/Chardonnay), Tuscany (Sangiovese), Napa (Cabernet).",
+        advanced: "**Reading a List:** Don't just order the second cheapest. Ask the Sommelier: 'We enjoy full-bodied reds like a Left Bank Bordeaux, what do you recommend under $X?' They will respect the specificity. Understand tannins (drying sensation) vs. acidity (watering sensation).",
+        pro_tip: "If you are the host, you taste the wine. You are checking for *faults* (cork taint, oxidation), not if you 'like' it. If it's not spoiled, you accept it."
+    },
+    'Golf & Leisure': {
+        philosophy: "Golf is 4 hours of character revelation. You can fake a resume, but you cannot fake honesty, temper control, or adherence to rules when a shot goes wrong.",
+        mechanics: "1. **Pace of Play:** No one cares if you are bad; they care if you are slow. Be ready to hit when it's your turn.\n2. **Etiquette:** Repair your divots. Rake the bunker. Do not walk in someone's 'line' on the putting green. Silence when others hit.",
+        advanced: "**Business on the Course:** Do not bring up business on the first few holes. Wait for the back 9 or the 19th hole (drinks after). Let the relationship breathe first. Let the client win? No. Play your best, but be generous with praise for their good shots.",
+        pro_tip: "Dress code is non-negotiable. Collared shirt tucked in. Belt. No denim. Hat forward. Take your hat off when entering the clubhouse."
+    },
+    'Art Collection': {
+        philosophy: "Art is an asset class that yields 'psychic dividends' (joy) and financial appreciation. It signals you are a patron of culture, not just a consumer.",
+        mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the gallery (first sale). Secondary is buying at auction (Christie's, Sotheby's). Primary builds relationships; Secondary determines true market value.\n2. **Mediums:** Canvas (Oil/Acrylic) usually holds more value than works on paper or prints.",
+        advanced: "**Due Diligence:** Provenance (history of ownership), Condition Report (damage?), and Authenticity. Blue Chip artists (Warhol, Basquiat) are safe but expensive. Emerging artists are high risk/high reward. Buy with your eyes, but verify with your brain.",
+        pro_tip: "Don't buy art to match your sofa. Buy it because it challenges you. A 'pretty' painting is decoration; a challenging painting is art. Visit Art Basel or Frieze just to observe."
+    },
+    'Strategic Philanthropy': {
+        philosophy: "Wealth without purpose is vulgar. Philanthropy is not just writing checks; it's using capital to solve structural problems. It buys influence and legacy.",
+        mechanics: "1. **Impact Investing:** Investing in companies that generate social good + financial return.\n2. **Foundations:** Setting up a DAF (Donor Advised Fund) allows immediate tax deduction while granting money out over time.",
+        advanced: "**Effective Altruism:** Using data to determine where the next dollar does the most good (e.g., malaria nets vs. opera houses). High society respects strategic giving, not just reactive charity.",
+        pro_tip: "Join the board of a non-profit. It is the fastest way to access the elite network of a city. You give 'Time, Talent, or Treasure'."
+    }
+};
+
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     // Added 'PATH' and 'ELITE' tabs
     const [activeModule, setActiveModule] = useState<'PATH' | 'NUKE' | 'CALENDAR' | 'HEADSHOT' | 'CV' | 'PITCH' | 'SITE' | 'ELITE'>('PATH');
@@ -53,7 +105,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const [isGeneratingCV, setIsGeneratingCV] = useState(false);
 
     // Elite Modal State
-    const [activeEliteItem, setActiveEliteItem] = useState<{title: string, icon: string, desc: string, detail: string} | null>(null);
+    const [activeEliteItem, setActiveEliteItem] = useState<{title: string, icon: string, desc: string} | null>(null);
     const [eliteImage, setEliteImage] = useState<string | null>(null);
     const [eliteLoading, setEliteLoading] = useState(false);
 
@@ -67,14 +119,14 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
 
     // --- ELITE HANDLERS ---
     const eliteItems = [
-        { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.', detail: 'Proper utensil usage, napkin placement, and how to navigate a 7-course meal. The deal is often closed at the table.' },
-        { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.', detail: 'The science of handshakes, eye contact, and the "host mentality". Be the most memorable person in the room.' },
-        { title: 'Sartorial Excellence', icon: '👔', desc: 'Dress codes decoded.', detail: 'Understanding Black Tie, Business Casual, and "Sprezzatura". Your attire is your first language.' },
-        { title: 'Horology', icon: '⌚', desc: 'Understanding Timepieces.', detail: 'The difference between a Quartz and a Tourbillon. Why Patek Philippe matters. An investment on your wrist.' },
-        { title: 'Oenology (Wine)', icon: '🍷', desc: 'Navigate a wine list with confidence.', detail: 'Understanding varietals, regions (Bordeaux vs Burgundy), and how to properly taste and order wine for the table.' },
-        { title: 'Golf & Leisure', icon: '⛳', desc: 'Business happens on the green.', detail: 'Etiquette of the game, club rules, and how to network without ruining the game.' },
-        { title: 'Art Collection', icon: '🖼️', desc: 'Investing in culture.', detail: 'Blue chip artists, auction house dynamics (Sotheby’s, Christie’s), and tax advantages of art.' },
-        { title: 'Strategic Philanthropy', icon: '🕊️', desc: 'Giving back effectively.', detail: 'Setting up foundations, impact investing, and the social responsibility of wealth.' }
+        { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.' },
+        { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.' },
+        { title: 'Sartorial Excellence', icon: '👔', desc: 'Dress codes decoded.' },
+        { title: 'Horology', icon: '⌚', desc: 'Understanding Timepieces.' },
+        { title: 'Oenology (Wine)', icon: '🍷', desc: 'Navigate a wine list with confidence.' },
+        { title: 'Golf & Leisure', icon: '⛳', desc: 'Business happens on the green.' },
+        { title: 'Art Collection', icon: '🖼️', desc: 'Investing in culture.' },
+        { title: 'Strategic Philanthropy', icon: '🕊️', desc: 'Giving back effectively.' }
     ];
 
     const openEliteModal = async (item: typeof eliteItems[0]) => {
@@ -188,6 +240,10 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         setIsGeneratingHeadshot(false);
     };
 
+    const getEliteContent = (title: string) => {
+        return ELITE_KNOWLEDGE_BASE[title] || { philosophy: "Loading...", mechanics: "...", advanced: "...", pro_tip: "..." };
+    };
+
     return (
         <div className="h-full overflow-y-auto p-4 md:p-8 font-sans scrollbar-hide pb-24 touch-pan-y">
             <header className="mb-8">
@@ -230,11 +286,14 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                             <div 
                                 key={i}
                                 onClick={() => openEliteModal(item)}
-                                className="glass-panel p-6 rounded-2xl border-t-4 border-t-skillfi-neon hover:bg-white/5 transition-all cursor-pointer group hover:scale-[1.02]"
+                                className="glass-panel p-6 rounded-2xl border-t-4 border-t-skillfi-neon hover:bg-white/5 transition-all cursor-pointer group hover:scale-[1.02] active:scale-95"
                             >
                                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
                                 <h3 className="font-bold text-white text-lg">{item.title}</h3>
                                 <p className="text-gray-400 text-xs mt-2">{item.desc}</p>
+                                <div className="mt-4 text-[10px] text-skillfi-neon font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Click to Learn
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -242,28 +301,70 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                     {/* Elite Modal */}
                     {activeEliteItem && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={() => setActiveEliteItem(null)}>
-                            <div className="glass-panel w-full max-w-lg rounded-2xl p-6 relative max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                                <button className="absolute top-4 right-4 text-gray-500 hover:text-white" onClick={() => setActiveEliteItem(null)}>✕</button>
-                                
-                                <h2 className="text-2xl font-bold font-display text-white mb-2 flex items-center gap-2 pr-8">
-                                    {activeEliteItem.icon} {activeEliteItem.title}
-                                </h2>
-                                <p className="text-skillfi-neon text-sm font-bold uppercase tracking-wide mb-6">Refinement Module</p>
-                                
-                                {eliteLoading ? (
-                                    <div className="h-48 w-full bg-white/5 rounded-xl flex items-center justify-center animate-pulse mb-6">
-                                        <div className="text-skillfi-neon font-mono text-xs">Accessing Knowledge Base...</div>
+                            <div className="glass-panel w-full max-w-2xl rounded-2xl p-0 relative max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                                {/* Modal Header */}
+                                <div className="p-6 border-b border-white/10 bg-black/40 flex justify-between items-start sticky top-0 z-10 backdrop-blur-md">
+                                    <div>
+                                        <h2 className="text-2xl font-bold font-display text-white flex items-center gap-2">
+                                            {activeEliteItem.icon} {activeEliteItem.title}
+                                        </h2>
+                                        <p className="text-skillfi-neon text-xs font-bold uppercase tracking-widest mt-1">Refinement Module</p>
                                     </div>
-                                ) : (
-                                    eliteImage && (
-                                        <div className="h-48 w-full rounded-xl overflow-hidden mb-6 border border-skillfi-neon/30">
-                                            <img src={eliteImage} alt={activeEliteItem.title} className="w-full h-full object-cover" />
-                                        </div>
-                                    )
-                                )}
+                                    <button className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setActiveEliteItem(null)}>✕</button>
+                                </div>
                                 
-                                <div className="bg-black/50 p-4 rounded-xl border border-white/10">
-                                    <p className="text-gray-200 text-sm leading-relaxed">{activeEliteItem.detail}</p>
+                                <div className="p-6 overflow-y-auto scrollbar-hide">
+                                    {eliteLoading ? (
+                                        <div className="h-48 w-full bg-white/5 rounded-xl flex items-center justify-center animate-pulse mb-6">
+                                            <div className="text-skillfi-neon font-mono text-xs">Accessing Secure Knowledge Base...</div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {eliteImage && (
+                                                <div className="h-56 w-full rounded-xl overflow-hidden mb-8 border border-skillfi-neon/30 shadow-lg relative group">
+                                                    <img src={eliteImage} alt={activeEliteItem.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                                    <div className="absolute bottom-4 left-4 text-white text-xs font-mono opacity-80">
+                                                        FIG. 1.0 // {activeEliteItem.title.toUpperCase()}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-8 text-sm">
+                                                {/* Philosophy */}
+                                                <section>
+                                                    <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-skillfi-neon/20 pb-2">01. The Philosophy</h3>
+                                                    <p className="text-gray-200 leading-relaxed font-serif italic text-lg">
+                                                        "{getEliteContent(activeEliteItem.title).philosophy}"
+                                                    </p>
+                                                </section>
+
+                                                {/* Mechanics */}
+                                                <section className="bg-white/5 p-5 rounded-xl border border-white/5">
+                                                    <h3 className="text-white font-bold text-xs uppercase tracking-[0.2em] mb-4">02. Core Mechanics</h3>
+                                                    <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-2">
+                                                        {getEliteContent(activeEliteItem.title).mechanics}
+                                                    </div>
+                                                </section>
+
+                                                {/* Advanced */}
+                                                <section>
+                                                    <h3 className="text-blue-400 font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-blue-400/20 pb-2">03. Intermediate & Advanced</h3>
+                                                    <p className="text-gray-300 leading-relaxed">
+                                                        {getEliteContent(activeEliteItem.title).advanced}
+                                                    </p>
+                                                </section>
+
+                                                {/* Pro Tip */}
+                                                <div className="bg-gradient-to-r from-skillfi-neon/10 to-transparent p-4 rounded-l-xl border-l-4 border-skillfi-neon">
+                                                    <span className="text-skillfi-neon font-bold uppercase text-[10px] tracking-widest block mb-1">Insider Pro Tip</span>
+                                                    <p className="text-white font-medium">
+                                                        {getEliteContent(activeEliteItem.title).pro_tip}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

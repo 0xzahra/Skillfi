@@ -6,6 +6,9 @@ export const RelationshipsDash: React.FC = () => {
     const [input, setInput] = useState('');
     const [response, setResponse] = useState('');
     const [loading, setLoading] = useState(false);
+    
+    // Tip Modal State
+    const [activeTip, setActiveTip] = useState<{title: string, content: string} | null>(null);
 
     const handleAsk = async (mode: string) => {
         if (!input.trim()) return;
@@ -23,11 +26,24 @@ export const RelationshipsDash: React.FC = () => {
     };
 
     return (
-        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in">
+        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in relative">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold font-display text-white tracking-tight">Relationship Dynamics</h1>
                 <p className="text-gray-500 text-sm mt-1">Wisdom for love, family, and harmony.</p>
             </header>
+
+            {/* Deep Dive Modal */}
+            {activeTip && (
+                <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in" onClick={() => setActiveTip(null)}>
+                    <div className="glass-panel p-8 rounded-2xl max-w-lg w-full relative" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setActiveTip(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+                        <h2 className="text-2xl font-bold font-display text-red-400 mb-4">{activeTip.title}</h2>
+                        <div className="text-gray-200 leading-relaxed text-sm whitespace-pre-line">
+                            {activeTip.content}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Tabs */}
             <div className="flex gap-2 mb-6 border-b border-white/10 pb-1 overflow-x-auto scrollbar-hide">
@@ -96,16 +112,28 @@ export const RelationshipsDash: React.FC = () => {
                     </div>
                 )}
 
-                {/* Static Educational Content based on Tab */}
+                {/* Interactive Educational Content */}
                 {!response && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 opacity-60">
-                        <div className="bg-white/5 p-4 rounded-xl">
-                            <h4 className="font-bold text-white text-xs uppercase mb-2">Tip 1</h4>
-                            <p className="text-xs text-gray-400">Communication is not just talking, it's listening to understand, not to reply.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                        <div 
+                            onClick={() => setActiveTip({
+                                title: "Active Listening",
+                                content: "Most people do not listen with the intent to understand; they listen with the intent to reply. \n\n**The Technique:**\n1. Let them finish completely.\n2. Pause for 2 seconds.\n3. Repeat back what they said ('So what you're saying is...').\n4. Validate their emotion ('That must feel frustrating').\n\nOnly then do you offer a solution."
+                            })}
+                            className="bg-white/5 p-4 rounded-xl hover:bg-red-900/10 cursor-pointer border border-transparent hover:border-red-500/30 transition-all group"
+                        >
+                            <h4 className="font-bold text-white text-xs uppercase mb-2 group-hover:text-red-400">Communication Mastery</h4>
+                            <p className="text-xs text-gray-400">Communication is not just talking, it's listening to understand, not to reply. (Click to learn)</p>
                         </div>
-                        <div className="bg-white/5 p-4 rounded-xl">
-                            <h4 className="font-bold text-white text-xs uppercase mb-2">Tip 2</h4>
-                            <p className="text-xs text-gray-400">Respect is the foundation of love. Without it, the structure collapses.</p>
+                        <div 
+                            onClick={() => setActiveTip({
+                                title: "The Foundation of Respect",
+                                content: "Love without respect is just attachment. Respect means honoring boundaries, speaking without contempt, and valuing their autonomy.\n\n**Red Flags of Disrespect:**\n- Eye rolling\n- Interrupting\n- 'You always' or 'You never' statements.\n\nRespect is built in the small moments, not the grand gestures."
+                            })}
+                            className="bg-white/5 p-4 rounded-xl hover:bg-red-900/10 cursor-pointer border border-transparent hover:border-red-500/30 transition-all group"
+                        >
+                            <h4 className="font-bold text-white text-xs uppercase mb-2 group-hover:text-red-400">Respect Protocol</h4>
+                            <p className="text-xs text-gray-400">Respect is the foundation of love. Without it, the structure collapses. (Click to learn)</p>
                         </div>
                     </div>
                 )}

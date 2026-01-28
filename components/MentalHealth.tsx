@@ -1,11 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeChat, sendMessageToSkillfi } from '../services/geminiService';
 
 export const MentalHealth: React.FC = () => {
     const [entry, setEntry] = useState('');
     const [response, setResponse] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [severity, setSeverity] = useState(0); // 0-10 scale simulation
+    const [severity, setSeverity] = useState(0); 
+    
+    // Tools State
+    const [activeTool, setActiveTool] = useState<'BREATHE' | 'JOURNAL' | null>(null);
+    const [breathPhase, setBreathPhase] = useState('Inhale');
+
+    // Breathing Animation Loop
+    useEffect(() => {
+        let interval: any;
+        if (activeTool === 'BREATHE') {
+            const phases = ['Inhale', 'Hold', 'Exhale', 'Hold'];
+            let i = 0;
+            interval = setInterval(() => {
+                i = (i + 1) % 4;
+                setBreathPhase(phases[i]);
+            }, 4000);
+        }
+        return () => clearInterval(interval);
+    }, [activeTool]);
 
     const handleProcess = async () => {
         if (!entry.trim()) return;
@@ -20,10 +38,10 @@ export const MentalHealth: React.FC = () => {
             USER INPUT: "${entry}"
             
             YOUR TASKS:
-            1. Validate their feelings (e.g., "It sounds like you are carrying a heavy burden").
-            2. Summarize what they said to show you listened.
-            3. Offer a grounding technique (breathing, 5-4-3-2-1 method, or journaling prompt).
-            4. ASSESS SEVERITY: If the user mentions self-harm, deep depression, or inability to function, strongly urge them to see a professional.
+            1. Validate their feelings.
+            2. Summarize what they said.
+            3. Offer a grounding technique.
+            4. ASSESS SEVERITY: If the user mentions self-harm, urge them to see a professional.
             
             CRITICAL DISCLAIMER: You MUST end with "I am an AI, not a doctor. Please see a professional for medical diagnosis."
             Keep it under 100 words. Gentle tone.
@@ -31,7 +49,7 @@ export const MentalHealth: React.FC = () => {
             
             const text = await sendMessageToSkillfi(chat, prompt);
             setResponse(text);
-            setSeverity(Math.floor(Math.random() * 5) + 1); // Mock severity tracking
+            setSeverity(Math.floor(Math.random() * 5) + 1); 
         } catch (error) {
             setResponse("I am having trouble connecting. Please write your thoughts down offline for now.");
         } finally {
@@ -40,11 +58,35 @@ export const MentalHealth: React.FC = () => {
     };
 
     return (
-        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in">
+        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y animate-fade-in relative">
             <header className="mb-6 text-center">
                 <h1 className="text-3xl font-bold font-display text-white mb-2">Mental Wellness Space</h1>
                 <p className="text-gray-400 text-sm max-w-lg mx-auto">Trauma affects career and growth. This is a safe space to unload your mind.</p>
             </header>
+
+            {/* Tool Overlays */}
+            {activeTool === 'BREATHE' && (
+                <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-8 animate-fade-in" onClick={() => setActiveTool(null)}>
+                    <div className="text-center relative z-10">
+                        <div className={`w-48 h-48 rounded-full border-4 border-teal-500 flex items-center justify-center mb-8 transition-all duration-[4000ms] ${breathPhase === 'Inhale' ? 'scale-125 bg-teal-500/20' : breathPhase === 'Exhale' ? 'scale-75 bg-transparent' : 'scale-100 bg-teal-500/10'}`}>
+                            <span className="text-2xl font-bold text-white uppercase tracking-widest">{breathPhase}</span>
+                        </div>
+                        <p className="text-gray-400 text-sm">Box Breathing Technique (4-4-4-4)</p>
+                        <p className="text-gray-600 text-xs mt-4">Tap anywhere to close</p>
+                    </div>
+                </div>
+            )}
+
+            {activeTool === 'JOURNAL' && (
+                <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4 animate-fade-in">
+                    <div className="glass-panel w-full max-w-lg p-6 rounded-2xl relative">
+                        <button onClick={() => setActiveTool(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+                        <h2 className="text-xl font-bold text-white mb-4">Prompt: "What am I grateful for right now?"</h2>
+                        <textarea className="w-full h-40 bg-black/50 border border-white/10 rounded-xl p-4 text-white outline-none mb-4" placeholder="Start writing..." />
+                        <button onClick={() => setActiveTool(null)} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold uppercase text-xs">Done (Reset)</button>
+                    </div>
+                </div>
+            )}
 
             {/* DISCLAIMER BANNER */}
             <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-xl mb-8 flex gap-3 items-start">
@@ -94,16 +136,22 @@ export const MentalHealth: React.FC = () => {
                     </div>
                 )}
 
-                {/* Healing Tips */}
+                {/* Healing Tips - Now Interactive */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                        <div className="text-2xl mb-2">🌬️</div>
-                        <h4 className="font-bold text-white text-sm">Breathe</h4>
-                        <p className="text-xs text-gray-400 mt-1">Box breathing: Inhale 4s, Hold 4s, Exhale 4s, Hold 4s.</p>
+                    <div 
+                        onClick={() => setActiveTool('BREATHE')}
+                        className="bg-white/5 p-4 rounded-xl border border-white/5 hover:border-teal-500/50 hover:bg-teal-900/10 cursor-pointer transition-all group"
+                    >
+                        <div className="text-2xl mb-2 group-hover:scale-110 transition-transform origin-left">🌬️</div>
+                        <h4 className="font-bold text-white text-sm group-hover:text-teal-400">Start Breathing Exercise</h4>
+                        <p className="text-xs text-gray-400 mt-1">Interactive 4-4-4-4 box breathing guide.</p>
                     </div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                        <div className="text-2xl mb-2">📝</div>
-                        <h4 className="font-bold text-white text-sm">Journal</h4>
+                    <div 
+                        onClick={() => setActiveTool('JOURNAL')}
+                        className="bg-white/5 p-4 rounded-xl border border-white/5 hover:border-teal-500/50 hover:bg-teal-900/10 cursor-pointer transition-all group"
+                    >
+                        <div className="text-2xl mb-2 group-hover:scale-110 transition-transform origin-left">📝</div>
+                        <h4 className="font-bold text-white text-sm group-hover:text-teal-400">Quick Journal</h4>
                         <p className="text-xs text-gray-400 mt-1">Writing it down removes it from your looping thoughts.</p>
                     </div>
                 </div>
