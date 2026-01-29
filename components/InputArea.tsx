@@ -120,52 +120,36 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
   return (
     <div className="w-full flex flex-col gap-3 font-sans relative z-50">
       
-      {/* Advanced Plus Menu */}
+      {/* Advanced Command Center (Plus Menu) */}
       {showPlusMenu && (
-          <div ref={menuRef} className="absolute bottom-full left-0 mb-4 w-full md:w-[400px] glass-panel bg-[#020409]/95 backdrop-blur-2xl border border-skillfi-neon/30 rounded-2xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-fade-in overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-skillfi-neon to-transparent opacity-50"></div>
-              
-              <div className="grid grid-cols-3 gap-3">
-                  {/* Visual Analysis */}
-                  <button onClick={() => handleFileTrigger('image/*')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-blue-400">👁️</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Vision</span>
-                  </button>
-
-                  {/* Document Analysis */}
-                  <button onClick={() => handleFileTrigger('.pdf,.doc,.docx,.txt')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-purple-400">📄</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Docs</span>
-                  </button>
-
-                  {/* Deep Reasoning */}
-                  <button onClick={() => handleModeSelect('[DEEP THINKING MODE]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-skillfi-neon/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-skillfi-neon">🧠</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Reasoning</span>
-                  </button>
-
-                  {/* Web Search */}
-                  <button onClick={() => handleModeSelect('[WEB SEARCH]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-green-400">🌐</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Web Link</span>
-                  </button>
-
-                  {/* Code Interpreter Sim */}
-                  <button onClick={() => handleModeSelect('[CODE INTERPRETER]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-orange-400">💻</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Code</span>
-                  </button>
-
-                  {/* Audio */}
-                  <button onClick={() => toggleRecording()} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
-                      <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-red-400">🎙️</div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Studio</span>
-                  </button>
+          <div ref={menuRef} className="absolute bottom-full left-0 mb-4 w-full md:w-[450px] glass-panel bg-[#050505]/95 backdrop-blur-2xl border border-skillfi-neon/20 rounded-2xl p-6 shadow-2xl animate-fade-in overflow-hidden">
+              <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                  <h3 className="text-skillfi-neon font-bold font-display uppercase tracking-widest text-xs">Command Center</h3>
+                  <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-skillfi-neon animate-pulse"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-skillfi-neon/50"></div>
+                  </div>
               </div>
               
-              <div className="mt-3 pt-2 border-t border-white/10 flex justify-between items-center px-1">
-                  <span className="text-[9px] text-gray-600 font-mono uppercase">System Ready</span>
-                  <span className="text-[9px] text-skillfi-neon font-mono uppercase animate-pulse">v4.5 Connected</span>
+              <div className="grid grid-cols-3 gap-4">
+                  {[
+                      { icon: '👁️', label: 'Visual Uplink', desc: 'Analyze Images', action: () => handleFileTrigger('image/*'), color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                      { icon: '📄', label: 'Doc Parser', desc: 'Read PDFs/Txt', action: () => handleFileTrigger('.pdf,.doc,.docx,.txt'), color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                      { icon: '🎙️', label: 'Voice Log', desc: 'Record Memo', action: () => toggleRecording(), color: 'text-red-400', bg: 'bg-red-500/10' },
+                      { icon: '🧠', label: 'Strategist', desc: 'Deep Reasoning', action: () => handleModeSelect('[DEEP THINKING MODE]:'), color: 'text-skillfi-neon', bg: 'bg-yellow-500/10' },
+                      { icon: '🌐', label: 'Live Data', desc: 'Web Search', action: () => handleModeSelect('[WEB SEARCH]:'), color: 'text-green-400', bg: 'bg-green-500/10' },
+                      { icon: '🏗️', label: 'Architect', desc: 'Code Gen', action: () => handleModeSelect('[CODE INTERPRETER]:'), color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                  ].map((btn, idx) => (
+                      <button 
+                        key={idx} 
+                        onClick={btn.action} 
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border border-white/5 hover:border-white/20 transition-all group ${btn.bg}`}
+                      >
+                          <div className={`text-2xl mb-2 group-hover:scale-110 transition-transform ${btn.color}`}>{btn.icon}</div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-200 group-hover:text-white">{btn.label}</span>
+                          <span className="text-[9px] text-gray-500">{btn.desc}</span>
+                      </button>
+                  ))}
               </div>
           </div>
       )}
@@ -203,7 +187,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
             </div>
         )}
 
-        {/* PLUS BUTTON (The Advanced Trigger) */}
+        {/* PLUS BUTTON */}
         <button 
             onClick={() => setShowPlusMenu(!showPlusMenu)}
             className={`p-3 rounded-xl transition-all relative z-10 group ${showPlusMenu ? 'bg-skillfi-neon text-black rotate-45' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}

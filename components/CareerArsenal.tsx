@@ -5,6 +5,7 @@ import { UserProfile } from '../types';
 
 interface CareerArsenalProps {
     user: UserProfile;
+    initialScoutData?: string | null;
 }
 
 const CAREER_QUOTES = [
@@ -30,11 +31,11 @@ const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: stri
         advanced: "**The 'Host' Mentality:** Even if it's not your event, act like a host. Introduce people to each other. 'John, have you met Lisa? She works in Fintech.' You become the connector, the node of value. People will gravitate toward you because you make them feel comfortable.",
         pro_tip: "Never ask 'What do you do?' immediately. Ask 'What are you working on that excites you right now?' It opens up passion, not just job titles."
     },
-    'Wine Mastery': {
-        philosophy: "Wine is geography, history, and science in a bottle. Knowing it signals you are cultured, patient, and observant. It is the social lubricant of high-stakes deals.",
-        mechanics: "1. **Holding:** Always hold the glass by the stem, never the bowl (heat affects taste).\n2. **The 4 S's:** See (clarity), Swirl (release aroma), Smell (80% of taste), Sip (let it roll over tongue).\n3. **Ordering:** Do not fear the sommelier. Give them a price range and a preference ('I prefer bold, earthy reds').",
-        advanced: "**Old World vs. New World:** Know the difference. Old World (Europe) is often earthier, lower alcohol, regulated. New World (Americas/Aus) is fruit-forward, higher alcohol, experimental. If hosting a steak dinner, a Napa Cab (New World) or Bordeaux (Old World) are safe bets.",
-        pro_tip: "If asked to taste the wine for the table, you are checking for faults (cork taint/vinegar smell), not if you 'like' it. Smell, sip, nod to the server. Do not make a speech."
+    'Strategic Negotiation': {
+        philosophy: "In business and life, you do not get what you deserve; you get what you negotiate. It is not about conflict, but about collaboration to expand the pie.",
+        mechanics: "1. **The Anchor:** The first number spoken anchors the entire deal. Make it ambitious but defensible.\n2. **Silence:** After making an offer, shut up. The next person to speak loses leverage.\n3. **Labeling:** 'It seems like you are hesitant about the price.' Call out emotions to diffuse them.",
+        advanced: "**The Ackerman Model:** Offer 65% of target, then 85%, 95%, and finally 100%. Use odd, precise numbers (e.g., $37,550) to imply calculation, not estimation.",
+        pro_tip: "Never accept the first offer, even if it's good. It makes the other side feel they left money on the table. Flinch, pause, then counter."
     },
     'Golf Diplomacy': {
         philosophy: "Golf is the only sport where a CEO and an intern can play together on equal footing. It reveals character: how one handles adversity, luck, and honesty.",
@@ -53,10 +54,16 @@ const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: stri
         mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the artist/gallery (first sale). Secondary is buying at auction (resale).\n2. **Provenance:** The history of ownership. A clear paper trail adds immense value.\n3. **Medium:** Oil on canvas generally holds value better than prints or paper.",
         advanced: "**Blue Chip vs. Emerging:** Blue Chip artists (Picasso, Warhol, Basquiat) are safe 'bonds'. Emerging artists are high-risk 'stocks'. Diversify your collection like a portfolio.",
         pro_tip: "Buy with your eyes, not just your ears. If you buy for investment only, you will lose. Buy what you love; if it goes to zero, you still have a beautiful object on your wall."
+    },
+    'Private Aviation': {
+        philosophy: "Time is the only non-renewable asset. Private aviation is not about luxury; it is about buying time. Understanding this world signals high-level operational awareness.",
+        mechanics: "1. **Part 91 vs 135:** Part 91 is non-commercial (own plane). Part 135 is charter (renting). Know the difference.\n2. **The Empty Leg:** A flight returning empty. This is how smart players fly private for commercial prices.\n3. **FBO:** Fixed Base Operator. You don't go to a terminal; you go to the FBO.",
+        advanced: "**Aircraft Classes:** Light Jets (CJ3) for short hops. Mid-size (Challenger 300) for coast-to-coast. Ultra-Long Range (Global 7500) for oceans. Don't ask a Light Jet to cross the Atlantic.",
+        pro_tip: "Treat the pilots like gold. They hold your life in their hands. Acknowledge them before you acknowledge the champagne."
     }
 };
 
-export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
+export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScoutData }) => {
     // TABS
     const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
@@ -65,6 +72,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const [careerMap, setCareerMap] = useState<CareerRoadmap | null>(null);
     const [isMapping, setIsMapping] = useState(false);
     const [riskTolerance, setRiskTolerance] = useState<'STABLE' | 'MOONSHOT'>('STABLE');
+    const [manualContext, setManualContext] = useState('');
 
     // Headshot State
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -95,6 +103,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     });
     const [resumeContent, setResumeContent] = useState<string | null>(null);
     const [isGeneratingResume, setIsGeneratingResume] = useState(false);
+    const [isSocialCardMode, setIsSocialCardMode] = useState(false);
 
     // Pitch Deck State
     const [pitchTopic, setPitchTopic] = useState('');
@@ -128,6 +137,13 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         setDailyQuote(CAREER_QUOTES[Math.floor(Math.random() * CAREER_QUOTES.length)]);
     }, []);
 
+    // Instant Scout Trigger
+    useEffect(() => {
+        if (initialScoutData && !isMapping) {
+            handlePathfinder(initialScoutData);
+        }
+    }, [initialScoutData]);
+
     // Auto-Save Effect
     useEffect(() => {
         const stateToSave = {
@@ -151,10 +167,11 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const eliteItems = [
         { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.' },
         { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.' },
-        { title: 'Wine Mastery', icon: '🍷', desc: 'Decode the wine list with confidence.' },
+        { title: 'Strategic Negotiation', icon: '♟️', desc: 'Win without making enemies.' },
         { title: 'Golf Diplomacy', icon: '⛳', desc: 'Business is done on the fairway.' },
         { title: 'Horology', icon: '⌚', desc: 'Understanding timepieces and engineering.' },
         { title: 'Art Collecting', icon: '🎨', desc: 'Asset preservation through culture.' },
+        { title: 'Private Aviation', icon: '✈️', desc: 'The language of the skies.' },
     ];
 
     const openEliteModal = async (item: typeof eliteItems[0]) => {
@@ -175,11 +192,11 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     };
 
     // --- DOWNLOAD HANDLERS ---
-    const handleDownloadImage = () => {
-        if (generatedImage) {
+    const handleDownloadImage = (imgSrc: string, name: string) => {
+        if (imgSrc) {
             const link = document.createElement('a');
-            link.href = generatedImage;
-            link.download = `Skillfi_Headshot_${Date.now()}.jpg`;
+            link.href = imgSrc;
+            link.download = `${name}_${Date.now()}.jpg`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -287,17 +304,26 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         setIsGeneratingPitch(false);
     };
     
-    const handlePathfinder = async () => {
+    const handlePathfinder = async (overrideContext?: string) => {
         setIsMapping(true);
         try {
+            // Prioritize manual input, then user profile, then fallback
+            const finalAge = user.age || "Not specified";
+            const finalType = user.userType || "Professional";
+            const finalSkills = (user.skills && user.skills.length > 0) ? user.skills.join(', ') : "General";
+            
             const context = `
-                User Profile:
-                - Age: ${user.age || 'Unknown'}
-                - User Type: ${user.userType || 'Professional'}
+                User Profile Analysis Request:
+                - Age: ${finalAge}
+                - User Type: ${finalType}
                 - Qualification: ${user.qualification || 'Unknown'}
-                - Current Skills: ${user.skills.join(', ') || 'General'}
+                - Current Skills: ${finalSkills}
                 - Tech Savvy: ${user.isTechie ? 'Yes' : 'No'}
                 - Desired Strategy: ${riskTolerance} (Stable means low risk, corporate. Moonshot means high risk, startup/crypto).
+                - Additional Hobbies/Interests: ${overrideContext || manualContext || 'None provided'}
+                
+                Note to AI: If profile data is generic, infer likely roles based on 'User Type' and 'Strategy'. 
+                Resolve any gaps by suggesting paths that fit the 'User Type'.
             `;
             
             const map = await generateCareerRoadmap(context);
@@ -349,7 +375,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     };
 
     return (
-        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans scrollbar-hide pb-24 touch-pan-y">
+        <div className="h-full overflow-y-auto p-4 md:p-8 font-sans pb-24 touch-pan-y">
             <header className="mb-8">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tighter kinetic-type">
@@ -359,28 +385,30 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest">Plan, Build, and Refine.</p>
             </header>
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-2 mb-8 border-b border-white/10 pb-1 overflow-x-auto scrollbar-hide">
-                {[
-                    { id: 'PATH', label: 'Pathfinder' },
-                    { id: 'RESUME', label: 'Resume' },
-                    { id: 'CV', label: 'CV (Academic)' },
-                    { id: 'PITCH', label: 'Pitch Deck' },
-                    { id: 'HEADSHOT', label: 'Pro Photo' },
-                    { id: 'ELITE', label: 'High Society' },
-                ].map(tab => (
-                    <button 
-                        key={tab.id}
-                        onClick={() => { setActiveModule(tab.id as any); triggerHaptic(); }}
-                        className={`px-4 py-3 text-[10px] font-bold tracking-[0.15em] rounded-t-lg uppercase transition-all whitespace-nowrap ${
-                            activeModule === tab.id 
-                            ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-[0_-5px_20px_rgba(0,255,255,0.2)]' 
-                            : 'text-gray-500 bg-white/5 hover:bg-white/10'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Navigation Tabs - Sticky */}
+            <div className="sticky top-0 z-30 bg-skillfi-bg/95 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5 mb-8">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    {[
+                        { id: 'PATH', label: 'Pathfinder' },
+                        { id: 'RESUME', label: 'Resume' },
+                        { id: 'CV', label: 'CV (Academic)' },
+                        { id: 'PITCH', label: 'Pitch Deck' },
+                        { id: 'HEADSHOT', label: 'Pro Photo' },
+                        { id: 'ELITE', label: 'Elite Class' },
+                    ].map(tab => (
+                        <button 
+                            key={tab.id}
+                            onClick={() => { setActiveModule(tab.id as any); triggerHaptic(); }}
+                            className={`px-4 py-3 text-[10px] font-bold tracking-[0.15em] rounded-t-lg uppercase transition-all whitespace-nowrap ${
+                                activeModule === tab.id 
+                                ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-[0_-5px_20px_rgba(0,255,255,0.2)]' 
+                                : 'text-gray-500 bg-white/5 hover:bg-white/10'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* --- PATHFINDER --- */}
@@ -405,18 +433,25 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                         <div className="text-white font-bold">{user.userType || 'N/A'}</div>
                                     </div>
                                     <div className="col-span-2">
-                                        <div className="text-[10px] text-gray-500">Education</div>
-                                        <div className="text-white font-bold text-sm">{user.qualification || 'N/A'}</div>
-                                    </div>
-                                    <div className="col-span-2">
                                         <div className="text-[10px] text-gray-500">Core Skills</div>
                                         <div className="flex flex-wrap gap-1 mt-1">
-                                            {user.skills.length > 0 ? user.skills.map(s => (
+                                            {(user.skills && user.skills.length > 0) ? user.skills.map(s => (
                                                 <span key={s} className="bg-skillfi-neon/10 text-skillfi-neon text-[9px] px-1.5 py-0.5 rounded border border-skillfi-neon/20">{s}</span>
-                                            )) : <span className="text-gray-600 text-xs">None listed</span>}
+                                            )) : <span className="text-gray-600 text-xs">General / Not Listed</span>}
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Additional Context */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Hobbies & Interests (Optional)</label>
+                                <textarea 
+                                    value={manualContext}
+                                    onChange={(e) => setManualContext(e.target.value)}
+                                    placeholder="e.g. I like drawing, gaming, and solving puzzles..."
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white text-xs h-20 outline-none focus:border-skillfi-neon"
+                                />
                             </div>
 
                             {/* Strategy Toggle */}
@@ -439,7 +474,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                             </div>
 
                             <button 
-                                onClick={handlePathfinder}
+                                onClick={() => handlePathfinder()}
                                 disabled={isMapping}
                                 className="w-full py-4 bg-gradient-to-r from-skillfi-neon to-yellow-500 text-black font-bold uppercase rounded-xl hover:shadow-[0_0_20px_#D4AF37] transition-all text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
                             >
@@ -527,7 +562,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             
             {/* ... Other modules ... */}
             {activeModule === 'RESUME' && (
-                <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className={`animate-fade-in grid ${isSocialCardMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6`}>
+                    {!isSocialCardMode && (
                     <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
                         <h2 className="text-xl font-bold text-white mb-2">Resume Builder</h2>
                         <p className="text-xs text-gray-400 mb-6">Corporate focus. Concise & Results-Driven.</p>
@@ -594,32 +630,108 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                             </button>
                         </div>
                     </div>
+                    )}
 
-                    <div className="lg:col-span-2 glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5">
+                    <div className={`${isSocialCardMode ? 'max-w-xl mx-auto w-full' : 'lg:col-span-2'} glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5`}>
                         <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
-                            <span className="text-xs font-bold text-gray-500 uppercase">Resume Preview</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase">{isSocialCardMode ? 'Social Card Preview' : 'Resume Preview'}</span>
                             <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setIsSocialCardMode(!isSocialCardMode)}
+                                    className={`px-3 py-1.5 rounded shadow text-xs font-bold uppercase transition-colors ${isSocialCardMode ? 'bg-skillfi-neon text-black' : 'bg-gray-800 text-white hover:bg-black'}`}
+                                >
+                                    {isSocialCardMode ? 'Edit Mode' : 'Social Card'}
+                                </button>
                                 {resumeContent && (
                                     <>
                                         <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={() => handlePrintPDF('resume-preview')}>
-                                            Print / PDF
+                                            {isSocialCardMode ? 'Save as PDF/Img' : 'Print / PDF'}
                                         </button>
-                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(resumeContent, 'Resume.doc')}>
-                                            Word (.doc)
-                                        </button>
+                                        {!isSocialCardMode && (
+                                            <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(resumeContent, 'Resume.doc')}>
+                                                Word (.doc)
+                                            </button>
+                                        )}
                                     </>
                                 )}
                             </div>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-8 bg-white text-gray-900">
+                        <div className={`flex-1 overflow-y-auto p-8 bg-white text-gray-900 ${isSocialCardMode ? 'flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300' : ''}`}>
                             {resumeContent ? (
-                                <div id="resume-preview" className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{__html: resumeContent}}></div>
+                                <div id="resume-preview" className={`prose prose-sm max-w-none ${isSocialCardMode ? 'bg-white p-8 shadow-2xl rounded-xl w-full border border-gray-200 transform scale-95 origin-top' : ''}`} dangerouslySetInnerHTML={{__html: resumeContent}}></div>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-gray-400">
                                     <div className="text-6xl mb-4 opacity-20">📄</div>
                                     <p className="text-sm font-medium">Drafting Corporate Profile...</p>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- HEADSHOT --- */}
+            {activeModule === 'HEADSHOT' && (
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+                    {/* Controls */}
+                    <div className="glass-panel p-6 rounded-2xl h-fit lg:col-span-1">
+                        <h2 className="text-xl font-bold text-white mb-4">Studio Controls</h2>
+                         <div className="space-y-6">
+                            <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-skillfi-neon/50 hover:bg-white/5 transition-all group">
+                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">📷</div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 group-hover:text-white">Upload Selfie</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {(['CORPORATE', 'MEDICAL', 'CREATIVE', 'TECH'] as const).map(style => (
+                                    <button key={style} onClick={() => setSelectedStyle(style)} className={`p-3 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${selectedStyle === style ? 'bg-skillfi-neon/20 border-skillfi-neon text-white' : 'bg-black/40 border-transparent text-gray-500 hover:text-white'}`}>{style}</button>
+                                ))}
+                            </div>
+                            <button onClick={handleGenerateHeadshot} disabled={!originalImage || isGeneratingHeadshot} className="w-full py-4 font-bold text-sm tracking-widest uppercase rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 bg-skillfi-neon text-black hover:bg-white disabled:bg-white/5 disabled:text-gray-600">
+                                {isGeneratingHeadshot ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        PROCESSING...
+                                    </>
+                                ) : (generatedImage ? 'REGENERATE' : 'CREATE PHOTO')}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Comparison Area */}
+                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="glass-panel p-2 rounded-2xl h-[400px] flex flex-col items-center bg-black/50 relative overflow-hidden group">
+                             <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-widest border border-white/10">Original</div>
+                             {!originalImage ? (
+                                <div className="h-full flex items-center justify-center text-center opacity-30">
+                                    <p className="font-mono text-xs uppercase">No Source Image</p>
+                                </div>
+                            ) : (
+                                <img src={originalImage} alt="Original" className="w-full h-full object-cover rounded-xl" />
+                            )}
+                        </div>
+
+                        <div className="glass-panel p-2 rounded-2xl h-[400px] flex flex-col items-center bg-black/50 relative overflow-hidden group border-2 border-skillfi-neon/20">
+                             <div className="absolute top-4 left-4 z-10 bg-skillfi-neon text-black px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Result</div>
+                             {!generatedImage ? (
+                                <div className="h-full flex items-center justify-center text-center opacity-30">
+                                    {isGeneratingHeadshot ? (
+                                        <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <p className="font-mono text-xs uppercase">Awaiting Processing</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <img src={generatedImage} alt="Result" className="w-full h-full object-cover rounded-xl" />
+                                    <button 
+                                        onClick={() => handleDownloadImage(generatedImage!, 'Skillfi_Headshot')}
+                                        className="absolute bottom-4 right-4 bg-white text-black px-4 py-2 rounded-lg font-bold text-xs uppercase hover:bg-skillfi-neon transition-colors shadow-lg flex items-center gap-2"
+                                    >
+                                        Download
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -768,57 +880,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 </div>
             )}
 
-            {/* --- HEADSHOT --- */}
-            {activeModule === 'HEADSHOT' && (
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
-                    <div className="glass-panel p-6 rounded-2xl h-fit">
-                        <h2 className="text-xl font-bold text-white mb-4">Professional Photo Studio</h2>
-                         <div className="space-y-6">
-                            <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-skillfi-neon/50 hover:bg-white/5 transition-all group">
-                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-                                <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">📷</div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 group-hover:text-white">Upload Selfie</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {(['CORPORATE', 'MEDICAL', 'CREATIVE', 'TECH'] as const).map(style => (
-                                    <button key={style} onClick={() => setSelectedStyle(style)} className={`p-3 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${selectedStyle === style ? 'bg-skillfi-neon/20 border-skillfi-neon text-white' : 'bg-black/40 border-transparent text-gray-500 hover:text-white'}`}>{style}</button>
-                                ))}
-                            </div>
-                            <button onClick={handleGenerateHeadshot} disabled={!originalImage || isGeneratingHeadshot} className="w-full py-4 font-bold text-sm tracking-widest uppercase rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 bg-skillfi-neon text-black hover:bg-white disabled:bg-white/5 disabled:text-gray-600">
-                                {isGeneratingHeadshot ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        PROCESSING...
-                                    </>
-                                ) : 'CREATE PHOTO'}
-                            </button>
-                            {generatedImage && (
-                                <button onClick={handleDownloadImage} className="w-full py-3 font-bold text-sm tracking-widest uppercase rounded-xl transition-all border border-white/20 hover:bg-white/10 text-white flex items-center justify-center gap-2">
-                                    💾 Save to Gallery
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                    <div className="glass-panel p-1 rounded-2xl h-[400px] md:h-[500px] flex items-center justify-center bg-black/50 relative overflow-hidden group">
-                         {!originalImage ? (
-                            <div className="text-center opacity-30">
-                                <div className="text-6xl mb-4">👤</div>
-                                <p className="font-mono text-xs uppercase">No Photo Yet</p>
-                            </div>
-                        ) : (
-                            <div className="relative w-full h-full rounded-xl overflow-hidden select-none">
-                                <img src={generatedImage || originalImage} alt="Result" className="absolute inset-0 w-full h-full object-cover" />
-                                {isGeneratingHeadshot && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                                        <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {/* --- ELITE MODULE --- */}
             {activeModule === 'ELITE' && (
                 <div className="animate-fade-in relative">
@@ -868,6 +929,16 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                                     <div className="absolute bottom-4 left-4 text-white text-xs font-mono opacity-80">
                                                         FIG. 1.0 // {activeEliteItem.title.toUpperCase()}
                                                     </div>
+                                                    {/* Download Button for Generated Image */}
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); handleDownloadImage(eliteImage!, activeEliteItem.title); }}
+                                                        className="absolute top-4 right-4 bg-white/20 hover:bg-white text-white hover:text-black p-2 rounded-full backdrop-blur-md transition-all"
+                                                        title="Download Visual"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M12 12.75l-3-3m0 0l3-3m-3 3h7.5" transform="rotate(-90 12 12)" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
                                             )}
 

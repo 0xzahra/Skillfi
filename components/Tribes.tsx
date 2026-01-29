@@ -199,11 +199,11 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
                     ))}
                 </div>
 
-                {/* Tribe Feed / Members Area */}
-                <div className="md:col-span-2 glass-panel rounded-2xl p-6 flex flex-col h-[600px] shadow-2xl relative overflow-hidden">
+                {/* Tribe Feed / Members Area - Sticky Header */}
+                <div className="md:col-span-2 glass-panel rounded-2xl p-0 flex flex-col h-[600px] shadow-2xl relative overflow-hidden">
                     {activeTribe ? (
                         <>
-                            <div className="mb-4 pb-4 border-b border-white/10 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="p-6 pb-4 border-b border-white/10 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 bg-skillfi-bg/95 backdrop-blur-xl">
                                 <h2 className="text-xl font-bold font-display text-white flex items-center gap-3">
                                     {activeTribe.name}
                                     {activeTribe.isJoined && (
@@ -232,10 +232,11 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
                                 )}
                             </div>
                             
+                            <div className="p-6 pt-2 flex-1 overflow-y-auto scrollbar-hide">
                             {activeTribe.isJoined ? (
                                 viewMode === 'FEED' ? (
                                     <>
-                                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 relative z-10 scrollbar-hide">
+                                        <div className="space-y-4 relative z-10">
                                             {feed.map(post => (
                                                 <div key={post.id} className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors animate-fade-in">
                                                     <div className="flex justify-between items-center mb-3">
@@ -261,7 +262,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
                                             ))}
                                         </div>
 
-                                        <div className="mt-4 flex gap-3 relative z-10">
+                                        <div className="mt-4 flex gap-3 relative z-10 sticky bottom-0 pt-2 bg-skillfi-bg/95 backdrop-blur-md pb-2">
                                             <input 
                                                 type="text" 
                                                 value={postText}
@@ -279,7 +280,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex-1 overflow-y-auto space-y-2 pr-2 relative z-10 scrollbar-hide">
+                                    <div className="space-y-2 relative z-10">
                                         {members.map(member => (
                                             <div key={member.id} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/5 transition-all animate-fade-in">
                                                 <div className="flex items-center gap-3">
@@ -331,6 +332,7 @@ export const Tribes: React.FC<TribesProps> = ({ userCredits, onNavigate }) => {
                                     </button>
                                 </div>
                             )}
+                            </div>
                         </>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-gray-600 relative z-10">

@@ -7,6 +7,7 @@ interface DashboardProps {
     onNavigate: (view: string) => void;
     onAddSkill?: (skill: string) => void;
     currentLang: LanguageCode;
+    onScout?: (hobbies: string) => void;
 }
 
 const MOTIVATIONS = [
@@ -17,9 +18,10 @@ const MOTIVATIONS = [
     { text: "Discipline weighs ounces, regret weighs tons.", action: "Plan your day." }
 ];
 
-export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentLang }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentLang, onScout }) => {
     const [greeting, setGreeting] = useState('Welcome');
     const [dailyMotivation, setDailyMotivation] = useState(MOTIVATIONS[0]);
+    const [hobbyInput, setHobbyInput] = useState('');
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -29,6 +31,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
 
         setDailyMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
     }, []);
+
+    const handleScoutSubmit = () => {
+        if (hobbyInput.trim() && onScout) {
+            onScout(hobbyInput);
+        }
+    };
 
     return (
         <div className="p-4 md:p-8 h-full overflow-y-auto pb-24 font-sans scrollbar-hide touch-pan-y">
@@ -48,6 +56,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
                 <div className="flex items-center gap-3">
                     <span className="h-px w-8 bg-skillfi-neon"></span>
                     <span className="text-gray-500 dark:text-gray-300 text-xs font-bold uppercase tracking-wider">{dailyMotivation.action}</span>
+                </div>
+            </div>
+
+            {/* INSTANT ROLE SCOUT */}
+            <div className="mb-10 glass-panel p-6 rounded-2xl border border-white/10 shadow-xl bg-gradient-to-br from-gray-900 to-black">
+                <h3 className="text-white font-bold font-display text-lg mb-2 flex items-center gap-2">
+                    <span className="text-2xl">🎯</span> Instant Role Scout
+                </h3>
+                <p className="text-gray-400 text-xs mb-4">Drop your hobbies or passions below. We'll instantly assign a Web2 and Web3 role.</p>
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        value={hobbyInput}
+                        onChange={(e) => setHobbyInput(e.target.value)}
+                        placeholder="e.g. I love gaming and drawing..." 
+                        onKeyDown={(e) => e.key === 'Enter' && handleScoutSubmit()}
+                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-skillfi-neon outline-none text-sm placeholder-gray-600 transition-colors"
+                    />
+                    <button 
+                        onClick={handleScoutSubmit}
+                        className="bg-skillfi-neon text-black px-6 rounded-xl font-bold uppercase text-xs tracking-wider hover:bg-white transition-all shadow-lg"
+                    >
+                        Analyze
+                    </button>
                 </div>
             </div>
 

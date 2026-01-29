@@ -7,15 +7,36 @@ export const RelationshipsDash: React.FC = () => {
     const [response, setResponse] = useState('');
     const [loading, setLoading] = useState(false);
     
+    // Compatibility State
+    const [partner1, setPartner1] = useState('');
+    const [partner2, setPartner2] = useState('');
+    
     // Tip Modal State
     const [activeTip, setActiveTip] = useState<{title: string, content: string} | null>(null);
 
     const handleAsk = async (mode: string) => {
-        if (!input.trim()) return;
         setLoading(true);
         try {
             const chat = await initializeChat('en');
-            const prompt = `Mode: RELATIONSHIPS (${mode}). User Input: ${input}. Provide wise, traditional, and balanced advice. Keep it under 60 words.`;
+            let prompt = "";
+            
+            if (mode === 'MATCH') {
+                if (!partner1.trim() || !partner2.trim()) {
+                    setLoading(false);
+                    return;
+                }
+                prompt = `Mode: RELATIONSHIP COMPATIBILITY. 
+                Partner 1 Traits: "${partner1}". 
+                Partner 2 Traits: "${partner2}". 
+                Analyze the synergy, potential friction points, and long-term viability. Be direct, realistic, and wise. Highlight key strengths and warnings.`;
+            } else {
+                if (!input.trim()) {
+                    setLoading(false);
+                    return;
+                }
+                prompt = `Mode: RELATIONSHIPS (${mode}). User Input: ${input}. Provide wise, traditional, and balanced advice. Keep it under 60 words.`;
+            }
+            
             const text = await sendMessageToSkillfi(chat, prompt);
             setResponse(text);
         } catch (e) {
@@ -45,26 +66,28 @@ export const RelationshipsDash: React.FC = () => {
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-white/10 pb-1 overflow-x-auto scrollbar-hide">
-                {[
-                    { id: 'ADVICE', label: 'General Advice' },
-                    { id: 'RIGHTS', label: 'Your Rights' },
-                    { id: 'DUTIES', label: 'Duties' },
-                    { id: 'MATCH', label: 'Compatibility' }
-                ].map(tab => (
-                    <button 
-                        key={tab.id}
-                        onClick={() => { setActiveTab(tab.id as any); setResponse(''); setInput(''); }}
-                        className={`px-6 py-3 text-[10px] font-bold tracking-[0.15em] rounded-t-lg uppercase transition-all whitespace-nowrap ${
-                            activeTab === tab.id 
-                            ? 'bg-red-500 text-white shadow-[0_-5px_20px_rgba(239,68,68,0.2)]' 
-                            : 'bg-white/5 text-gray-500 hover:text-white'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Tabs - Sticky */}
+            <div className="sticky top-0 z-30 bg-skillfi-bg/95 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5 mb-6">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    {[
+                        { id: 'ADVICE', label: 'General Advice' },
+                        { id: 'RIGHTS', label: 'Your Rights' },
+                        { id: 'DUTIES', label: 'Duties' },
+                        { id: 'MATCH', label: 'Compatibility' }
+                    ].map(tab => (
+                        <button 
+                            key={tab.id}
+                            onClick={() => { setActiveTab(tab.id as any); setResponse(''); setInput(''); }}
+                            className={`px-6 py-3 text-[10px] font-bold tracking-[0.15em] rounded-t-lg uppercase transition-all whitespace-nowrap ${
+                                activeTab === tab.id 
+                                ? 'bg-red-500 text-white shadow-[0_-5px_20px_rgba(239,68,68,0.2)]' 
+                                : 'bg-white/5 text-gray-500 hover:text-white'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             <div className="glass-panel p-6 rounded-2xl min-h-[400px]">
@@ -79,42 +102,74 @@ export const RelationshipsDash: React.FC = () => {
                         {activeTab === 'ADVICE' && 'Describe a conflict or situation.'}
                         {activeTab === 'RIGHTS' && 'Ask about legal or traditional rights in marriage.'}
                         {activeTab === 'DUTIES' && 'What is expected of you in a partnership?'}
-                        {activeTab === 'MATCH' && 'List traits of you and your partner.'}
+                        {activeTab === 'MATCH' && 'Analyze the dynamic between two unique personalities.'}
                     </p>
 
-                    <div className="flex gap-4">
-                        <input 
-                            type="text" 
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Type here..."
-                            className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-white focus:border-red-500 outline-none"
-                        />
-                        <button 
-                            onClick={() => handleAsk(activeTab)}
-                            disabled={loading}
-                            className="bg-red-600 hover:bg-red-500 text-white px-6 rounded-xl font-bold uppercase text-xs tracking-wide"
-                        >
-                            {loading ? '...' : 'ASK'}
-                        </button>
-                    </div>
+                    {activeTab === 'MATCH' ? (
+                        <div className="flex flex-col gap-4 animate-fade-in">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-black/40 border border-white/10 p-5 rounded-xl hover:border-red-500/30 transition-colors group">
+                                    <label className="text-xs font-bold text-red-400 uppercase mb-3 block group-hover:text-red-300">Partner 1 (You)</label>
+                                    <textarea 
+                                        value={partner1}
+                                        onChange={(e) => setPartner1(e.target.value)}
+                                        placeholder="Describe personality, values, zodiac, or specific traits..."
+                                        className="w-full bg-transparent text-white outline-none h-32 resize-none text-sm placeholder-gray-600 font-medium"
+                                    />
+                                </div>
+                                <div className="bg-black/40 border border-white/10 p-5 rounded-xl hover:border-red-500/30 transition-colors group">
+                                    <label className="text-xs font-bold text-blue-400 uppercase mb-3 block group-hover:text-blue-300">Partner 2 (Them)</label>
+                                    <textarea 
+                                        value={partner2}
+                                        onChange={(e) => setPartner2(e.target.value)}
+                                        placeholder="Describe personality, values, zodiac, or specific traits..."
+                                        className="w-full bg-transparent text-white outline-none h-32 resize-none text-sm placeholder-gray-600 font-medium"
+                                    />
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => handleAsk('MATCH')}
+                                disabled={loading}
+                                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99]"
+                            >
+                                {loading ? 'Analyzing Synergy...' : 'Analyze Compatibility'}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex gap-4">
+                            <input 
+                                type="text" 
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Type here..."
+                                className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-white focus:border-red-500 outline-none transition-colors"
+                            />
+                            <button 
+                                onClick={() => handleAsk(activeTab)}
+                                disabled={loading}
+                                className="bg-red-600 hover:bg-red-500 text-white px-6 rounded-xl font-bold uppercase text-xs tracking-wide transition-all shadow-lg"
+                            >
+                                {loading ? '...' : 'ASK'}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {response && (
-                    <div className="bg-white/5 p-6 rounded-xl border border-red-500/20 animate-fade-in">
+                    <div className="bg-white/5 p-6 rounded-xl border border-red-500/20 animate-fade-in mt-6">
                         <div className="flex items-start gap-4">
                             <div className="text-3xl">🕊️</div>
                             <div>
-                                <h3 className="font-bold text-red-400 text-sm mb-1 uppercase">Guidance</h3>
-                                <p className="text-gray-200 text-sm leading-relaxed">{response}</p>
+                                <h3 className="font-bold text-red-400 text-sm mb-2 uppercase tracking-wide">Strategic Guidance</h3>
+                                <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">{response}</p>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Interactive Educational Content */}
-                {!response && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                {/* Interactive Educational Content (Only show when no response) */}
+                {!response && activeTab !== 'MATCH' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 animate-fade-in">
                         <div 
                             onClick={() => setActiveTip({
                                 title: "Active Listening",

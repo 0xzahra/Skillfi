@@ -1,13 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona } from '../services/geminiService';
 import { LanguageCode } from '../types';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX';
 type MarketCategory = 'METALS' | 'CRYPTO' | 'STOCKS' | 'FOREX';
+type TimeFilter = '1D' | '1W' | '1M' | 'YTD' | 'ALL';
 
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
     currentLang: LanguageCode;
+}
+
+interface Expense {
+    id: number;
+    name: string;
+    cost: number;
+    date: number; // Timestamp
 }
 
 interface MarketAsset {
@@ -94,9 +102,16 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   // Budget State
   const [salary, setSalary] = useState(5000);
-  const [expenses, setExpenses] = useState([{ id: 1, name: 'Rent', cost: 1200 }, { id: 2, name: 'Groceries', cost: 400 }]);
+  const [expenses, setExpenses] = useState<Expense[]>([
+      { id: 1, name: 'Rent', cost: 1200, date: Date.now() - 250000000 }, // ~3 days ago
+      { id: 2, name: 'Groceries', cost: 400, date: Date.now() - 80000000 }, // ~1 day ago
+      { id: 3, name: 'Transport', cost: 150, date: Date.now() - 500000000 }, // ~6 days ago
+      { id: 4, name: 'Utilities', cost: 200, date: Date.now() - 2000000000 }, // ~23 days ago
+      { id: 5, name: 'Dining', cost: 350, date: Date.now() - 15000000 }, // ~4 hours ago
+  ]);
   const [newExpenseName, setNewExpenseName] = useState('');
   const [newExpenseCost, setNewExpenseCost] = useState('');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('1M');
   
   // Wealth Persona State
   const [wealthPersona, setWealthPersona] = useState<FinancialPersona | null>(null);
@@ -316,6 +331,93 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       return data;
   };
 
+  // --- Chart Data Logic ---
+  const getChartData = useMemo(() => {
+      const now = new Date();
+      const dataPoints: { label: string, value: number, height: number }[] = [];
+      let filteredExpenses = expenses;
+
+      if (timeFilter === '1D') {
+          // Show last 24h as rough blocks or just today's items
+          filteredExpenses = expenses.filter(e => (now.getTime() - e.date) < 24 * 60 * 60 * 1000);
+          // Group by item name for Day view to show specifics
+          filteredExpenses.forEach(e => {
+              dataPoints.push({ label: e.name.substring(0,4), value: e.cost, height: 0 });
+          });
+      } else if (timeFilter === '1W') {
+          // Last 7 days
+          for (let i = 6; i >= 0; i--) {
+              const dayStart = new Date(now);
+              dayStart.setDate(now.getDate() - i);
+              dayStart.setHours(0,0,0,0);
+              const dayEnd = new Date(dayStart);
+              dayEnd.setHours(23,59,59,999);
+              
+              const dayTotal = expenses
+                  .filter(e => e.date >= dayStart.getTime() && e.date <= dayEnd.getTime())
+                  .reduce((acc, curr) => acc + curr.cost, 0);
+              
+              dataPoints.push({ 
+                  label: dayStart.toLocaleDateString('en-US', { weekday: 'narrow' }), 
+                  value: dayTotal,
+                  height: 0 
+              });
+          }
+      } else if (timeFilter === '1M') {
+          // Group by weeks (4 weeks) or just daily for month? Let's do Day for last 15 days to fit UI
+          for (let i = 14; i >= 0; i--) {
+              const dayStart = new Date(now);
+              dayStart.setDate(now.getDate() - i);
+              dayStart.setHours(0,0,0,0);
+              const dayTotal = expenses
+                  .filter(e => {
+                      const d = new Date(e.date);
+                      return d.getDate() === dayStart.getDate() && d.getMonth() === dayStart.getMonth();
+                  })
+                  .reduce((acc, curr) => acc + curr.cost, 0);
+               dataPoints.push({ 
+                  label: dayStart.getDate().toString(), 
+                  value: dayTotal,
+                  height: 0 
+              });
+          }
+      } else if (timeFilter === 'YTD') {
+          // Monthly
+          for (let i = 0; i <= now.getMonth(); i++) {
+              const monthTotal = expenses
+                  .filter(e => new Date(e.date).getMonth() === i && new Date(e.date).getFullYear() === now.getFullYear())
+                  .reduce((acc, curr) => acc + curr.cost, 0);
+              
+              const date = new Date();
+              date.setMonth(i);
+              dataPoints.push({
+                  label: date.toLocaleDateString('en-US', { month: 'short' }),
+                  value: monthTotal,
+                  height: 0
+              });
+          }
+      } else if (timeFilter === 'ALL') {
+          // Group by Year
+          const years = [...new Set(expenses.map(e => new Date(e.date).getFullYear()))].sort();
+          if (years.length === 0) years.push(now.getFullYear());
+          
+          years.forEach(yr => {
+              const yrTotal = expenses
+                  .filter(e => new Date(e.date).getFullYear() === yr)
+                  .reduce((acc, curr) => acc + curr.cost, 0);
+              dataPoints.push({ label: yr.toString(), value: yrTotal, height: 0 });
+          });
+      }
+
+      // Calculate relative heights (0-100%)
+      const maxValue = Math.max(...dataPoints.map(d => d.value), 100); // Avoid div by zero
+      return dataPoints.map(d => ({
+          ...d,
+          height: (d.value / maxValue) * 100
+      }));
+
+  }, [expenses, timeFilter]);
+
   // --- Calculations ---
   const calculateBudget = () => {
     const totalExpenses = expenses.reduce((acc, curr) => acc + curr.cost, 0);
@@ -444,7 +546,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   const addExpense = () => {
     if (newExpenseName && newExpenseCost) {
-      setExpenses([...expenses, { id: Date.now(), name: newExpenseName, cost: Number(newExpenseCost) }]);
+      setExpenses([...expenses, { id: Date.now(), name: newExpenseName, cost: Number(newExpenseCost), date: Date.now() }]);
       setNewExpenseName('');
       setNewExpenseCost('');
     }
@@ -485,107 +587,173 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide w-full">
-        {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'MARKETS', 'TAX'] as FinanceTab[]).map((tab) => (
-            <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 md:px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase flex-shrink-0 ${
-                    activeTab === tab 
-                    ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-glow' 
-                    : 'text-gray-500 hover:text-white bg-white/5 border-t-2 border-transparent'
-                }`}
-            >
-                {tab}
-            </button>
-        ))}
+      {/* Tabs - Sticky */}
+      <div className="sticky top-0 z-30 bg-skillfi-bg/95 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5 mb-6">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide w-full">
+            {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'MARKETS', 'TAX'] as FinanceTab[]).map((tab) => (
+                <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 md:px-6 py-2 text-[10px] font-bold tracking-[0.15em] rounded-t-lg transition-colors whitespace-nowrap uppercase flex-shrink-0 ${
+                        activeTab === tab 
+                        ? 'bg-skillfi-neon text-black border-t-2 border-white shadow-glow' 
+                        : 'text-gray-500 hover:text-white bg-white/5 border-t-2 border-transparent'
+                    }`}
+                >
+                    {tab}
+                </button>
+            ))}
+        </div>
       </div>
 
       <div className="glass-panel p-4 md:p-8 rounded-3xl shadow-2xl w-full relative">
         
         {/* BUDGET TAB */}
         {activeTab === 'BUDGET' && (
-            <div className="space-y-6">
+            <div className="space-y-8">
+                {/* Total Balance Hero */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-skillfi-neon/30 transition-colors">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Monthly Income ($)</label>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Monthly Income Flow ($)</label>
                         <input 
                             type="number" 
                             value={salary} 
                             onChange={(e) => setSalary(Number(e.target.value))}
-                            className="w-full bg-transparent text-3xl md:text-4xl font-bold font-display text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
+                            className="w-full bg-transparent text-4xl md:text-5xl font-bold font-display text-white outline-none border-b border-gray-700 focus:border-skillfi-neon py-2 mt-2 transition-all"
                         />
                     </div>
 
                     <div className="relative bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center overflow-hidden min-h-[160px]">
-                        <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
                             <div 
-                                className={`w-32 h-32 rounded-full blur-3xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
+                                className={`w-40 h-40 rounded-full blur-3xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
                                 style={{ transform: `scale(${Math.min(Math.max(budgetData.savingsRate / 20, 0.5), 1.5)})` }}
                             ></div>
                         </div>
 
                         <div className="relative z-10 text-center">
-                            <div className="flex justify-center items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Saved</span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${budgetData.savingsRate >= 20 ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                                    {budgetData.savingsRate.toFixed(1)}%
+                            <div className="flex justify-center items-center gap-2 mb-2">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Liquid Savings</span>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${budgetData.savingsRate >= 20 ? 'bg-green-500/10 border-green-500 text-green-400' : 'bg-yellow-500/10 border-yellow-500 text-yellow-400'}`}>
+                                    {budgetData.savingsRate.toFixed(1)}% Saved
                                 </span>
                             </div>
-                            <div className={`text-4xl md:text-5xl font-bold font-display tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
+                            <div className={`text-5xl md:text-6xl font-black font-display tracking-tighter drop-shadow-lg ${budgetData.savings >= 0 ? 'text-white' : 'text-red-500'}`}>
                                 ${budgetData.savings.toLocaleString()}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-3 flex items-center gap-2 tracking-wider">
-                        Expenses
-                        <span className="text-[10px] normal-case bg-white/10 px-2 py-0.5 rounded text-white">${budgetData.totalExpenses.toLocaleString()} Total</span>
-                    </h3>
+                {/* VISUAL SPENDING TIMELINE CHART */}
+                <div className="bg-black/40 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-b from-skillfi-neon/5 to-transparent opacity-50 pointer-events-none"></div>
                     
-                    <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
-                        {expenses.map((exp) => (
-                            <div key={exp.id} className="relative group overflow-hidden rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
-                                <div className="relative z-10 flex justify-between items-center p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-1 h-8 bg-red-500/50 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
-                                        <span className="text-gray-200 font-bold text-sm">{exp.name}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-white font-bold font-mono">${exp.cost}</span>
-                                        <button onClick={() => removeExpense(exp.id)} className="text-gray-600 hover:text-red-500 transition-colors">×</button>
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-0 left-0 h-0.5 bg-red-500/50" style={{ width: `${Math.min((exp.cost / (salary || 1)) * 100, 100)}%` }}></div>
-                            </div>
-                        ))}
+                    <div className="flex justify-between items-center mb-6 relative z-10">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-2 h-2 bg-skillfi-neon rounded-full animate-pulse"></span>
+                            Spending Timeline
+                        </h3>
+                        <div className="flex bg-white/10 rounded-lg p-1">
+                            {(['1D', '1W', '1M', 'YTD', 'ALL'] as TimeFilter[]).map(tf => (
+                                <button
+                                    key={tf}
+                                    onClick={() => setTimeFilter(tf)}
+                                    className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${timeFilter === tf ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    {tf}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-2 p-1.5 bg-black/50 rounded-xl border border-white/10">
-                        <input 
-                            type="text" 
-                            placeholder="Expense Name" 
-                            value={newExpenseName} 
-                            onChange={(e) => setNewExpenseName(e.target.value)}
-                            className="flex-1 bg-transparent px-4 py-3 text-white text-sm focus:outline-none placeholder-gray-600 font-medium"
-                        />
-                        <div className="w-full md:w-px h-px md:h-auto bg-white/10 my-1 md:my-0"></div>
-                        <input 
-                            type="number" 
-                            placeholder="$0.00" 
-                            value={newExpenseCost} 
-                            onChange={(e) => setNewExpenseCost(e.target.value)}
-                            className="w-full md:w-24 bg-transparent px-4 py-3 text-white text-sm focus:outline-none placeholder-gray-600 md:text-right font-mono"
-                        />
-                        <button 
-                            onClick={addExpense}
-                            className="bg-white/10 hover:bg-skillfi-neon hover:text-black text-white px-6 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide w-full md:w-auto"
-                        >
-                            Add
-                        </button>
+                    {/* BAR CHART VISUALIZER */}
+                    <div className="h-48 w-full flex items-end justify-between gap-1 md:gap-2 relative z-10 px-2 pb-2">
+                        {getChartData.length > 0 ? (
+                            getChartData.map((data, idx) => (
+                                <div key={idx} className="flex-1 h-full flex flex-col justify-end group relative">
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-white text-[10px] px-2 py-1 rounded border border-white/20 whitespace-nowrap z-20 pointer-events-none">
+                                        <span className="font-bold text-skillfi-neon">${data.value.toLocaleString()}</span>
+                                        <span className="block text-gray-400">{data.label}</span>
+                                    </div>
+                                    
+                                    {/* Bar */}
+                                    <div 
+                                        className="w-full bg-gradient-to-t from-gray-800 to-gray-600 rounded-t-sm group-hover:from-skillfi-neon group-hover:to-yellow-200 transition-all duration-300 relative animate-bar-grow"
+                                        style={{ height: `${Math.max(data.height, 2)}%` }} // Min height for visibility
+                                    >
+                                        {/* Highlight Line */}
+                                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/50 opacity-0 group-hover:opacity-100"></div>
+                                    </div>
+                                    
+                                    {/* Label */}
+                                    <div className="text-[8px] md:text-[9px] text-gray-500 text-center mt-2 font-mono truncate w-full group-hover:text-white transition-colors">
+                                        {data.label}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs uppercase tracking-widest">
+                                No spending data for this period
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Expense List */}
+                    <div>
+                        <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest border-b border-white/10 pb-2">Recent Transactions</h3>
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
+                            {expenses.sort((a, b) => b.date - a.date).map((exp) => (
+                                <div key={exp.id} className="flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center text-xs text-gray-400 group-hover:text-skillfi-neon transition-colors">
+                                            $
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-gray-200 group-hover:text-white">{exp.name}</div>
+                                            <div className="text-[9px] text-gray-500">{new Date(exp.date).toLocaleDateString()}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-white font-mono font-bold">${exp.cost}</span>
+                                        <button onClick={() => removeExpense(exp.id)} className="text-gray-600 hover:text-red-500 px-2">×</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Add Expense Form */}
+                    <div className="bg-black/30 p-6 rounded-2xl border border-white/10 flex flex-col justify-center">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest">Log Expense</h3>
+                        <div className="space-y-3">
+                            <input 
+                                type="text" 
+                                placeholder="Item Name (e.g. Sushi)" 
+                                value={newExpenseName} 
+                                onChange={(e) => setNewExpenseName(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-skillfi-neon transition-colors"
+                            />
+                            <div className="flex gap-2">
+                                <span className="bg-white/5 px-4 py-3 rounded-xl text-gray-400 font-mono border border-white/10">$</span>
+                                <input 
+                                    type="number" 
+                                    placeholder="0.00" 
+                                    value={newExpenseCost} 
+                                    onChange={(e) => setNewExpenseCost(e.target.value)}
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-skillfi-neon transition-colors font-mono"
+                                />
+                            </div>
+                            <button 
+                                onClick={addExpense}
+                                className="w-full bg-white text-black font-bold uppercase text-xs py-3 rounded-xl hover:bg-skillfi-neon transition-all shadow-lg mt-2"
+                            >
+                                Confirm Transaction
+                            </button>
+                        </div>
                     </div>
                 </div>
 

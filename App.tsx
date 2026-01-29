@@ -33,6 +33,9 @@ const App: React.FC = () => {
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
+  // Feature State: Instant Scout
+  const [scoutPrompt, setScoutPrompt] = useState<string | null>(null);
+
   const [activities, setActivities] = useState<ActivityLog[]>([
       { id: '1', title: 'System Initialization', desc: 'User logged in', time: 'Just now', type: 'SYSTEM' },
       { id: '2', title: 'Market Scan', desc: 'Analyzed Web3 trends', time: '2h ago', type: 'SYSTEM' },
@@ -333,6 +336,11 @@ const App: React.FC = () => {
       setIsSidebarOpen(false);
   };
 
+  const handleInstantScout = (hobbies: string) => {
+      setScoutPrompt(hobbies);
+      setCurrentView('CAREER');
+  };
+
   // Triggered by Finance Tools
   const handleAnalyzeFinance = (dataContext: string) => {
       setCurrentView('CHAT');
@@ -571,10 +579,16 @@ const App: React.FC = () => {
                         onNavigate={handleNavigate}
                         onAddSkill={handleAddSkill}
                         currentLang={currentLang}
+                        onScout={handleInstantScout}
                       />
                   )}
                   
-                  {currentView === 'CAREER' && <CareerArsenal user={user!} />}
+                  {currentView === 'CAREER' && (
+                      <CareerArsenal 
+                        user={user!} 
+                        initialScoutData={scoutPrompt} 
+                      />
+                  )}
                   {currentView === 'EDUCATION' && <EducationCenter />}
                   {currentView === 'RELATIONSHIPS_DASH' && <RelationshipsDash />}
                   {currentView === 'MENTAL_HEALTH' && <MentalHealth />}

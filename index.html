@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Skillfi Ultra - Hyper-Tech Guidance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -34,6 +34,7 @@
               'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'fade-in': 'fadeIn 0.5s ease-out forwards',
               'float': 'float 6s ease-in-out infinite',
+              'bar-grow': 'growUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
             },
             keyframes: {
               fadeIn: {
@@ -43,13 +44,31 @@
               float: {
                 '0%, 100%': { transform: 'translateY(0)' },
                 '50%': { transform: 'translateY(-10px)' }
+              },
+              growUp: {
+                '0%': { height: '0%', opacity: '0' },
+                '100%': { opacity: '1' } // Height is handled inline
               }
+            },
+            backgroundImage: {
+              'glass-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+              'gold-gradient': 'linear-gradient(135deg, #D4AF37 0%, #E5C15D 50%, #B89225 100%)',
             }
           }
         }
       }
     </script>
     <style>
+      html {
+        font-size: 16px; /* Base size */
+      }
+      @media (min-width: 768px) {
+        html { font-size: 17px; } /* Slightly larger on tablet */
+      }
+      @media (min-width: 1024px) {
+        html { font-size: 18px; } /* Larger on desktop */
+      }
+
       html.lenis { height: auto; }
       .lenis.lenis-smooth { scroll-behavior: auto; }
       .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -63,6 +82,8 @@
         perspective: 1000px; 
         touch-action: pan-x pan-y;
         overscroll-behavior-y: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       /* --- LUXURY BACKGROUNDS --- */
@@ -93,33 +114,40 @@
         filter: invert(1);
       }
 
-      /* --- GLASSMORPHISM --- */
+      /* --- HYPER-REALISTIC GLASSMORPHISM --- */
       .glass-panel {
-        @apply bg-white/80 dark:bg-[#0a1124]/60 backdrop-blur-xl border border-skillfi-neon/20 shadow-lg transition-all duration-300;
+        @apply bg-glass-gradient backdrop-blur-2xl transition-all duration-500 ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.15); /* Simulate top light */
         box-shadow: 
-          0 4px 30px rgba(0, 0, 0, 0.1),
-          inset 0 0 20px rgba(255, 255, 255, 0.5);
+          0 20px 40px -10px rgba(0, 0, 0, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.02);
       }
       
-      .dark .glass-panel {
+      .dark .glass-panel:hover {
+        border-top-color: rgba(212, 175, 55, 0.3); /* Gold hint on hover */
         box-shadow: 
-          0 4px 30px rgba(0, 0, 0, 0.4),
-          inset 0 0 20px rgba(2, 6, 23, 0.4);
+          0 30px 60px -12px rgba(0, 0, 0, 0.5),
+          inset 0 0 30px rgba(255, 255, 255, 0.03);
       }
 
       /* Gold Text Shadow */
       .text-shadow-gold {
-        text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
       }
       
+      .text-shadow-neon {
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+      }
+
       /* Scrollbar Hide */
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
       /* Kinetic Type Animation */
       @keyframes kineticIn {
-        from { transform: translateY(10px); opacity: 0; letter-spacing: 0em; }
-        to { transform: translateY(0); opacity: 1; letter-spacing: 0.05em; }
+        from { transform: translateY(10px); opacity: 0; letter-spacing: 0em; filter: blur(4px); }
+        to { transform: translateY(0); opacity: 1; letter-spacing: 0.05em; filter: blur(0px); }
       }
       .kinetic-type {
         animation: kineticIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;

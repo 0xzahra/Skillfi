@@ -18,11 +18,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-    onShare, 
-    onNewChat, 
     onToggleMenu, 
-    isVoiceMode, 
-    onToggleVoice,
     currentLang,
     onLangChange,
     onViewNotifications,
@@ -122,39 +118,6 @@ export const Header: React.FC<HeaderProps> = ({
             className="hidden md:flex items-center gap-2 bg-transparent border border-black/10 dark:border-white/10 hover:border-skillfi-neon dark:text-white text-slate-900 text-xs font-bold px-3 py-2 rounded-lg transition-all"
         >
             <span className="text-base">{currentLangData.flag}</span>
-        </button>
-
-        {onToggleVoice && (
-            <button
-                onClick={onToggleVoice}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold border transition-all duration-300 ${
-                    isVoiceMode 
-                    ? 'bg-skillfi-neon text-black border-skillfi-neon shadow-glow' 
-                    : 'bg-transparent text-gray-400 border-black/10 dark:border-white/10 hover:border-skillfi-neon/50 dark:hover:text-white hover:text-black'
-                }`}
-                title="Voice Output"
-            >
-                {isVoiceMode ? (
-                    <>
-                         <span className="animate-pulse">●</span>
-                        <span className="hidden lg:inline font-display">VOICE ON</span>
-                    </>
-                ) : (
-                    <>
-                        <span>○</span>
-                    </>
-                )}
-            </button>
-        )}
-
-        <button 
-          onClick={onNewChat}
-          className="p-2 text-skillfi-neon hover:bg-skillfi-neon hover:text-black rounded-lg transition-colors border border-skillfi-neon/30"
-          title="New Chat"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
         </button>
       </div>
     </header>
