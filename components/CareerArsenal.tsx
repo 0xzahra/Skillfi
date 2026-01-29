@@ -82,10 +82,9 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
     
     // Pathfinder State
-    const [currentQual, setCurrentQual] = useState('');
-    const [currentStatus, setCurrentStatus] = useState('');
     const [careerMap, setCareerMap] = useState<CareerRoadmap | null>(null);
     const [isMapping, setIsMapping] = useState(false);
+    const [riskTolerance, setRiskTolerance] = useState<'STABLE' | 'MOONSHOT'>('STABLE');
 
     // Headshot State
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -97,7 +96,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     // CV State
     const [cvInputs, setCvInputs] = useState({
         experience: '',
-        education: '',
+        education: user.qualification || '',
         skills: user.skills.join(', '),
         targetRole: ''
     });
@@ -192,10 +191,19 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     };
     
     const handlePathfinder = async () => {
-        if (!currentQual || !currentStatus) return;
         setIsMapping(true);
         try {
-            const context = `Qualification: ${currentQual}. Status: ${currentStatus}. Current Skills: ${user.skills.join(', ')}.`;
+            // Enhanced Context Injection
+            const context = `
+                User Profile:
+                - Age: ${user.age || 'Unknown'}
+                - User Type: ${user.userType || 'Professional'}
+                - Qualification: ${user.qualification || 'Unknown'}
+                - Current Skills: ${user.skills.join(', ') || 'General'}
+                - Tech Savvy: ${user.isTechie ? 'Yes' : 'No'}
+                - Desired Strategy: ${riskTolerance} (Stable means low risk, corporate. Moonshot means high risk, startup/crypto).
+            `;
+            
             const map = await generateCareerRoadmap(context);
             if (map) {
                 setCareerMap(map);
@@ -492,57 +500,108 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                  <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Path UI */}
                     <div className="glass-panel p-6 rounded-2xl h-fit">
-                        <h2 className="text-xl font-bold text-white mb-4">Route Planner</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Your Qualification</label>
-                                <select 
-                                    value={currentQual}
-                                    onChange={(e) => setCurrentQual(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1"
-                                >
-                                    <option value="">Select Level</option>
-                                    <option value="High School">High School</option>
-                                    <option value="Undergraduate">Undergraduate</option>
-                                    <option value="Professional">Working Professional</option>
-                                </select>
+                        <h2 className="text-xl font-bold text-white mb-2">Route Planner</h2>
+                        <p className="text-xs text-gray-500 mb-6">Auto-calibrated to your profile.</p>
+
+                        <div className="space-y-6">
+                            {/* Profile Summary Card */}
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Detected Profile</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div className="text-[10px] text-gray-500">Age</div>
+                                        <div className="text-white font-bold">{user.age || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500">Type</div>
+                                        <div className="text-white font-bold">{user.userType || 'N/A'}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-[10px] text-gray-500">Education</div>
+                                        <div className="text-white font-bold text-sm">{user.qualification || 'N/A'}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-[10px] text-gray-500">Core Skills</div>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {user.skills.length > 0 ? user.skills.map(s => (
+                                                <span key={s} className="bg-skillfi-neon/10 text-skillfi-neon text-[9px] px-1.5 py-0.5 rounded border border-skillfi-neon/20">{s}</span>
+                                            )) : <span className="text-gray-600 text-xs">None listed</span>}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Strategy Toggle */}
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Current Status / Goal</label>
-                                <input 
-                                    type="text" 
-                                    value={currentStatus}
-                                    onChange={(e) => setCurrentStatus(e.target.value)}
-                                    placeholder="e.g. Stuck in job, want remote work..."
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1"
-                                />
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Strategy Mode</label>
+                                <div className="grid grid-cols-2 gap-2 bg-black/40 p-1 rounded-xl">
+                                    <button 
+                                        onClick={() => setRiskTolerance('STABLE')}
+                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'STABLE' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        🛡️ Stable Path
+                                    </button>
+                                    <button 
+                                        onClick={() => setRiskTolerance('MOONSHOT')}
+                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'MOONSHOT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        🚀 Moonshot
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-2 text-center">
+                                    {riskTolerance === 'STABLE' ? 'Focuses on corporate ladders, job security, and steady income.' : 'Focuses on startups, high-risk equity, and rapid scaling.'}
+                                </p>
                             </div>
+
                             <button 
                                 onClick={handlePathfinder}
                                 disabled={isMapping}
-                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2"
+                                className="w-full py-4 bg-gradient-to-r from-skillfi-neon to-yellow-500 text-black font-bold uppercase rounded-xl hover:shadow-[0_0_20px_#D4AF37] transition-all text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
                             >
-                                {isMapping ? 'Calculating Routes...' : 'Generate Roadmap'}
+                                {isMapping ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        Computing...
+                                    </>
+                                ) : 'Generate Personal Roadmap'}
                             </button>
                         </div>
                     </div>
-                    <div className="glass-panel p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border border-white/10">
+                    
+                    <div className="glass-panel p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border border-white/10 flex flex-col">
                          {careerMap ? (
-                            <div className="space-y-6">
-                                <h3 className="text-skillfi-neon font-bold font-display text-lg">Strategic Roadmap</h3>
-                                <div className="bg-white/5 p-4 rounded-xl border-l-4 border-blue-500">
-                                    <div className="text-lg font-bold text-white mb-2">{careerMap.web2.role}</div>
-                                    <div className="text-xs bg-black/30 p-2 rounded text-white font-mono border border-white/5">➤ {careerMap.web2.action}</div>
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="border-b border-white/10 pb-4">
+                                     <h3 className="text-skillfi-neon font-bold font-display text-lg mb-1">Strategic Analysis</h3>
+                                     <p className="text-gray-400 text-xs italic">"{careerMap.advice}"</p>
                                 </div>
-                                <div className="bg-white/5 p-4 rounded-xl border-l-4 border-purple-500">
-                                    <div className="text-lg font-bold text-white mb-2">{careerMap.web3.role}</div>
-                                    <div className="text-xs bg-black/30 p-2 rounded text-white font-mono border border-white/5">➤ {careerMap.web3.action}</div>
+
+                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-blue-500 hover:bg-white/10 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-lg font-bold text-white">WEB2: {careerMap.web2.role}</div>
+                                        <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">TRADITIONAL</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {careerMap.web2.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
+                                    </div>
+                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5">➤ {careerMap.web2.action}</div>
+                                </div>
+
+                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-purple-500 hover:bg-white/10 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-lg font-bold text-white">WEB3: {careerMap.web3.role}</div>
+                                        <span className="text-[9px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded border border-purple-500/30">EMERGING</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {careerMap.web3.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
+                                    </div>
+                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5">➤ {careerMap.web3.action}</div>
                                 </div>
                             </div>
                          ) : (
                             <div className="h-full flex flex-col items-center justify-center text-gray-600 min-h-[300px]">
                                 <div className="text-5xl mb-4 opacity-20">🗺️</div>
-                                <p className="text-xs uppercase tracking-widest">Awaiting Input Data</p>
+                                <p className="text-xs uppercase tracking-widest">Awaiting Command</p>
                             </div>
                          )}
                     </div>

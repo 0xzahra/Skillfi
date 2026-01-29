@@ -278,9 +278,9 @@ export interface CareerRoadmap {
 export const generateCareerRoadmap = async (userContext: string): Promise<CareerRoadmap | null> => {
     const ai = getClient();
     const prompt = `
-    Analyze this user context: "${userContext}".
+    Analyze this user context deeply: "${userContext}".
     
-    Based on their background, suggest 2 distinct career paths:
+    Based on their background, age, and risk profile, suggest 2 distinct career paths:
     1. Web2: A traditional, stable corporate or tech role.
     2. Web3: An emerging, decentralized, or blockchain-based role (high potential).
     
@@ -296,7 +296,7 @@ export const generateCareerRoadmap = async (userContext: string): Promise<Career
         "skills": ["Skill1", "Skill2"], 
         "action": "Specific first step" 
       },
-      "advice": "One sentence strategic advice bridging both worlds."
+      "advice": "One sentence highly strategic advice bridging both worlds, customized to their age and risk tolerance."
     }
     `;
 
@@ -309,6 +309,42 @@ export const generateCareerRoadmap = async (userContext: string): Promise<Career
         return JSON.parse(response.text || "{}");
     } catch (error) {
         console.error("Roadmap Gen Error:", error);
+        return null;
+    }
+};
+
+export interface FinancialPersona {
+    persona: string;
+    analysis: string;
+    tips: string[];
+}
+
+export const analyzeFinancialHealth = async (financialData: string): Promise<FinancialPersona | null> => {
+    const ai = getClient();
+    const prompt = `
+    Act as a ruthless financial auditor. Analyze this data: "${financialData}".
+    
+    1. Assign a "Financial Persona" (e.g., The Bleeding Heart, The Accumulator, The Hedonist, The Strategist).
+    2. Provide a 1-sentence brutal analysis of their situation.
+    3. Provide 3 specific, tactical steps to optimize (Cut X, Invest in Y, Leverage Z).
+
+    Return STRICT JSON:
+    {
+        "persona": "Title",
+        "analysis": "Sentence",
+        "tips": ["Tip 1", "Tip 2", "Tip 3"]
+    }
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: { responseMimeType: 'application/json' }
+        });
+        return JSON.parse(response.text || "{}");
+    } catch (error) {
+        console.error("Finance Audit Error:", error);
         return null;
     }
 };

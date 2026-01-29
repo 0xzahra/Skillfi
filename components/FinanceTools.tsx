@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateItemVisual, sendMessageToSkillfi, initializeChat } from '../services/geminiService';
+import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona } from '../services/geminiService';
 import { LanguageCode } from '../types';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'RWA' | 'TAX';
@@ -26,6 +26,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   const [expenses, setExpenses] = useState([{ id: 1, name: 'Rent', cost: 1200 }, { id: 2, name: 'Groceries', cost: 400 }]);
   const [newExpenseName, setNewExpenseName] = useState('');
   const [newExpenseCost, setNewExpenseCost] = useState('');
+  
+  // Wealth Persona State
+  const [wealthPersona, setWealthPersona] = useState<FinancialPersona | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
 
   // Profit State
   const [buyPrice, setBuyPrice] = useState(100);
@@ -258,11 +262,17 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
     setExpenses(expenses.filter(e => e.id !== id));
   };
 
-  // Audit Handlers
-  const handleAuditBudget = () => {
-      if (!onAnalyze) return;
-      const data = `MONTHLY INCOME: $${salary}\nEXPENSES: ${JSON.stringify(expenses)}\nSAVINGS: $${budgetData.savings} (${budgetData.savingsRate.toFixed(1)}%)`;
-      onAnalyze(data);
+  const handleAuditBudget = async () => {
+      setIsAuditing(true);
+      setWealthPersona(null);
+      
+      const dataString = `Monthly Income: ${salary}. Expenses: ${expenses.map(e => `${e.name}: ${e.cost}`).join(', ')}. Savings Rate: ${budgetData.savingsRate.toFixed(1)}%.`;
+      
+      const result = await analyzeFinancialHealth(dataString);
+      if (result) {
+          setWealthPersona(result);
+      }
+      setIsAuditing(false);
   };
 
   const handleAuditProfit = () => {
@@ -396,14 +406,46 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                 <div className="pt-4 border-t border-white/5">
                     <button 
                         onClick={handleAuditBudget}
+                        disabled={isAuditing}
                         className="w-full py-4 bg-gradient-to-r from-skillfi-neon/5 to-blue-500/5 border border-skillfi-neon/20 text-skillfi-neon font-bold rounded-xl hover:bg-skillfi-neon hover:text-black transition-all flex items-center justify-center gap-2 group hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 group-hover:animate-spin-slow">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                        </svg>
-                        ASK AI FOR ADVICE
+                        {isAuditing ? (
+                            <>
+                                <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                Analyzing Financial DNA...
+                            </>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 group-hover:animate-spin-slow">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                </svg>
+                                ANALYZE FINANCIAL DNA
+                            </>
+                        )}
                     </button>
                 </div>
+
+                {/* Wealth Persona Result */}
+                {wealthPersona && (
+                    <div className="mt-6 animate-fade-in bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-serif">⚖️</div>
+                        <div className="relative z-10">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Detected Persona</span>
+                            <h2 className="text-2xl font-bold font-display text-white mt-1 mb-2 text-shadow-glow">{wealthPersona.persona}</h2>
+                            <p className="text-sm text-gray-300 italic mb-6 border-l-2 border-skillfi-neon pl-4">"{wealthPersona.analysis}"</p>
+                            
+                            <h3 className="text-skillfi-neon text-xs font-bold uppercase tracking-widest mb-3">Optimization Protocols</h3>
+                            <div className="space-y-2">
+                                {wealthPersona.tips.map((tip, i) => (
+                                    <div key={i} className="bg-white/5 p-3 rounded-lg border border-white/5 text-xs text-gray-200 flex items-start gap-2">
+                                        <span className="text-skillfi-neon font-bold">0{i+1}.</span>
+                                        {tip}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         )}
 
