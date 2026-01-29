@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateCareerRoadmap, generateItemVisual, CareerRoadmap } from '../services/geminiService';
+import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateResumeContent, generateCareerRoadmap, generateItemVisual, CareerRoadmap } from '../services/geminiService';
 import { AudioService } from '../services/audioService';
 import { UserProfile } from '../types';
 
@@ -34,7 +34,7 @@ const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: stri
 
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     // TABS
-    const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'PITCH' | 'ELITE'>('PATH');
+    const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
     
     // Pathfinder State
@@ -55,10 +55,22 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         skills: user.skills.join(', '),
         experience: '',
         education: user.qualification || '',
-        projects: ''
+        publications: '',
+        awards: ''
     });
     const [cvContent, setCvContent] = useState<string | null>(null);
     const [isGeneratingCV, setIsGeneratingCV] = useState(false);
+
+    // Resume State
+    const [resumeInputs, setResumeInputs] = useState({
+        targetRole: '',
+        skills: user.skills.join(', '),
+        experience: '',
+        education: user.qualification || '',
+        projects: ''
+    });
+    const [resumeContent, setResumeContent] = useState<string | null>(null);
+    const [isGeneratingResume, setIsGeneratingResume] = useState(false);
 
     // Pitch Deck State
     const [pitchTopic, setPitchTopic] = useState('');
@@ -79,6 +91,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 const parsed = JSON.parse(savedState);
                 if (parsed.cvInputs) setCvInputs(parsed.cvInputs);
                 if (parsed.cvContent) setCvContent(parsed.cvContent);
+                if (parsed.resumeInputs) setResumeInputs(parsed.resumeInputs);
+                if (parsed.resumeContent) setResumeContent(parsed.resumeContent);
                 if (parsed.careerMap) setCareerMap(parsed.careerMap);
                 if (parsed.generatedImage) setGeneratedImage(parsed.generatedImage);
                 if (parsed.pitchSlides) setPitchSlides(parsed.pitchSlides);
@@ -95,13 +109,15 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         const stateToSave = {
             cvInputs,
             cvContent,
+            resumeInputs,
+            resumeContent,
             careerMap,
             generatedImage,
             pitchSlides,
             pitchTopic
         };
         localStorage.setItem('skillfi_career_state', JSON.stringify(stateToSave));
-    }, [cvInputs, cvContent, careerMap, generatedImage, pitchSlides, pitchTopic]);
+    }, [cvInputs, cvContent, resumeInputs, resumeContent, careerMap, generatedImage, pitchSlides, pitchTopic]);
 
     const triggerHaptic = () => {
         if (navigator.vibrate) navigator.vibrate(15);
@@ -143,29 +159,29 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         }
     };
 
-    const handleDownloadCV = () => {
-        if (cvContent) {
-            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Resume</title></head><body>";
+    const handleDownloadDoc = (content: string | null, filename: string) => {
+        if (content) {
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Document</title></head><body>";
             const footer = "</body></html>";
-            const sourceHTML = header + cvContent + footer;
+            const sourceHTML = header + content + footer;
             
             const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
             const fileDownload = document.createElement("a");
             document.body.appendChild(fileDownload);
             fileDownload.href = source;
-            fileDownload.download = `Skillfi_Resume_${user.username}.doc`;
+            fileDownload.download = filename;
             fileDownload.click();
             document.body.removeChild(fileDownload);
             AudioService.playSuccess();
         }
     };
 
-    const handlePrintPDF = () => {
-        const printContent = document.getElementById('cv-preview');
+    const handlePrintPDF = (elementId: string) => {
+        const printContent = document.getElementById(elementId);
         if (printContent) {
             const win = window.open('', '', 'height=800,width=800');
             if (win) {
-                win.document.write('<html><head><title>Resume PDF</title>');
+                win.document.write('<html><head><title>Print Preview</title>');
                 // Inject simple CSS for printing
                 win.document.write(`
                     <style>
@@ -191,7 +207,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const handleGenerateCV = async () => {
         setIsGeneratingCV(true);
         AudioService.playProcessing();
-        // Construct detailed context
+        // Construct detailed context for CV
         const context = `
             Name: ${user.username}
             Email: ${user.email}
@@ -199,7 +215,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             Core Skills: ${cvInputs.skills}
             Professional Experience: ${cvInputs.experience}
             Education: ${cvInputs.education}
-            Key Projects: ${cvInputs.projects}
+            Publications/Research: ${cvInputs.publications}
+            Awards/Certifications: ${cvInputs.awards}
         `;
         const cv = await generateCVContent(context);
         if (cv) {
@@ -207,6 +224,27 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             AudioService.playSuccess();
         }
         setIsGeneratingCV(false);
+    };
+
+    const handleGenerateResume = async () => {
+        setIsGeneratingResume(true);
+        AudioService.playProcessing();
+        // Construct context for Resume
+        const context = `
+            Name: ${user.username}
+            Email: ${user.email}
+            Target Role: ${resumeInputs.targetRole}
+            Core Skills: ${resumeInputs.skills}
+            Experience: ${resumeInputs.experience}
+            Education: ${resumeInputs.education}
+            Key Projects: ${resumeInputs.projects}
+        `;
+        const resume = await generateResumeContent(context);
+        if (resume) {
+            setResumeContent(resume);
+            AudioService.playSuccess();
+        }
+        setIsGeneratingResume(false);
     };
 
     const handleGeneratePitch = async () => {
@@ -301,7 +339,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             <div className="flex gap-2 mb-8 border-b border-white/10 pb-1 overflow-x-auto scrollbar-hide">
                 {[
                     { id: 'PATH', label: 'Pathfinder' },
-                    { id: 'CV', label: 'CV / Resume' },
+                    { id: 'RESUME', label: 'Resume' },
+                    { id: 'CV', label: 'CV (Academic)' },
                     { id: 'PITCH', label: 'Pitch Deck' },
                     { id: 'HEADSHOT', label: 'Pro Photo' },
                     { id: 'ELITE', label: 'High Society' },
@@ -320,59 +359,159 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 ))}
             </div>
 
-            {/* --- CV WRITER --- */}
-            {activeModule === 'CV' && (
+            {/* --- RESUME BUILDER --- */}
+            {activeModule === 'RESUME' && (
                 <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
                         <h2 className="text-xl font-bold text-white mb-2">Resume Builder</h2>
-                        <p className="text-xs text-gray-400 mb-6">Enter raw data. AI formats it perfectly.</p>
+                        <p className="text-xs text-gray-400 mb-6">Corporate focus. Concise & Results-Driven.</p>
                         
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase">Target Role</label>
                                 <input 
                                     type="text" 
-                                    value={cvInputs.targetRole}
-                                    onChange={(e) => setCvInputs({...cvInputs, targetRole: e.target.value})}
+                                    value={resumeInputs.targetRole}
+                                    onChange={(e) => setResumeInputs({...resumeInputs, targetRole: e.target.value})}
                                     className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="e.g. Senior Frontend Engineer"
+                                    placeholder="e.g. Product Manager"
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase">Education</label>
                                 <input 
                                     type="text" 
-                                    value={cvInputs.education}
-                                    onChange={(e) => setCvInputs({...cvInputs, education: e.target.value})}
+                                    value={resumeInputs.education}
+                                    onChange={(e) => setResumeInputs({...resumeInputs, education: e.target.value})}
                                     className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="BSc Computer Science, MIT (2020)"
+                                    placeholder="MBA, Harvard (2022)"
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase">Skills (Comma Separated)</label>
                                 <textarea 
-                                    value={cvInputs.skills}
-                                    onChange={(e) => setCvInputs({...cvInputs, skills: e.target.value})}
+                                    value={resumeInputs.skills}
+                                    onChange={(e) => setResumeInputs({...resumeInputs, skills: e.target.value})}
                                     className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="React, TypeScript, Leadership, Public Speaking..."
+                                    placeholder="Agile, SQL, Strategy..."
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase">Professional Experience</label>
                                 <textarea 
-                                    value={cvInputs.experience}
-                                    onChange={(e) => setCvInputs({...cvInputs, experience: e.target.value})}
+                                    value={resumeInputs.experience}
+                                    onChange={(e) => setResumeInputs({...resumeInputs, experience: e.target.value})}
                                     className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-32 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Software Engineer - Google (2021-Present)&#10;- Led migration to React.&#10;- Improved performance by 30%."
+                                    placeholder="Role - Company (Year)&#10;- Increased revenue by 20%&#10;- Led team of 10"
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase">Key Projects</label>
                                 <textarea 
-                                    value={cvInputs.projects}
-                                    onChange={(e) => setCvInputs({...cvInputs, projects: e.target.value})}
+                                    value={resumeInputs.projects}
+                                    onChange={(e) => setResumeInputs({...resumeInputs, projects: e.target.value})}
                                     className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Built an E-commerce platform handling 10k users..."
+                                    placeholder="Launched mobile app with 10k users..."
+                                />
+                            </div>
+                            <button 
+                                onClick={handleGenerateResume}
+                                disabled={isGeneratingResume}
+                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
+                            >
+                                {isGeneratingResume ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        Compiling Resume...
+                                    </>
+                                ) : 'Generate Resume'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-2 glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5">
+                        <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
+                            <span className="text-xs font-bold text-gray-500 uppercase">Resume Preview</span>
+                            <div className="flex gap-2">
+                                {resumeContent && (
+                                    <>
+                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={() => handlePrintPDF('resume-preview')}>
+                                            Print / PDF
+                                        </button>
+                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(resumeContent, 'Resume.doc')}>
+                                            Word (.doc)
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-8 bg-white text-gray-900">
+                            {resumeContent ? (
+                                <div id="resume-preview" className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{__html: resumeContent}}></div>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                                    <div className="text-6xl mb-4 opacity-20">📄</div>
+                                    <p className="text-sm font-medium">Drafting Corporate Profile...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- CV BUILDER --- */}
+            {activeModule === 'CV' && (
+                <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
+                        <h2 className="text-xl font-bold text-white mb-2">CV Builder</h2>
+                        <p className="text-xs text-gray-400 mb-6">Academic & Comprehensive. Detail-Oriented.</p>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Target Role / Position</label>
+                                <input 
+                                    type="text" 
+                                    value={cvInputs.targetRole}
+                                    onChange={(e) => setCvInputs({...cvInputs, targetRole: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="e.g. Research Fellow"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Education & Honors</label>
+                                <textarea 
+                                    value={cvInputs.education}
+                                    onChange={(e) => setCvInputs({...cvInputs, education: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="PhD, MIT (2020) - Thesis on AI Ethics..."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Professional History</label>
+                                <textarea 
+                                    value={cvInputs.experience}
+                                    onChange={(e) => setCvInputs({...cvInputs, experience: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-24 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="Senior Lecturer - Oxford (2018-2022)..."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Publications & Research</label>
+                                <textarea 
+                                    value={cvInputs.publications}
+                                    onChange={(e) => setCvInputs({...cvInputs, publications: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-24 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="List key papers, journals, or books..."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Awards & Certifications</label>
+                                <textarea 
+                                    value={cvInputs.awards}
+                                    onChange={(e) => setCvInputs({...cvInputs, awards: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-16 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="Nobel Prize, PMP Certification..."
                                 />
                             </div>
                             <button 
@@ -383,23 +522,23 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                 {isGeneratingCV ? (
                                     <>
                                         <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        Compiling...
+                                        Compiling CV...
                                     </>
-                                ) : 'Generate Professional Resume'}
+                                ) : 'Generate Academic CV'}
                             </button>
                         </div>
                     </div>
 
                     <div className="lg:col-span-2 glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5">
                         <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
-                            <span className="text-xs font-bold text-gray-500 uppercase">Preview</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase">CV Preview</span>
                             <div className="flex gap-2">
                                 {cvContent && (
                                     <>
-                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={handlePrintPDF}>
+                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={() => handlePrintPDF('cv-preview')}>
                                             Print / PDF
                                         </button>
-                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={handleDownloadCV}>
+                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(cvContent, 'CV.doc')}>
                                             Word (.doc)
                                         </button>
                                     </>
@@ -412,8 +551,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                 <div id="cv-preview" className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{__html: cvContent}}></div>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                                    <div className="text-6xl mb-4 opacity-20">📄</div>
-                                    <p className="text-sm font-medium">Fill in the data and click Generate to see your Resume.</p>
+                                    <div className="text-6xl mb-4 opacity-20">🎓</div>
+                                    <p className="text-sm font-medium">Drafting Academic Record...</p>
                                 </div>
                             )}
                         </div>

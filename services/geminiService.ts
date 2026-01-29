@@ -241,19 +241,49 @@ export const generatePortfolioHTML = async (userContext: string): Promise<string
     }
 };
 
+export const generateResumeContent = async (userContext: string): Promise<string | null> => {
+    const ai = getClient();
+    const prompt = `
+    Generate a high-impact, CORPORATE RESUME (Resume style, not CV) for:
+    "${userContext}".
+    
+    Structure the output as clean HTML suitable for exporting to a Word document.
+    
+    Requirements:
+    - Style: Concise, Result-Oriented, 1-Page optimized.
+    - Focus: Quantifiable achievements, strong action verbs.
+    - Sections: Header, Summary (2 lines max), Skills (Tags), Experience (Bullets), Education, Projects.
+    - Use standard HTML tags: <h1>, <h2>, <p>, <ul>, <li>, <strong>.
+    - No external CSS classes, use inline styles for basic layout.
+    - Do NOT wrap in markdown code blocks. Return raw HTML body content.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Resume Gen Error:", error);
+        return null;
+    }
+};
+
 export const generateCVContent = async (userContext: string): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
-    Generate a professional, ATS-optimized Resume/CV content for this user data:
+    Generate a comprehensive, ACADEMIC/EXECUTIVE CURRICULUM VITAE (CV) for:
     "${userContext}".
     
-    Structure the output as clean HTML suitable for exporting to a Word document (.doc).
+    Structure the output as clean HTML suitable for exporting to a Word document.
     
     Requirements:
+    - Style: Academic, Detailed, Comprehensive.
+    - Focus: Depth of expertise, research, publications, certifications.
+    - Sections: Header, Detailed Profile, Education (include thesis/honors), Professional Experience, Publications/Research, Awards, Certifications, Skills, References.
     - Use standard HTML tags: <h1>, <h2>, <p>, <ul>, <li>, <strong>.
-    - No external CSS classes, use inline styles if absolutely necessary for spacing (e.g., style="margin-bottom: 10px").
-    - Sections: Header (Name, Contact Info placeholder), Professional Summary, Work Experience (use bullet points), Education, Skills, Projects.
-    - Tone: Professional, Result-Oriented, Executive.
+    - No external CSS classes, use inline styles for basic layout.
     - Do NOT wrap in markdown code blocks. Return raw HTML body content.
     `;
 
