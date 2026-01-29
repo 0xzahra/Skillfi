@@ -327,10 +327,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                     <h1 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tighter kinetic-type">
                         Career Arsenal<span className="text-skillfi-neon">.</span>
                     </h1>
-                    <div className="flex items-center gap-2 text-[10px] text-skillfi-neon font-mono animate-pulse">
-                        <span className="w-1.5 h-1.5 bg-skillfi-neon rounded-full"></span>
-                        SYSTEM ACTIVE & SAVING
-                    </div>
                 </div>
                 <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest">Plan, Build, and Refine.</p>
             </header>

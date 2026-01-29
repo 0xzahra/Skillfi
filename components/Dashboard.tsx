@@ -37,7 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
                 <h1 className="text-3xl md:text-5xl font-bold font-display dark:text-white text-slate-900 tracking-widest mb-2 kinetic-type">
                     {greeting}, <span className="text-skillfi-neon text-shadow-gold">{user.username}</span>
                 </h1>
-                <p className="text-gray-500 text-sm font-display tracking-widest uppercase">Legacy Management System Active</p>
+                <p className="text-gray-500 text-sm font-display tracking-widest uppercase">Legacy . Wealth . Future</p>
             </header>
 
             {/* Wisdom Card */}
