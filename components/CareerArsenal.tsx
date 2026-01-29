@@ -1,15 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { generateProfessionalHeadshot, generateContentPack, generatePitchDeck, generatePortfolioHTML, generateCVContent, ContentPack, initializeChat, sendMessageToSkillfi, generateCareerRoadmap, CareerRoadmap, generateItemVisual } from '../services/geminiService';
+import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateCareerRoadmap, generateItemVisual, CareerRoadmap } from '../services/geminiService';
 import { AudioService } from '../services/audioService';
 import { UserProfile } from '../types';
-
-interface ScheduledPost {
-    id: string;
-    platform: 'LINKEDIN' | 'TWITTER' | 'TIKTOK';
-    content: string;
-    date: string;
-    status: 'SCHEDULED' | 'PUBLISHED';
-}
 
 interface CareerArsenalProps {
     user: UserProfile;
@@ -38,47 +30,11 @@ const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: stri
         advanced: "**The 'Host' Mentality:** Even if it's not your event, act like a host. Introduce people to each other. 'John, have you met Lisa? She works in Fintech.' You become the connector, the node of value. People will gravitate toward you because you make them feel comfortable.",
         pro_tip: "Never ask 'What do you do?' immediately. Ask 'What are you working on that excites you right now?' It opens up passion, not just job titles."
     },
-    'Sartorial Excellence': {
-        philosophy: "Dress is a language. Before you speak, your clothes tell people if you respect yourself, the occasion, and them. 'Sprezzatura' is the art of looking effortless.",
-        mechanics: "1. **Fit is King:** A $200 suit tailored perfectly looks better than a $2,000 suit off the rack. Shoulders must line up exactly. Sleeves should reveal 1/2 inch of shirt cuff.\n2. **The Shoes:** They must be polished. Oxford (closed lacing) for formal, Derby (open lacing) for business casual. Belt must match shoes.",
-        advanced: "**Fabric & Texture:** Move beyond plain navy. Experiment with texture (flannel, linen, tweed) rather than loud colors. Understand 'Super numbers' (Super 120s vs 180s) - higher isn't always better for daily wear (it's more fragile).",
-        pro_tip: "Always dress one notch above what is expected. If the code is casual, wear a blazer. If it's business casual, wear a tie. You can always take the jacket off, but you can't add authority if you didn't bring it."
-    },
-    'Horology': {
-        philosophy: "A watch is the only piece of jewelry a man can wear that represents engineering, history, and investment simultaneously. It signals appreciation for mechanics over digital obsolescence.",
-        mechanics: "1. **Movements:** Quartz (battery, ticks once/sec) vs. Mechanical (spring-driven, sweeping hand). High society respects Mechanical (Automatic or Manual).\n2. **Categories:** Dress (thin, leather strap), Diver (rotating bezel, steel), Chronograph (stopwatch function), Complication (Calendar, Moonphase).",
-        advanced: "**The Holy Trinity:** Patek Philippe, Audemars Piguet, Vacheron Constantin. Understand why a 'Tourbillon' exists (to counter gravity) even if it's unnecessary today. It's art. Vintage watches (pre-1980) often hold value better than modern ones.",
-        pro_tip: "Never wear a massive diver watch with a tuxedo (James Bond is the exception, not the rule). With black tie, the watch should be slim, simple, and on a black leather strap—or wear no watch at all, implying time doesn't matter."
-    },
-    'Oenology (Wine)': {
-        philosophy: "Wine is geography in a bottle. Knowing it shows you are cultured and patient. It's about describing the experience, not just drinking alcohol.",
-        mechanics: "1. **The 5 S's:** See (color/viscosity), Swirl (release aromas), Smell (80% of taste), Sip (let it roll over tongue), Savor/Spit.\n2. **Key Regions:** Bordeaux (Cabernet/Merlot blends), Burgundy (Pinot Noir/Chardonnay), Tuscany (Sangiovese), Napa (Cabernet).",
-        advanced: "**Reading a List:** Don't just order the second cheapest. Ask the Sommelier: 'We enjoy full-bodied reds like a Left Bank Bordeaux, what do you recommend under $X?' They will respect the specificity. Understand tannins (drying sensation) vs. acidity (watering sensation).",
-        pro_tip: "If you are the host, you taste the wine. You are checking for *faults* (cork taint, oxidation), not if you 'like' it. If it's not spoiled, you accept it."
-    },
-    'Golf & Leisure': {
-        philosophy: "Golf is 4 hours of character revelation. You can fake a resume, but you cannot fake honesty, temper control, or adherence to rules when a shot goes wrong.",
-        mechanics: "1. **Pace of Play:** No one cares if you are bad; they care if you are slow. Be ready to hit when it's your turn.\n2. **Etiquette:** Repair your divots. Rake the bunker. Do not walk in someone's 'line' on the putting green. Silence when others hit.",
-        advanced: "**Business on the Course:** Do not bring up business on the first few holes. Wait for the back 9 or the 19th hole (drinks after). Let the relationship breathe first. Let the client win? No. Play your best, but be generous with praise for their good shots.",
-        pro_tip: "Dress code is non-negotiable. Collared shirt tucked in. Belt. No denim. Hat forward. Take your hat off when entering the clubhouse."
-    },
-    'Art Collection': {
-        philosophy: "Art is an asset class that yields 'psychic dividends' (joy) and financial appreciation. It signals you are a patron of culture, not just a consumer.",
-        mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the gallery (first sale). Secondary is buying at auction (Christie's, Sotheby's). Primary builds relationships; Secondary determines true market value.\n2. **Mediums:** Canvas (Oil/Acrylic) usually holds more value than works on paper or prints.",
-        advanced: "**Due Diligence:** Provenance (history of ownership), Condition Report (damage?), and Authenticity. Blue Chip artists (Warhol, Basquiat) are safe but expensive. Emerging artists are high risk/high reward. Buy with your eyes, but verify with your brain.",
-        pro_tip: "Don't buy art to match your sofa. Buy it because it challenges you. A 'pretty' painting is decoration; a challenging painting is art. Visit Art Basel or Frieze just to observe."
-    },
-    'Strategic Philanthropy': {
-        philosophy: "Wealth without purpose is vulgar. Philanthropy is not just writing checks; it's using capital to solve structural problems. It buys influence and legacy.",
-        mechanics: "1. **Impact Investing:** Investing in companies that generate social good + financial return.\n2. **Foundations:** Setting up a DAF (Donor Advised Fund) allows immediate tax deduction while granting money out over time.",
-        advanced: "**Effective Altruism:** Using data to determine where the next dollar does the most good (e.g., malaria nets vs. opera houses). High society respects strategic giving, not just reactive charity.",
-        pro_tip: "Join the board of a non-profit. It is the fastest way to access the elite network of a city. You give 'Time, Talent, or Treasure'."
-    }
 };
 
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
-    // Added 'PATH' and 'ELITE' tabs
-    const [activeModule, setActiveModule] = useState<'PATH' | 'NUKE' | 'CALENDAR' | 'HEADSHOT' | 'CV' | 'PITCH' | 'SITE' | 'ELITE'>('PATH');
+    // TABS
+    const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'PITCH' | 'ELITE'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
     
     // Pathfinder State
@@ -95,22 +51,57 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
 
     // CV State
     const [cvInputs, setCvInputs] = useState({
+        targetRole: '',
+        skills: user.skills.join(', '),
         experience: '',
         education: user.qualification || '',
-        skills: user.skills.join(', '),
-        targetRole: ''
+        projects: ''
     });
     const [cvContent, setCvContent] = useState<string | null>(null);
     const [isGeneratingCV, setIsGeneratingCV] = useState(false);
+
+    // Pitch Deck State
+    const [pitchTopic, setPitchTopic] = useState('');
+    const [pitchSlides, setPitchSlides] = useState<{title: string, bullet: string}[] | null>(null);
+    const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
 
     // Elite Modal State
     const [activeEliteItem, setActiveEliteItem] = useState<{title: string, icon: string, desc: string} | null>(null);
     const [eliteImage, setEliteImage] = useState<string | null>(null);
     const [eliteLoading, setEliteLoading] = useState(false);
 
+    // --- PERSISTENCE ---
     useEffect(() => {
+        // Load state from local storage on mount
+        const savedState = localStorage.getItem('skillfi_career_state');
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                if (parsed.cvInputs) setCvInputs(parsed.cvInputs);
+                if (parsed.cvContent) setCvContent(parsed.cvContent);
+                if (parsed.careerMap) setCareerMap(parsed.careerMap);
+                if (parsed.generatedImage) setGeneratedImage(parsed.generatedImage);
+                if (parsed.pitchSlides) setPitchSlides(parsed.pitchSlides);
+                if (parsed.pitchTopic) setPitchTopic(parsed.pitchTopic);
+            } catch (e) {
+                console.error("Failed to load career state", e);
+            }
+        }
         setDailyQuote(CAREER_QUOTES[Math.floor(Math.random() * CAREER_QUOTES.length)]);
     }, []);
+
+    // Auto-Save Effect
+    useEffect(() => {
+        const stateToSave = {
+            cvInputs,
+            cvContent,
+            careerMap,
+            generatedImage,
+            pitchSlides,
+            pitchTopic
+        };
+        localStorage.setItem('skillfi_career_state', JSON.stringify(stateToSave));
+    }, [cvInputs, cvContent, careerMap, generatedImage, pitchSlides, pitchTopic]);
 
     const triggerHaptic = () => {
         if (navigator.vibrate) navigator.vibrate(15);
@@ -120,12 +111,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const eliteItems = [
         { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.' },
         { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.' },
-        { title: 'Sartorial Excellence', icon: '👔', desc: 'Dress codes decoded.' },
-        { title: 'Horology', icon: '⌚', desc: 'Understanding Timepieces.' },
-        { title: 'Oenology (Wine)', icon: '🍷', desc: 'Navigate a wine list with confidence.' },
-        { title: 'Golf & Leisure', icon: '⛳', desc: 'Business happens on the green.' },
-        { title: 'Art Collection', icon: '🖼️', desc: 'Investing in culture.' },
-        { title: 'Strategic Philanthropy', icon: '🕊️', desc: 'Giving back effectively.' }
     ];
 
     const openEliteModal = async (item: typeof eliteItems[0]) => {
@@ -134,7 +119,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         setEliteLoading(true);
         AudioService.playProcessing();
 
-        // Generate Visual for the specific topic
         try {
             const visual = await generateItemVisual(item.title + " high society luxury context");
             if (visual) setEliteImage(`data:image/jpeg;base64,${visual}`);
@@ -161,7 +145,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
 
     const handleDownloadCV = () => {
         if (cvContent) {
-            // Create a Blob pretending to be a Word Doc (HTML content)
             const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Resume</title></head><body>";
             const footer = "</body></html>";
             const sourceHTML = header + cvContent + footer;
@@ -177,11 +160,47 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         }
     };
 
-    // --- CV HANDLERS ---
+    const handlePrintPDF = () => {
+        const printContent = document.getElementById('cv-preview');
+        if (printContent) {
+            const win = window.open('', '', 'height=800,width=800');
+            if (win) {
+                win.document.write('<html><head><title>Resume PDF</title>');
+                // Inject simple CSS for printing
+                win.document.write(`
+                    <style>
+                        body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #000; line-height: 1.6; }
+                        h1 { font-size: 24px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+                        h2 { font-size: 18px; text-transform: uppercase; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                        p { margin-bottom: 10px; font-size: 14px; }
+                        ul { margin-bottom: 10px; padding-left: 20px; }
+                        li { font-size: 14px; margin-bottom: 5px; }
+                    </style>
+                `);
+                win.document.write('</head><body>');
+                win.document.write(printContent.innerHTML);
+                win.document.write('</body></html>');
+                win.document.close();
+                win.focus();
+                win.print();
+            }
+        }
+    };
+
+    // --- GENERATION HANDLERS ---
     const handleGenerateCV = async () => {
         setIsGeneratingCV(true);
         AudioService.playProcessing();
-        const context = `Name: ${user.username}. Target Role: ${cvInputs.targetRole}. Skills: ${cvInputs.skills}. Experience: ${cvInputs.experience}. Education: ${cvInputs.education}.`;
+        // Construct detailed context
+        const context = `
+            Name: ${user.username}
+            Email: ${user.email}
+            Target Role: ${cvInputs.targetRole}
+            Core Skills: ${cvInputs.skills}
+            Professional Experience: ${cvInputs.experience}
+            Education: ${cvInputs.education}
+            Key Projects: ${cvInputs.projects}
+        `;
         const cv = await generateCVContent(context);
         if (cv) {
             setCvContent(cv);
@@ -189,11 +208,22 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         }
         setIsGeneratingCV(false);
     };
+
+    const handleGeneratePitch = async () => {
+        if (!pitchTopic) return;
+        setIsGeneratingPitch(true);
+        AudioService.playProcessing();
+        const slides = await generatePitchDeck(pitchTopic);
+        if (slides) {
+            setPitchSlides(slides);
+            AudioService.playSuccess();
+        }
+        setIsGeneratingPitch(false);
+    };
     
     const handlePathfinder = async () => {
         setIsMapping(true);
         try {
-            // Enhanced Context Injection
             const context = `
                 User Profile:
                 - Age: ${user.age || 'Unknown'}
@@ -255,22 +285,26 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     return (
         <div className="h-full overflow-y-auto p-4 md:p-8 font-sans scrollbar-hide pb-24 touch-pan-y">
             <header className="mb-8">
-                <h1 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tighter kinetic-type">
-                    Career Guidance<span className="text-skillfi-neon">.</span>
-                </h1>
-                <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest">Plan, Build, and Refine.</p>
-                <div className="mt-4 p-3 bg-white/5 border-l-4 border-skillfi-neon rounded-r-xl">
-                    <p className="text-xs text-gray-300 italic">"{dailyQuote}"</p>
+                <div className="flex justify-between items-center">
+                    <h1 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tighter kinetic-type">
+                        Career Arsenal<span className="text-skillfi-neon">.</span>
+                    </h1>
+                    <div className="flex items-center gap-2 text-[10px] text-skillfi-neon font-mono animate-pulse">
+                        <span className="w-1.5 h-1.5 bg-skillfi-neon rounded-full"></span>
+                        SYSTEM ACTIVE & SAVING
+                    </div>
                 </div>
+                <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest">Plan, Build, and Refine.</p>
             </header>
 
             {/* Navigation Tabs */}
             <div className="flex gap-2 mb-8 border-b border-white/10 pb-1 overflow-x-auto scrollbar-hide">
                 {[
                     { id: 'PATH', label: 'Pathfinder' },
-                    { id: 'ELITE', label: 'High Society' },
-                    { id: 'CV', label: 'CV Writer' },
+                    { id: 'CV', label: 'CV / Resume' },
+                    { id: 'PITCH', label: 'Pitch Deck' },
                     { id: 'HEADSHOT', label: 'Pro Photo' },
+                    { id: 'ELITE', label: 'High Society' },
                 ].map(tab => (
                     <button 
                         key={tab.id}
@@ -286,106 +320,12 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 ))}
             </div>
 
-            {/* --- ELITE MODULE --- */}
-            {activeModule === 'ELITE' && (
-                <div className="animate-fade-in relative">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {eliteItems.map((item, i) => (
-                            <div 
-                                key={i}
-                                onClick={() => openEliteModal(item)}
-                                className="glass-panel p-6 rounded-2xl border-t-4 border-t-skillfi-neon hover:bg-white/5 transition-all cursor-pointer group hover:scale-[1.02] active:scale-95"
-                            >
-                                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
-                                <h3 className="font-bold text-white text-lg">{item.title}</h3>
-                                <p className="text-gray-400 text-xs mt-2">{item.desc}</p>
-                                <div className="mt-4 text-[10px] text-skillfi-neon font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Click to Learn
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Elite Modal */}
-                    {activeEliteItem && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={() => setActiveEliteItem(null)}>
-                            <div className="glass-panel w-full max-w-2xl rounded-2xl p-0 relative max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-                                {/* Modal Header */}
-                                <div className="p-6 border-b border-white/10 bg-black/40 flex justify-between items-start sticky top-0 z-10 backdrop-blur-md">
-                                    <div>
-                                        <h2 className="text-2xl font-bold font-display text-white flex items-center gap-2">
-                                            {activeEliteItem.icon} {activeEliteItem.title}
-                                        </h2>
-                                        <p className="text-skillfi-neon text-xs font-bold uppercase tracking-widest mt-1">Refinement Module</p>
-                                    </div>
-                                    <button className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setActiveEliteItem(null)}>✕</button>
-                                </div>
-                                
-                                <div className="p-6 overflow-y-auto scrollbar-hide">
-                                    {eliteLoading ? (
-                                        <div className="h-48 w-full bg-white/5 rounded-xl flex items-center justify-center animate-pulse mb-6">
-                                            <div className="text-skillfi-neon font-mono text-xs">Accessing Secure Knowledge Base...</div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {eliteImage && (
-                                                <div className="h-56 w-full rounded-xl overflow-hidden mb-8 border border-skillfi-neon/30 shadow-lg relative group">
-                                                    <img src={eliteImage} alt={activeEliteItem.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                                                    <div className="absolute bottom-4 left-4 text-white text-xs font-mono opacity-80">
-                                                        FIG. 1.0 // {activeEliteItem.title.toUpperCase()}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="space-y-8 text-sm">
-                                                {/* Philosophy */}
-                                                <section>
-                                                    <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-skillfi-neon/20 pb-2">01. The Philosophy</h3>
-                                                    <p className="text-gray-200 leading-relaxed font-serif italic text-lg">
-                                                        "{getEliteContent(activeEliteItem.title).philosophy}"
-                                                    </p>
-                                                </section>
-
-                                                {/* Mechanics */}
-                                                <section className="bg-white/5 p-5 rounded-xl border border-white/5">
-                                                    <h3 className="text-white font-bold text-xs uppercase tracking-[0.2em] mb-4">02. Core Mechanics</h3>
-                                                    <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-2">
-                                                        {getEliteContent(activeEliteItem.title).mechanics}
-                                                    </div>
-                                                </section>
-
-                                                {/* Advanced */}
-                                                <section>
-                                                    <h3 className="text-blue-400 font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-blue-400/20 pb-2">03. Intermediate & Advanced</h3>
-                                                    <p className="text-gray-300 leading-relaxed">
-                                                        {getEliteContent(activeEliteItem.title).advanced}
-                                                    </p>
-                                                </section>
-
-                                                {/* Pro Tip */}
-                                                <div className="bg-gradient-to-r from-skillfi-neon/10 to-transparent p-4 rounded-l-xl border-l-4 border-skillfi-neon">
-                                                    <span className="text-skillfi-neon font-bold uppercase text-[10px] tracking-widest block mb-1">Insider Pro Tip</span>
-                                                    <p className="text-white font-medium">
-                                                        {getEliteContent(activeEliteItem.title).pro_tip}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
             {/* --- CV WRITER --- */}
             {activeModule === 'CV' && (
                 <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[600px]">
-                        <h2 className="text-xl font-bold text-white mb-2">CV Data Entry</h2>
-                        <p className="text-xs text-gray-400 mb-6">Fill in your raw details. We will structure it professionally.</p>
+                    <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
+                        <h2 className="text-xl font-bold text-white mb-2">Resume Builder</h2>
+                        <p className="text-xs text-gray-400 mb-6">Enter raw data. AI formats it perfectly.</p>
                         
                         <div className="space-y-4">
                             <div>
@@ -394,26 +334,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                     type="text" 
                                     value={cvInputs.targetRole}
                                     onChange={(e) => setCvInputs({...cvInputs, targetRole: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm"
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
                                     placeholder="e.g. Senior Frontend Engineer"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Skills</label>
-                                <textarea 
-                                    value={cvInputs.skills}
-                                    onChange={(e) => setCvInputs({...cvInputs, skills: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20"
-                                    placeholder="React, TypeScript, Leadership..."
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Experience Summary</label>
-                                <textarea 
-                                    value={cvInputs.experience}
-                                    onChange={(e) => setCvInputs({...cvInputs, experience: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-24"
-                                    placeholder="Worked at Google for 2 years as Dev..."
                                 />
                             </div>
                             <div>
@@ -422,37 +344,122 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                     type="text" 
                                     value={cvInputs.education}
                                     onChange={(e) => setCvInputs({...cvInputs, education: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm"
-                                    placeholder="BSc Computer Science, MIT"
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="BSc Computer Science, MIT (2020)"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Skills (Comma Separated)</label>
+                                <textarea 
+                                    value={cvInputs.skills}
+                                    onChange={(e) => setCvInputs({...cvInputs, skills: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="React, TypeScript, Leadership, Public Speaking..."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Professional Experience</label>
+                                <textarea 
+                                    value={cvInputs.experience}
+                                    onChange={(e) => setCvInputs({...cvInputs, experience: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-32 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="Software Engineer - Google (2021-Present)&#10;- Led migration to React.&#10;- Improved performance by 30%."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Key Projects</label>
+                                <textarea 
+                                    value={cvInputs.projects}
+                                    onChange={(e) => setCvInputs({...cvInputs, projects: e.target.value})}
+                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
+                                    placeholder="Built an E-commerce platform handling 10k users..."
                                 />
                             </div>
                             <button 
                                 onClick={handleGenerateCV}
                                 disabled={isGeneratingCV}
-                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2"
+                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
                             >
-                                {isGeneratingCV ? 'Processing...' : 'Generate Resume'}
+                                {isGeneratingCV ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        Compiling...
+                                    </>
+                                ) : 'Generate Professional Resume'}
                             </button>
                         </div>
                     </div>
 
-                    <div className="lg:col-span-2 glass-panel p-8 rounded-2xl min-h-[500px] font-mono text-xs leading-relaxed overflow-y-auto relative bg-white border-2 border-white/5">
-                        {cvContent ? (
-                            <div className="text-black whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: cvContent}}></div>
-                        ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                                <div className="text-6xl mb-4 opacity-20">📄</div>
-                                <p>Ready to Write</p>
+                    <div className="lg:col-span-2 glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5">
+                        <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
+                            <span className="text-xs font-bold text-gray-500 uppercase">Preview</span>
+                            <div className="flex gap-2">
+                                {cvContent && (
+                                    <>
+                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={handlePrintPDF}>
+                                            Print / PDF
+                                        </button>
+                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={handleDownloadCV}>
+                                            Word (.doc)
+                                        </button>
+                                    </>
+                                )}
                             </div>
-                        )}
-                        {cvContent && (
-                            <div className="absolute top-4 right-4 flex gap-2">
-                                <button className="bg-black text-white px-4 py-2 rounded shadow-lg text-xs font-bold uppercase hover:bg-gray-800" onClick={handleDownloadCV}>
-                                    Download Word (.doc)
-                                </button>
-                            </div>
-                        )}
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-8 bg-white text-gray-900">
+                            {cvContent ? (
+                                <div id="cv-preview" className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{__html: cvContent}}></div>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                                    <div className="text-6xl mb-4 opacity-20">📄</div>
+                                    <p className="text-sm font-medium">Fill in the data and click Generate to see your Resume.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
+                </div>
+            )}
+
+            {/* --- PITCH DECK --- */}
+            {activeModule === 'PITCH' && (
+                <div className="animate-fade-in grid grid-cols-1 gap-8">
+                    <div className="glass-panel p-6 rounded-2xl">
+                        <h2 className="text-xl font-bold text-white mb-4">Pitch Deck Generator</h2>
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <input 
+                                type="text" 
+                                value={pitchTopic} 
+                                onChange={(e) => setPitchTopic(e.target.value)}
+                                placeholder="Describe your business idea (e.g. Uber for Dog Walkers)..."
+                                className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon transition-colors"
+                            />
+                            <button 
+                                onClick={handleGeneratePitch}
+                                disabled={isGeneratingPitch}
+                                className="bg-skillfi-neon text-black px-8 py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-white transition-all whitespace-nowrap shadow-lg flex items-center justify-center gap-2"
+                            >
+                                {isGeneratingPitch ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        Thinking...
+                                    </>
+                                ) : 'Generate Slides'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {pitchSlides && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {pitchSlides.map((slide, idx) => (
+                                <div key={idx} className="bg-white p-6 rounded-xl shadow-lg border-t-8 border-skillfi-neon relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                                    <div className="absolute top-2 right-4 text-6xl text-gray-100 font-black pointer-events-none select-none">{idx + 1}</div>
+                                    <h3 className="text-black font-bold text-lg mb-4 relative z-10 pr-8">{slide.title}</h3>
+                                    <p className="text-gray-600 text-sm relative z-10 font-medium leading-relaxed">{slide.bullet}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -460,7 +467,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             {activeModule === 'HEADSHOT' && (
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
                     <div className="glass-panel p-6 rounded-2xl h-fit">
-                        <h2 className="text-xl font-bold text-white mb-4">Professional Photo</h2>
+                        <h2 className="text-xl font-bold text-white mb-4">Professional Photo Studio</h2>
                          <div className="space-y-6">
                             <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-skillfi-neon/50 hover:bg-white/5 transition-all group">
                                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
@@ -472,7 +479,14 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                                     <button key={style} onClick={() => setSelectedStyle(style)} className={`p-3 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${selectedStyle === style ? 'bg-skillfi-neon/20 border-skillfi-neon text-white' : 'bg-black/40 border-transparent text-gray-500 hover:text-white'}`}>{style}</button>
                                 ))}
                             </div>
-                            <button onClick={handleGenerateHeadshot} disabled={!originalImage || isGeneratingHeadshot} className="w-full py-4 font-bold text-sm tracking-widest uppercase rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 bg-skillfi-neon text-black hover:bg-white disabled:bg-white/5 disabled:text-gray-600">{isGeneratingHeadshot ? 'WORKING MAGIC...' : 'CREATE PHOTO'}</button>
+                            <button onClick={handleGenerateHeadshot} disabled={!originalImage || isGeneratingHeadshot} className="w-full py-4 font-bold text-sm tracking-widest uppercase rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 bg-skillfi-neon text-black hover:bg-white disabled:bg-white/5 disabled:text-gray-600">
+                                {isGeneratingHeadshot ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        PROCESSING...
+                                    </>
+                                ) : 'CREATE PHOTO'}
+                            </button>
                             {generatedImage && (
                                 <button onClick={handleDownloadImage} className="w-full py-3 font-bold text-sm tracking-widest uppercase rounded-xl transition-all border border-white/20 hover:bg-white/10 text-white flex items-center justify-center gap-2">
                                     💾 Save to Gallery
@@ -489,6 +503,11 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                         ) : (
                             <div className="relative w-full h-full rounded-xl overflow-hidden select-none">
                                 <img src={generatedImage || originalImage} alt="Result" className="absolute inset-0 w-full h-full object-cover" />
+                                {isGeneratingHeadshot && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                                        <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -605,6 +624,100 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                             </div>
                          )}
                     </div>
+                </div>
+            )}
+            
+            {/* --- ELITE MODULE --- */}
+            {activeModule === 'ELITE' && (
+                <div className="animate-fade-in relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {eliteItems.map((item, i) => (
+                            <div 
+                                key={i}
+                                onClick={() => openEliteModal(item)}
+                                className="glass-panel p-6 rounded-2xl border-t-4 border-t-skillfi-neon hover:bg-white/5 transition-all cursor-pointer group hover:scale-[1.02] active:scale-95"
+                            >
+                                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
+                                <h3 className="font-bold text-white text-lg">{item.title}</h3>
+                                <p className="text-gray-400 text-xs mt-2">{item.desc}</p>
+                                <div className="mt-4 text-[10px] text-skillfi-neon font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Click to Learn
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Elite Modal */}
+                    {activeEliteItem && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={() => setActiveEliteItem(null)}>
+                            <div className="glass-panel w-full max-w-2xl rounded-2xl p-0 relative max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                                {/* Modal Header */}
+                                <div className="p-6 border-b border-white/10 bg-black/40 flex justify-between items-start sticky top-0 z-10 backdrop-blur-md">
+                                    <div>
+                                        <h2 className="text-2xl font-bold font-display text-white flex items-center gap-2">
+                                            {activeEliteItem.icon} {activeEliteItem.title}
+                                        </h2>
+                                        <p className="text-skillfi-neon text-xs font-bold uppercase tracking-widest mt-1">Refinement Module</p>
+                                    </div>
+                                    <button className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setActiveEliteItem(null)}>✕</button>
+                                </div>
+                                
+                                <div className="p-6 overflow-y-auto scrollbar-hide">
+                                    {eliteLoading ? (
+                                        <div className="h-48 w-full bg-white/5 rounded-xl flex items-center justify-center animate-pulse mb-6">
+                                            <div className="text-skillfi-neon font-mono text-xs">Accessing Secure Knowledge Base...</div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {eliteImage && (
+                                                <div className="h-56 w-full rounded-xl overflow-hidden mb-8 border border-skillfi-neon/30 shadow-lg relative group">
+                                                    <img src={eliteImage} alt={activeEliteItem.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                                    <div className="absolute bottom-4 left-4 text-white text-xs font-mono opacity-80">
+                                                        FIG. 1.0 // {activeEliteItem.title.toUpperCase()}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-8 text-sm">
+                                                {/* Philosophy */}
+                                                <section>
+                                                    <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-skillfi-neon/20 pb-2">01. The Philosophy</h3>
+                                                    <p className="text-gray-200 leading-relaxed font-serif italic text-lg">
+                                                        "{getEliteContent(activeEliteItem.title).philosophy}"
+                                                    </p>
+                                                </section>
+
+                                                {/* Mechanics */}
+                                                <section className="bg-white/5 p-5 rounded-xl border border-white/5">
+                                                    <h3 className="text-white font-bold text-xs uppercase tracking-[0.2em] mb-4">02. Core Mechanics</h3>
+                                                    <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-2">
+                                                        {getEliteContent(activeEliteItem.title).mechanics}
+                                                    </div>
+                                                </section>
+
+                                                {/* Advanced */}
+                                                <section>
+                                                    <h3 className="text-blue-400 font-bold text-xs uppercase tracking-[0.2em] mb-3 border-b border-blue-400/20 pb-2">03. Intermediate & Advanced</h3>
+                                                    <p className="text-gray-300 leading-relaxed">
+                                                        {getEliteContent(activeEliteItem.title).advanced}
+                                                    </p>
+                                                </section>
+
+                                                {/* Pro Tip */}
+                                                <div className="bg-gradient-to-r from-skillfi-neon/10 to-transparent p-4 rounded-l-xl border-l-4 border-skillfi-neon">
+                                                    <span className="text-skillfi-neon font-bold uppercase text-[10px] tracking-widest block mb-1">Insider Pro Tip</span>
+                                                    <p className="text-white font-medium">
+                                                        {getEliteContent(activeEliteItem.title).pro_tip}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

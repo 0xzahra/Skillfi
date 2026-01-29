@@ -607,7 +607,7 @@ const App: React.FC = () => {
                   
                   {currentView === 'INBOX' && <Inbox />}
 
-                  {currentView === 'NOTIFICATIONS' && <Notifications />}
+                  {currentView === 'NOTIFICATIONS' && <Notifications onNavigate={handleNavigate} />}
 
                   {currentView === 'SETTINGS' && (
                       <Settings 

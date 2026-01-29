@@ -3,11 +3,23 @@ import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinanc
 import { LanguageCode } from '../types';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX';
-type MarketCategory = 'METALS' | 'CRYPTO' | 'STOCKS';
+type MarketCategory = 'METALS' | 'CRYPTO' | 'STOCKS' | 'FOREX';
 
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
     currentLang: LanguageCode;
+}
+
+interface MarketAsset {
+    id: string;
+    name: string;
+    symbol: string;
+    basePrice: number;
+    change: number;
+    icon: string;
+    color: string;
+    desc?: string;
+    isSimulated?: boolean;
 }
 
 const MONEY_QUOTES = [
@@ -18,35 +30,50 @@ const MONEY_QUOTES = [
     "Wealth consists not in having great possessions, but in having few wants."
 ];
 
-// --- MARKET DATA MOCKS ---
-const METALS = [
-    { id: 'gold', name: 'Gold', symbol: 'XAU', price: 2642.80, change: 0.45, icon: '🧈', color: 'text-yellow-500', desc: 'The eternal store of value.' },
-    { id: 'silver', name: 'Silver', symbol: 'XAG', price: 31.15, change: -0.12, icon: '🥈', color: 'text-gray-300', desc: 'Industrial and precious.' },
-    { id: 'platinum', name: 'Platinum', symbol: 'XPT', price: 980.50, change: 1.20, icon: '⚪', color: 'text-blue-100', desc: 'Rarer than gold.' },
-    { id: 'palladium', name: 'Palladium', symbol: 'XPD', price: 1105.20, change: -0.50, icon: '🔩', color: 'text-gray-400', desc: 'Critical for auto catalysts.' },
-    { id: 'rhodium', name: 'Rhodium', symbol: 'XRH', price: 4750.00, change: 0.10, icon: '🧪', color: 'text-pink-200', desc: 'The most expensive precious metal.' },
+// --- STATIC MARKET DATA BASE ---
+const METALS: MarketAsset[] = [
+    { id: 'gold', name: 'Gold', symbol: 'XAU/USD', basePrice: 2642.80, change: 0.45, icon: '🧈', color: 'text-yellow-500', desc: 'The eternal store of value.' },
+    { id: 'silver', name: 'Silver', symbol: 'XAG/USD', basePrice: 31.15, change: -0.12, icon: '🥈', color: 'text-gray-300', desc: 'Industrial and precious.' },
+    { id: 'platinum', name: 'Platinum', symbol: 'XPT/USD', basePrice: 980.50, change: 1.20, icon: '⚪', color: 'text-blue-100', desc: 'Rarer than gold.' },
+    { id: 'palladium', name: 'Palladium', symbol: 'XPD/USD', basePrice: 1105.20, change: -0.50, icon: '🔩', color: 'text-gray-400', desc: 'Critical for auto catalysts.' },
+    { id: 'rhodium', name: 'Rhodium', symbol: 'XRH/USD', basePrice: 4750.00, change: 0.10, icon: '🧪', color: 'text-pink-200', desc: 'The most expensive precious metal.' },
+    { id: 'copper', name: 'Copper', symbol: 'HG1!', basePrice: 4.15, change: 0.8, icon: '🥉', color: 'text-orange-600', desc: 'Doctor Copper - Economic indicator.' },
 ];
 
-const CRYPTO = [
-    { id: 'btc', name: 'Bitcoin', symbol: 'BTC', price: 68450.00, change: 2.4, icon: '₿', color: 'text-orange-500' },
-    { id: 'eth', name: 'Ethereum', symbol: 'ETH', price: 3850.20, change: 1.8, icon: 'Ξ', color: 'text-purple-400' },
-    { id: 'sol', name: 'Solana', symbol: 'SOL', price: 145.50, change: 5.2, icon: '◎', color: 'text-green-400' },
-    { id: 'bnb', name: 'Binance Coin', symbol: 'BNB', price: 610.00, change: -0.5, icon: '🟡', color: 'text-yellow-400' },
-    { id: 'xrp', name: 'Ripple', symbol: 'XRP', price: 0.62, change: 0.1, icon: '✕', color: 'text-blue-400' },
-    { id: 'ada', name: 'Cardano', symbol: 'ADA', price: 0.45, change: -1.2, icon: '₳', color: 'text-blue-300' },
-    { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', price: 0.16, change: 8.5, icon: 'Ð', color: 'text-yellow-200' },
-    { id: 'dot', name: 'Polkadot', symbol: 'DOT', price: 7.50, change: -2.1, icon: '●', color: 'text-pink-500' },
+const CRYPTO: MarketAsset[] = [
+    { id: 'btc', name: 'Bitcoin', symbol: 'BTC', basePrice: 68450.00, change: 2.4, icon: '₿', color: 'text-orange-500' },
+    { id: 'eth', name: 'Ethereum', symbol: 'ETH', basePrice: 3850.20, change: 1.8, icon: 'Ξ', color: 'text-purple-400' },
+    { id: 'sol', name: 'Solana', symbol: 'SOL', basePrice: 145.50, change: 5.2, icon: '◎', color: 'text-green-400' },
+    { id: 'bnb', name: 'Binance Coin', symbol: 'BNB', basePrice: 610.00, change: -0.5, icon: '🟡', color: 'text-yellow-400' },
+    { id: 'xrp', name: 'Ripple', symbol: 'XRP', basePrice: 0.62, change: 0.1, icon: '✕', color: 'text-blue-400' },
+    { id: 'ada', name: 'Cardano', symbol: 'ADA', basePrice: 0.45, change: -1.2, icon: '₳', color: 'text-blue-300' },
+    { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', basePrice: 0.16, change: 8.5, icon: 'Ð', color: 'text-yellow-200' },
+    { id: 'dot', name: 'Polkadot', symbol: 'DOT', basePrice: 7.50, change: -2.1, icon: '●', color: 'text-pink-500' },
+    { id: 'link', name: 'Chainlink', symbol: 'LINK', basePrice: 18.20, change: 1.4, icon: '🔗', color: 'text-blue-500' },
+    { id: 'matic', name: 'Polygon', symbol: 'MATIC', basePrice: 0.95, change: -0.8, icon: '💜', color: 'text-purple-500' },
 ];
 
-const STOCKS = [
-    { id: 'spy', name: 'S&P 500', symbol: 'SPY', price: 520.00, change: 0.3, icon: '🇺🇸', color: 'text-green-500' },
-    { id: 'nvda', name: 'NVIDIA', symbol: 'NVDA', price: 950.00, change: 3.2, icon: '👁️', color: 'text-green-400' },
-    { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', price: 185.50, change: 0.5, icon: '🍎', color: 'text-gray-200' },
-    { id: 'msft', name: 'Microsoft', symbol: 'MSFT', price: 420.00, change: 1.2, icon: '🪟', color: 'text-blue-400' },
-    { id: 'tsla', name: 'Tesla', symbol: 'TSLA', price: 178.00, change: -1.5, icon: '🚗', color: 'text-red-400' },
-    { id: 'googl', name: 'Alphabet', symbol: 'GOOGL', price: 175.20, change: -0.4, icon: '🔍', color: 'text-yellow-400' },
-    { id: 'amzn', name: 'Amazon', symbol: 'AMZN', price: 180.00, change: 0.8, icon: '📦', color: 'text-orange-300' },
-    { id: 'meta', name: 'Meta', symbol: 'META', price: 490.00, change: 2.1, icon: '∞', color: 'text-blue-500' },
+const STOCKS: MarketAsset[] = [
+    { id: 'spy', name: 'S&P 500', symbol: 'SPY', basePrice: 520.00, change: 0.3, icon: '🇺🇸', color: 'text-green-500' },
+    { id: 'nvda', name: 'NVIDIA', symbol: 'NVDA', basePrice: 950.00, change: 3.2, icon: '👁️', color: 'text-green-400' },
+    { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', basePrice: 185.50, change: 0.5, icon: '🍎', color: 'text-gray-200' },
+    { id: 'msft', name: 'Microsoft', symbol: 'MSFT', basePrice: 420.00, change: 1.2, icon: '🪟', color: 'text-blue-400' },
+    { id: 'tsla', name: 'Tesla', symbol: 'TSLA', basePrice: 178.00, change: -1.5, icon: '🚗', color: 'text-red-400' },
+    { id: 'googl', name: 'Alphabet', symbol: 'GOOGL', basePrice: 175.20, change: -0.4, icon: '🔍', color: 'text-yellow-400' },
+    { id: 'amzn', name: 'Amazon', symbol: 'AMZN', basePrice: 180.00, change: 0.8, icon: '📦', color: 'text-orange-300' },
+    { id: 'meta', name: 'Meta', symbol: 'META', basePrice: 490.00, change: 2.1, icon: '∞', color: 'text-blue-500' },
+    { id: 'nflx', name: 'Netflix', symbol: 'NFLX', basePrice: 615.00, change: 1.1, icon: '🎬', color: 'text-red-600' },
+];
+
+const FOREX: MarketAsset[] = [
+    { id: 'eurusd', name: 'Euro', symbol: 'EUR/USD', basePrice: 1.0850, change: 0.05, icon: '🇪🇺', color: 'text-blue-400' },
+    { id: 'gbpusd', name: 'British Pound', symbol: 'GBP/USD', basePrice: 1.2650, change: -0.10, icon: '🇬🇧', color: 'text-purple-400' },
+    { id: 'usdjpy', name: 'Japanese Yen', symbol: 'USD/JPY', basePrice: 151.20, change: 0.30, icon: '🇯🇵', color: 'text-red-400' },
+    { id: 'usdchf', name: 'Swiss Franc', symbol: 'USD/CHF', basePrice: 0.9050, change: 0.02, icon: '🇨🇭', color: 'text-red-500' },
+    { id: 'audusd', name: 'Australian Dollar', symbol: 'AUD/USD', basePrice: 0.6550, change: 0.15, icon: '🇦🇺', color: 'text-green-400' },
+    { id: 'usdcad', name: 'Canadian Dollar', symbol: 'USD/CAD', basePrice: 1.3550, change: -0.05, icon: '🇨🇦', color: 'text-red-500' },
+    { id: 'usdcny', name: 'Chinese Yuan', symbol: 'USD/CNY', basePrice: 7.2300, change: 0.01, icon: '🇨🇳', color: 'text-red-600' },
+    { id: 'usdinr', name: 'Indian Rupee', symbol: 'USD/INR', basePrice: 83.40, change: 0.05, icon: '🇮🇳', color: 'text-orange-400' },
 ];
 
 export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLang }) => {
@@ -56,6 +83,14 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   // Market State
   const [marketCategory, setMarketCategory] = useState<MarketCategory>('METALS');
   const [marketSearch, setMarketSearch] = useState('');
+  
+  // Real-time Simulation State
+  const [livePrices, setLivePrices] = useState<Record<string, { price: number, change: number }>>({});
+  
+  // Analysis Modal State
+  const [selectedAsset, setSelectedAsset] = useState<MarketAsset | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisData, setAnalysisData] = useState<Record<string, string> | null>(null);
 
   // Budget State
   const [salary, setSalary] = useState(5000);
@@ -97,6 +132,106 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   useEffect(() => {
       setDailyQuote(MONEY_QUOTES[Math.floor(Math.random() * MONEY_QUOTES.length)]);
   }, []);
+
+  // --- Real-Time Simulation Engine ---
+  useEffect(() => {
+      // Initialize prices
+      const allAssets = [...METALS, ...CRYPTO, ...STOCKS, ...FOREX];
+      const initial: Record<string, { price: number, change: number }> = {};
+      allAssets.forEach(a => {
+          initial[a.id] = { price: a.basePrice, change: a.change };
+      });
+      setLivePrices(initial);
+
+      // Heartbeat Loop
+      const interval = setInterval(() => {
+          setLivePrices(prev => {
+              const next = { ...prev };
+              Object.keys(next).forEach(key => {
+                  // Simulate realistic volatility based on asset type (roughly)
+                  const volatility = key.length === 3 ? 0.002 : 0.0005; // Crypto vs Forex
+                  const move = (Math.random() - 0.5) * volatility;
+                  
+                  const currentPrice = next[key].price;
+                  const newPrice = currentPrice * (1 + move);
+                  
+                  // Accumulate change slightly
+                  const currentChange = next[key].change;
+                  const newChange = currentChange + (move * 100);
+
+                  next[key] = { 
+                      price: newPrice, 
+                      change: parseFloat(newChange.toFixed(2)) 
+                  };
+              });
+              return next;
+          });
+      }, 3000); // Update every 3 seconds
+
+      return () => clearInterval(interval);
+  }, []);
+
+  // --- Deep Analysis Handler ---
+  const handleInspectAsset = async (asset: MarketAsset) => {
+      setSelectedAsset(asset);
+      setAnalysisLoading(true);
+      setAnalysisData(null);
+
+      const currentPrice = livePrices[asset.id]?.price || asset.basePrice;
+
+      try {
+        const chat = await initializeChat(currentLang);
+        // Force structured analysis
+        const prompt = `
+        ANALYZE ASSET: ${asset.name} (${asset.symbol})
+        CURRENT PRICE: ${currentPrice}
+        
+        Provide a strategic breakdown in this exact format.
+        Be concise, professional, and sophisticated. Use financial terminology correctly.
+        
+        [FUNDAMENTAL]: (1 sentence on value proposition or current economic drivers)
+        [TECHNICAL]: (1 sentence on price action, support/resistance, or trends)
+        [SENTIMENT]: (1 sentence on market mood: Greed/Fear/Neutral)
+        [MACRO]: (1 sentence on global economic impact: Rates, Inflation, Geopolitics)
+        [PSYCHOLOGY]: (1 sentence on trader behavior right now)
+        [ACTION]: (1 specific, actionable step: e.g., "DCA entry", "Wait for pullback", "Hedge")
+        `;
+
+        const response = await sendMessageToSkillfi(chat, prompt);
+        
+        // Parse the response manually to handle potential AI formatting variations
+        const sections: Record<string, string> = {
+            Fundamental: "Analysis unavailable.",
+            Technical: "Analysis unavailable.",
+            Sentiment: "Analysis unavailable.",
+            Macro: "Analysis unavailable.",
+            Psychology: "Analysis unavailable.",
+            Action: "Analysis unavailable.",
+        };
+
+        const lines = response.split('\n');
+        let currentSection = '';
+
+        lines.forEach(line => {
+            if (line.includes('[FUNDAMENTAL]')) { currentSection = 'Fundamental'; sections[currentSection] = line.replace('[FUNDAMENTAL]:', '').trim(); }
+            else if (line.includes('[TECHNICAL]')) { currentSection = 'Technical'; sections[currentSection] = line.replace('[TECHNICAL]:', '').trim(); }
+            else if (line.includes('[SENTIMENT]')) { currentSection = 'Sentiment'; sections[currentSection] = line.replace('[SENTIMENT]:', '').trim(); }
+            else if (line.includes('[MACRO]')) { currentSection = 'Macro'; sections[currentSection] = line.replace('[MACRO]:', '').trim(); }
+            else if (line.includes('[PSYCHOLOGY]')) { currentSection = 'Psychology'; sections[currentSection] = line.replace('[PSYCHOLOGY]:', '').trim(); }
+            else if (line.includes('[ACTION]')) { currentSection = 'Action'; sections[currentSection] = line.replace('[ACTION]:', '').trim(); }
+            else if (currentSection && line.trim()) {
+                sections[currentSection] += ' ' + line.trim();
+            }
+        });
+
+        setAnalysisData(sections);
+
+      } catch (e) {
+          console.error("Analysis failed", e);
+      } finally {
+          setAnalysisLoading(false);
+      }
+  };
 
   // --- Mastery Data ---
   const masteryItems = {
@@ -149,10 +284,11 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   // --- Market Filters ---
   const getFilteredMarketData = () => {
-      let data: any[] = [];
+      let data: MarketAsset[] = [];
       if (marketCategory === 'METALS') data = METALS;
       if (marketCategory === 'CRYPTO') data = CRYPTO;
       if (marketCategory === 'STOCKS') data = STOCKS;
+      if (marketCategory === 'FOREX') data = FOREX;
 
       if (marketSearch) {
           const lower = marketSearch.toLowerCase();
@@ -167,11 +303,12 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                   id: 'sim-1',
                   name: marketSearch.toUpperCase(),
                   symbol: marketSearch.substring(0, 4).toUpperCase(),
-                  price: (Math.random() * 1000).toFixed(2),
-                  change: (Math.random() * 20 - 10).toFixed(2),
+                  basePrice: 0, // Placeholder
+                  change: 0,
                   icon: '🔍',
                   color: 'text-white',
-                  isSimulated: true
+                  isSimulated: true,
+                  desc: 'Search Result'
               }];
           }
           return filtered;
@@ -716,15 +853,77 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
         {/* GLOBAL MARKETS (NEW) */}
         {activeTab === 'MARKETS' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-fade-in relative">
+                 {/* DEEP ANALYSIS MODAL */}
+                 {selectedAsset && (
+                     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl p-4 flex flex-col items-center justify-center animate-fade-in overflow-y-auto">
+                        <div className="glass-panel w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl border border-skillfi-neon/30 flex flex-col max-h-[90vh]">
+                             <div className="p-6 border-b border-white/10 bg-black/60 flex justify-between items-start sticky top-0 z-20 backdrop-blur-md">
+                                 <div>
+                                     <div className="flex items-center gap-3">
+                                         <span className="text-3xl">{selectedAsset.icon}</span>
+                                         <div>
+                                             <h2 className="text-2xl font-bold text-white font-display tracking-wide">{selectedAsset.name}</h2>
+                                             <div className="flex items-center gap-3 text-sm font-mono mt-1">
+                                                 <span className="text-gray-400">{selectedAsset.symbol}</span>
+                                                 <span className={`${(livePrices[selectedAsset.id]?.change || selectedAsset.change) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                     ${(livePrices[selectedAsset.id]?.price || selectedAsset.basePrice).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                                                     <span className="ml-2 text-xs">
+                                                         ({(livePrices[selectedAsset.id]?.change || selectedAsset.change) >= 0 ? '+' : ''}
+                                                         {(livePrices[selectedAsset.id]?.change || selectedAsset.change).toFixed(2)}%)
+                                                     </span>
+                                                 </span>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 <button onClick={() => setSelectedAsset(null)} className="p-2 hover:bg-white/10 rounded-full text-gray-500 hover:text-white transition-colors">✕</button>
+                             </div>
+
+                             <div className="p-8 overflow-y-auto">
+                                 {analysisLoading ? (
+                                     <div className="flex flex-col items-center justify-center py-20 text-center">
+                                         <div className="w-16 h-16 border-4 border-t-skillfi-neon border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-6"></div>
+                                         <h3 className="text-xl font-bold text-white animate-pulse">Establishing Satellite Uplink...</h3>
+                                         <p className="text-sm text-gray-500 mt-2 font-mono">Analyzing {selectedAsset.name} market data streams.</p>
+                                     </div>
+                                 ) : analysisData ? (
+                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {[
+                                            { title: 'Fundamental', key: 'Fundamental', icon: '📊', color: 'border-blue-500' },
+                                            { title: 'Technical', key: 'Technical', icon: '📈', color: 'border-purple-500' },
+                                            { title: 'Sentiment', key: 'Sentiment', icon: '🧠', color: 'border-yellow-500' },
+                                            { title: 'Macroeconomy', key: 'Macro', icon: '🌐', color: 'border-indigo-500' },
+                                            { title: 'Psychology', key: 'Psychology', icon: '🎭', color: 'border-pink-500' },
+                                            { title: 'Action Plan', key: 'Action', icon: '🎯', color: 'border-green-500' },
+                                        ].map((section, i) => (
+                                            <div key={i} className={`bg-white/5 border-l-4 ${section.color} p-5 rounded-r-xl shadow-lg hover:bg-white/10 transition-colors`}>
+                                                <div className="flex items-center gap-2 mb-3 border-b border-white/5 pb-2">
+                                                    <span className="text-xl">{section.icon}</span>
+                                                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">{section.title}</h3>
+                                                </div>
+                                                <p className="text-gray-300 text-xs leading-relaxed font-medium">
+                                                    {analysisData[section.key] || 'Data unavailable.'}
+                                                </p>
+                                            </div>
+                                        ))}
+                                     </div>
+                                 ) : (
+                                     <div className="text-center py-20 text-red-400">Unable to retrieve market data. Connection error.</div>
+                                 )}
+                             </div>
+                        </div>
+                     </div>
+                 )}
+
                  {/* Sub Filters */}
                  <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-                    <div className="flex bg-white/5 p-1 rounded-xl">
-                        {(['METALS', 'CRYPTO', 'STOCKS'] as MarketCategory[]).map(cat => (
+                    <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto max-w-full">
+                        {(['METALS', 'CRYPTO', 'STOCKS', 'FOREX'] as MarketCategory[]).map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => { setMarketCategory(cat); setMarketSearch(''); }}
-                                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${
+                                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all whitespace-nowrap ${
                                     marketCategory === cat 
                                     ? 'bg-skillfi-neon text-black shadow-lg' 
                                     : 'text-gray-400 hover:text-white hover:bg-white/10'
@@ -755,39 +954,51 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                     {getFilteredMarketData().map((item, i) => (
-                         <div key={i} className={`glass-panel p-5 rounded-xl border border-white/5 hover:border-skillfi-neon/30 transition-all group ${item.isSimulated ? 'border-dashed border-gray-700' : ''}`}>
-                             <div className="flex justify-between items-start mb-4">
-                                 <div className="flex items-center gap-3">
-                                     <div className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</div>
-                                     <div>
-                                         <div className="font-bold text-white text-sm">{item.name}</div>
-                                         <div className="text-[10px] text-gray-500 font-mono">{item.symbol}</div>
-                                     </div>
-                                 </div>
-                                 <div className="text-right">
-                                     <div className={`text-sm font-bold ${item.color || 'text-white'}`}>${Number(item.price).toLocaleString()}</div>
-                                     <div className={`text-[10px] font-bold ${Number(item.change) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                         {Number(item.change) >= 0 ? '+' : ''}{item.change}%
-                                     </div>
-                                 </div>
-                             </div>
-                             
-                             {/* Mini Mock Chart */}
-                             <div className="h-10 flex items-end gap-1 opacity-30 mt-2">
-                                 {[...Array(20)].map((_, idx) => (
-                                     <div 
-                                        key={idx} 
-                                        className={`flex-1 rounded-t-sm ${Number(item.change) >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
-                                        style={{height: `${30 + Math.random() * 70}%`}}
-                                     ></div>
-                                 ))}
-                             </div>
+                     {getFilteredMarketData().map((item, i) => {
+                         // Use live price if available, else base price
+                         const currentPrice = livePrices[item.id]?.price || item.basePrice;
+                         const currentChange = livePrices[item.id]?.change || item.change;
 
-                             {item.desc && <p className="mt-3 text-[10px] text-gray-400 italic border-t border-white/5 pt-2">{item.desc}</p>}
-                             {item.isSimulated && <p className="mt-3 text-[9px] text-skillfi-neon uppercase tracking-widest text-center border-t border-dashed border-gray-700 pt-2">Simulated Data</p>}
-                         </div>
-                     ))}
+                         return (
+                             <div 
+                                key={item.id} 
+                                onClick={() => handleInspectAsset(item)}
+                                className={`glass-panel p-5 rounded-xl border border-white/5 hover:border-skillfi-neon/50 transition-all group cursor-pointer ${item.isSimulated ? 'border-dashed border-gray-700' : ''}`}
+                             >
+                                 <div className="flex justify-between items-start mb-4">
+                                     <div className="flex items-center gap-3">
+                                         <div className="text-3xl group-hover:scale-110 transition-transform">{item.icon}</div>
+                                         <div>
+                                             <div className="font-bold text-white text-sm group-hover:text-skillfi-neon transition-colors">{item.name}</div>
+                                             <div className="text-[10px] text-gray-500 font-mono">{item.symbol}</div>
+                                         </div>
+                                     </div>
+                                     <div className="text-right">
+                                         <div className={`text-sm font-bold font-mono ${item.color || 'text-white'}`}>${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 4 })}</div>
+                                         <div className={`text-[10px] font-bold ${currentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                             {currentChange >= 0 ? '+' : ''}{currentChange.toFixed(2)}%
+                                         </div>
+                                     </div>
+                                 </div>
+                                 
+                                 {/* Mini Mock Chart */}
+                                 <div className="h-10 flex items-end gap-1 opacity-30 mt-2">
+                                     {[...Array(20)].map((_, idx) => (
+                                         <div 
+                                            key={idx} 
+                                            className={`flex-1 rounded-t-sm ${currentChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
+                                            style={{height: `${30 + Math.random() * 70}%`}}
+                                         ></div>
+                                     ))}
+                                 </div>
+
+                                 <div className="mt-3 pt-2 border-t border-white/5 flex justify-between items-center">
+                                     <span className="text-[9px] text-gray-500 italic truncate max-w-[70%]">{item.desc || 'Click for deep analysis.'}</span>
+                                     <span className="text-[9px] bg-white/10 px-2 py-0.5 rounded text-white uppercase tracking-wider group-hover:bg-skillfi-neon group-hover:text-black transition-colors">Analyze</span>
+                                 </div>
+                             </div>
+                         );
+                     })}
                  </div>
                  
                  {getFilteredMarketData().length === 0 && (

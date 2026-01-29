@@ -1,8 +1,11 @@
-
 import React from 'react';
 import { Notification } from '../types';
 
-export const Notifications: React.FC = () => {
+interface NotificationsProps {
+    onNavigate?: (view: string) => void;
+}
+
+export const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
     // Mock Data
     const notifications: Notification[] = [
         { id: '1', type: 'LIKE', text: 'CryptoKing liked your post in Web3 Builders.', time: '2m ago', isRead: false },
@@ -11,6 +14,26 @@ export const Notifications: React.FC = () => {
         { id: '4', type: 'MENTION', text: 'DevOps_Dan mentioned you: "@User check this PR"', time: '3h ago', isRead: true },
         { id: '5', type: 'LIKE', text: 'DesignGuru liked your portfolio update.', time: '5h ago', isRead: true },
     ];
+
+    const handleClick = (notif: Notification) => {
+        if (!onNavigate) return;
+        
+        // Intelligent Routing
+        switch (notif.type) {
+            case 'LIKE':
+            case 'FOLLOW':
+                onNavigate('TRIBES');
+                break;
+            case 'MENTION':
+                onNavigate('INBOX');
+                break;
+            case 'SYSTEM':
+                onNavigate('SETTINGS');
+                break;
+            default:
+                onNavigate('DASHBOARD');
+        }
+    };
 
     return (
         <div className="h-full p-6 md:p-8 overflow-y-auto font-sans animate-fade-in">
@@ -23,13 +46,14 @@ export const Notifications: React.FC = () => {
                 {notifications.map(notif => (
                     <div 
                         key={notif.id} 
-                        className={`p-4 rounded-xl border flex items-start gap-4 transition-all hover:bg-white/5 ${
+                        onClick={() => handleClick(notif)}
+                        className={`p-4 rounded-xl border flex items-start gap-4 transition-all cursor-pointer group ${
                             notif.isRead 
-                            ? 'bg-transparent border-white/5 opacity-70' 
-                            : 'bg-white/5 border-skillfi-neon/30 opacity-100 shadow-[0_0_10px_rgba(0,0,0,0.3)]'
+                            ? 'bg-transparent border-white/5 opacity-70 hover:bg-white/5' 
+                            : 'bg-white/5 border-skillfi-neon/30 opacity-100 shadow-[0_0_10px_rgba(0,0,0,0.3)] hover:bg-white/10'
                         }`}
                     >
-                        <div className={`p-2 rounded-full flex-shrink-0 ${
+                        <div className={`p-2 rounded-full flex-shrink-0 transition-colors group-hover:bg-white/10 ${
                             notif.type === 'LIKE' ? 'bg-red-500/10 text-red-400' :
                             notif.type === 'FOLLOW' ? 'bg-blue-500/10 text-blue-400' :
                             notif.type === 'MENTION' ? 'bg-skillfi-neon/10 text-skillfi-neon' :
@@ -41,12 +65,17 @@ export const Notifications: React.FC = () => {
                             {notif.type === 'SYSTEM' && '⚡'}
                         </div>
                         <div className="flex-1">
-                            <p className="text-gray-200 text-sm font-medium">{notif.text}</p>
+                            <p className="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">{notif.text}</p>
                             <span className="text-[10px] text-gray-500 uppercase tracking-wider mt-1 block">{notif.time}</span>
                         </div>
                         {!notif.isRead && (
                             <div className="w-2 h-2 bg-skillfi-neon rounded-full mt-2"></div>
                         )}
+                        <div className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </div>
                     </div>
                 ))}
 

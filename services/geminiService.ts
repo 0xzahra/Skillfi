@@ -241,20 +241,20 @@ export const generatePortfolioHTML = async (userContext: string): Promise<string
     }
 };
 
-export const generateCVContent = async (userContext: string, format: 'DOC' | 'PDF' = 'DOC'): Promise<string | null> => {
+export const generateCVContent = async (userContext: string): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
-    Generate a professional, ATS-optimized Resume/CV content for: "${userContext}".
+    Generate a professional, ATS-optimized Resume/CV content for this user data:
+    "${userContext}".
     
-    Structure:
-    1. Header (Name, Contact placeholders)
-    2. Professional Summary
-    3. Core Competencies (Skills)
-    4. Professional Experience (Create 2 realistic mock roles based on context if not provided)
-    5. Education
+    Structure the output as clean HTML suitable for exporting to a Word document (.doc).
     
-    Output Format: HTML formatted for a word document. Use simple <h2> <h3> <p> <ul> <li> tags.
-    Make it look professional and clean. No markdown. Return raw HTML body content.
+    Requirements:
+    - Use standard HTML tags: <h1>, <h2>, <p>, <ul>, <li>, <strong>.
+    - No external CSS classes, use inline styles if absolutely necessary for spacing (e.g., style="margin-bottom: 10px").
+    - Sections: Header (Name, Contact Info placeholder), Professional Summary, Work Experience (use bullet points), Education, Skills, Projects.
+    - Tone: Professional, Result-Oriented, Executive.
+    - Do NOT wrap in markdown code blocks. Return raw HTML body content.
     `;
 
     try {
