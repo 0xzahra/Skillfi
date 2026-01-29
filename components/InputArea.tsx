@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface InputAreaProps {
   onSendMessage: (text: string, attachment?: { data: string; mimeType: string }) => void;
@@ -10,10 +9,22 @@ interface InputAreaProps {
 export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isLoading }) => {
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [attachment, setAttachment] = useState<{ name: string; type: string; data: string } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowPlusMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSend = () => {
     if ((!text.trim() && !attachment) || isLoading) return;
@@ -25,6 +36,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
     
     setText('');
     setAttachment(null);
+    setShowPlusMenu(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -32,6 +44,14 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleFileTrigger = (acceptType: string) => {
+      if (fileInputRef.current) {
+          fileInputRef.current.accept = acceptType;
+          fileInputRef.current.click();
+      }
+      setShowPlusMenu(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +70,11 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
       reader.readAsDataURL(file);
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleModeSelect = (modePrefix: string) => {
+      setText(prev => `${modePrefix} ${prev}`);
+      setShowPlusMenu(false);
   };
 
   const toggleRecording = async () => {
@@ -93,7 +118,58 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
   };
 
   return (
-    <div className="w-full flex flex-col gap-3 font-sans relative z-30">
+    <div className="w-full flex flex-col gap-3 font-sans relative z-50">
+      
+      {/* Advanced Plus Menu */}
+      {showPlusMenu && (
+          <div ref={menuRef} className="absolute bottom-full left-0 mb-4 w-full md:w-[400px] glass-panel bg-[#020409]/95 backdrop-blur-2xl border border-skillfi-neon/30 rounded-2xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-fade-in overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-skillfi-neon to-transparent opacity-50"></div>
+              
+              <div className="grid grid-cols-3 gap-3">
+                  {/* Visual Analysis */}
+                  <button onClick={() => handleFileTrigger('image/*')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-blue-400">👁️</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Vision</span>
+                  </button>
+
+                  {/* Document Analysis */}
+                  <button onClick={() => handleFileTrigger('.pdf,.doc,.docx,.txt')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-purple-400">📄</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Docs</span>
+                  </button>
+
+                  {/* Deep Reasoning */}
+                  <button onClick={() => handleModeSelect('[DEEP THINKING MODE]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-skillfi-neon/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-skillfi-neon">🧠</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Reasoning</span>
+                  </button>
+
+                  {/* Web Search */}
+                  <button onClick={() => handleModeSelect('[WEB SEARCH]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-green-400">🌐</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Web Link</span>
+                  </button>
+
+                  {/* Code Interpreter Sim */}
+                  <button onClick={() => handleModeSelect('[CODE INTERPRETER]:')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-orange-400">💻</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Code</span>
+                  </button>
+
+                  {/* Audio */}
+                  <button onClick={() => toggleRecording()} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/10 transition-all group border border-white/5 hover:border-skillfi-neon/50">
+                      <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform text-red-400">🎙️</div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">Studio</span>
+                  </button>
+              </div>
+              
+              <div className="mt-3 pt-2 border-t border-white/10 flex justify-between items-center px-1">
+                  <span className="text-[9px] text-gray-600 font-mono uppercase">System Ready</span>
+                  <span className="text-[9px] text-skillfi-neon font-mono uppercase animate-pulse">v4.5 Connected</span>
+              </div>
+          </div>
+      )}
+
       {attachment && (
         <div className="flex items-center justify-between glass-panel px-4 py-2 rounded-xl text-sm animate-fade-in shadow-lg border border-skillfi-neon/30">
           <span className="text-skillfi-neon truncate max-w-[200px] flex items-center gap-2">
@@ -107,11 +183,11 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
       )}
 
       {/* Floating Command Bar */}
-      <div className="flex items-end gap-2 p-2 glass-panel rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 relative overflow-hidden backdrop-blur-xl transition-all duration-300 hover:border-skillfi-neon/30">
+      <div className="flex items-end gap-2 p-2 glass-panel rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 relative overflow-visible backdrop-blur-xl transition-all duration-300 hover:border-skillfi-neon/30">
         
         {/* Recording Waveform Overlay */}
         {isRecording && (
-            <div className="absolute inset-0 z-0 flex items-center justify-center opacity-20 pointer-events-none">
+            <div className="absolute inset-0 z-0 flex items-center justify-center opacity-20 pointer-events-none rounded-2xl overflow-hidden">
                 <div className="flex items-end gap-1 h-full pb-4">
                     {[...Array(20)].map((_, i) => (
                         <div 
@@ -127,38 +203,44 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
             </div>
         )}
 
+        {/* PLUS BUTTON (The Advanced Trigger) */}
         <button 
-            onClick={() => fileInputRef.current?.click()}
-            className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all relative z-10"
+            onClick={() => setShowPlusMenu(!showPlusMenu)}
+            className={`p-3 rounded-xl transition-all relative z-10 group ${showPlusMenu ? 'bg-skillfi-neon text-black rotate-45' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
             disabled={isLoading}
-            title="Upload Data"
+            title="Open Command Center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
         </button>
-        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept="image/*,application/pdf,audio/*" />
+        
+        {/* Hidden File Input */}
+        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
 
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isRecording ? "Listening to audio stream..." : "Enter Command / Ask Skillfi..."}
+          placeholder={isRecording ? "Listening to audio stream..." : "Enter Command..."}
           className="flex-1 bg-transparent border-none px-2 py-3.5 text-white placeholder-gray-500 focus:outline-none text-base resize-none h-[52px] max-h-32 transition-colors relative z-10 font-medium"
           disabled={isLoading || isRecording}
           rows={1}
         />
 
-        <button 
-          onClick={toggleRecording}
-          className={`p-3 rounded-xl transition-all duration-300 relative z-10 ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-          disabled={isLoading}
-          title={isRecording ? "Stop Recording" : "Voice Input"}
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-            </svg>
-        </button>
+        {/* Quick Mic (Legacy/Quick Access) */}
+        {!text && !attachment && (
+            <button 
+            onClick={toggleRecording}
+            className={`p-3 rounded-xl transition-all duration-300 relative z-10 ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+            disabled={isLoading}
+            title={isRecording ? "Stop Recording" : "Voice Input"}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                </svg>
+            </button>
+        )}
 
         {isLoading ? (
           <button 
@@ -175,10 +257,10 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
           <button 
             onClick={handleSend}
             disabled={(!text.trim() && !attachment)}
-            className={`px-6 py-3 font-bold tracking-wide transition-all duration-300 rounded-xl shadow-lg flex items-center justify-center z-10 ${
+            className={`px-4 py-3 font-bold tracking-wide transition-all duration-300 rounded-xl shadow-lg flex items-center justify-center z-10 ${
               (!text.trim() && !attachment)
-                ? 'bg-white/5 text-gray-600 cursor-not-allowed border border-transparent' 
-                : 'bg-skillfi-neon text-black hover:bg-white hover:shadow-[0_0_20px_#00ffff] border border-transparent'
+                ? 'bg-transparent text-gray-600 cursor-not-allowed' 
+                : 'bg-skillfi-neon text-black hover:bg-white hover:shadow-[0_0_20px_#00ffff]'
             }`}
           >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
