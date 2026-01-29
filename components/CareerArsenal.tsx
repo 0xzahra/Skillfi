@@ -30,6 +30,30 @@ const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: stri
         advanced: "**The 'Host' Mentality:** Even if it's not your event, act like a host. Introduce people to each other. 'John, have you met Lisa? She works in Fintech.' You become the connector, the node of value. People will gravitate toward you because you make them feel comfortable.",
         pro_tip: "Never ask 'What do you do?' immediately. Ask 'What are you working on that excites you right now?' It opens up passion, not just job titles."
     },
+    'Wine Mastery': {
+        philosophy: "Wine is geography, history, and science in a bottle. Knowing it signals you are cultured, patient, and observant. It is the social lubricant of high-stakes deals.",
+        mechanics: "1. **Holding:** Always hold the glass by the stem, never the bowl (heat affects taste).\n2. **The 4 S's:** See (clarity), Swirl (release aroma), Smell (80% of taste), Sip (let it roll over tongue).\n3. **Ordering:** Do not fear the sommelier. Give them a price range and a preference ('I prefer bold, earthy reds').",
+        advanced: "**Old World vs. New World:** Know the difference. Old World (Europe) is often earthier, lower alcohol, regulated. New World (Americas/Aus) is fruit-forward, higher alcohol, experimental. If hosting a steak dinner, a Napa Cab (New World) or Bordeaux (Old World) are safe bets.",
+        pro_tip: "If asked to taste the wine for the table, you are checking for faults (cork taint/vinegar smell), not if you 'like' it. Smell, sip, nod to the server. Do not make a speech."
+    },
+    'Golf Diplomacy': {
+        philosophy: "Golf is the only sport where a CEO and an intern can play together on equal footing. It reveals character: how one handles adversity, luck, and honesty.",
+        mechanics: "1. **Pace of Play:** You don't have to be good, but you must be fast. Be ready to hit when it's your turn.\n2. **Silence:** Absolute silence when others are addressing the ball.\n3. **The Green:** Never walk on someone's 'line' (the path between their ball and the hole).",
+        advanced: "**Business Timing:** Never discuss business on the first few holes. Build rapport. Business happens naturally on the cart or at the 19th hole (drinks after). Let the senior person bring it up.",
+        pro_tip: "If you are bad, admit it early and laugh about it. People enjoy playing with a happy loser, but they hate playing with an angry one. Cheating is the ultimate sin; if you cheat at golf, you cheat at contracts."
+    },
+    'Horology': {
+        philosophy: "A watch is the only piece of jewelry a man can wear that serves a function. It signals appreciation for engineering, heritage, and the value of time itself.",
+        mechanics: "1. **Movements:** Quartz (battery, cheap, accurate) vs. Mechanical (springs, expensive, art). High society respects Mechanical.\n2. **Fit:** The lugs (where the strap attaches) should not overhang your wrist.\n3. **Occasion:** Dress watch (leather strap) for suits. Diver/Steel for casual.",
+        advanced: "**The Holy Trinity:** Patek Philippe, Audemars Piguet, Vacheron Constantin. Knowing these brands shows deep knowledge. Rolex is king of marketing, but Patek is king of legacy.",
+        pro_tip: "Match your leathers. If you wear a watch with a brown leather strap, your belt and shoes must be brown. Black strap? Black shoes."
+    },
+    'Art Collecting': {
+        philosophy: "Art is the ultimate asset class of the ultra-wealthy. It preserves capital while signaling cultural patronage. It is an intellectual pursuit, not just decoration.",
+        mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the artist/gallery (first sale). Secondary is buying at auction (resale).\n2. **Provenance:** The history of ownership. A clear paper trail adds immense value.\n3. **Medium:** Oil on canvas generally holds value better than prints or paper.",
+        advanced: "**Blue Chip vs. Emerging:** Blue Chip artists (Picasso, Warhol, Basquiat) are safe 'bonds'. Emerging artists are high-risk 'stocks'. Diversify your collection like a portfolio.",
+        pro_tip: "Buy with your eyes, not just your ears. If you buy for investment only, you will lose. Buy what you love; if it goes to zero, you still have a beautiful object on your wall."
+    }
 };
 
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
@@ -127,6 +151,10 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
     const eliteItems = [
         { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.' },
         { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.' },
+        { title: 'Wine Mastery', icon: '🍷', desc: 'Decode the wine list with confidence.' },
+        { title: 'Golf Diplomacy', icon: '⛳', desc: 'Business is done on the fairway.' },
+        { title: 'Horology', icon: '⌚', desc: 'Understanding timepieces and engineering.' },
+        { title: 'Art Collecting', icon: '🎨', desc: 'Asset preservation through culture.' },
     ];
 
     const openEliteModal = async (item: typeof eliteItems[0]) => {
@@ -136,7 +164,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
         AudioService.playProcessing();
 
         try {
-            const visual = await generateItemVisual(item.title + " high society luxury context");
+            const visual = await generateItemVisual(item.title + " high society luxury context cinematic lighting");
             if (visual) setEliteImage(`data:image/jpeg;base64,${visual}`);
         } catch (e) {
             console.error(e);
