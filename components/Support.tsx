@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { sendMessageToSkillfi } from '../services/geminiService';
+import React, { useState, useRef } from 'react';
+import { sendMessageToSkillfi, initializeChat } from '../services/geminiService';
 import { Message } from '../types';
 
 export const Support: React.FC = () => {
@@ -7,9 +7,18 @@ export const Support: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const chatRef = useRef<any>(null);
 
     const handleConnect = async () => {
         setStatus('CONNECTING');
+        
+        // Initialize the specific support chat session
+        try {
+            chatRef.current = await initializeChat('en');
+        } catch (e) {
+            console.error("Failed to init chat", e);
+        }
+
         // Simulate handshake
         setTimeout(() => {
             setStatus('LIVE');
@@ -17,7 +26,7 @@ export const Support: React.FC = () => {
             setMessages([{
                 id: 'sys-1',
                 role: 'model',
-                content: "Agent connected. Secure line established. How can I assist you today, operative?",
+                content: "AI Support Bot connected. I am ready to assist with technical issues or account queries.",
                 timestamp: Date.now()
             }]);
         }, 1500);
@@ -38,11 +47,16 @@ export const Support: React.FC = () => {
         setIsTyping(true);
 
         try {
-            const { initializeChat, sendMessageToSkillfi } = await import('../services/geminiService');
-            const chat = await initializeChat('en'); 
+            // Initialize if not ready (fallback)
+            if (!chatRef.current) {
+                chatRef.current = await initializeChat('en');
+            }
             
-            const supportPrompt = `[SYSTEM: ACT AS TECHNICAL SUPPORT AGENT. KEEP ANSWERS SHORT AND TECHNICAL] User Query: ${inputText}`;
-            const response = await sendMessageToSkillfi(chat, supportPrompt);
+            // Context injection for the specific persona
+            const supportContext = `[SYSTEM: ACT AS A HELPFUL AI TECHNICAL SUPPORT BOT FOR SKILLFI APP. KEEP ANSWERS SHORT, POLITE AND TECHNICAL. DO NOT HALLUCINATE FEATURES.]`;
+            
+            // Send message to the persistent chat session
+            const response = await sendMessageToSkillfi(chatRef.current, `${supportContext} ${inputText}`);
 
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
@@ -69,7 +83,7 @@ export const Support: React.FC = () => {
                 
                 <header className="text-center mb-6">
                     <h1 className="text-3xl font-bold font-display text-white tracking-tight mb-2 kinetic-type">Live Command Support</h1>
-                    <p className="text-gray-500 text-sm">Direct encrypted line to Skillfi Human Operators.</p>
+                    <p className="text-gray-500 text-sm">Direct encrypted line to Support.</p>
                 </header>
 
                 {status === 'IDLE' && (
@@ -100,11 +114,11 @@ export const Support: React.FC = () => {
                                 className="w-full py-4 bg-skillfi-neon text-black font-bold text-sm tracking-widest uppercase rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,255,255,0.2)] flex items-center justify-center gap-2"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12.375m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                                 </svg>
-                                Initiate Live Agent Uplink
+                                Start Live AI Chat Bot
                             </button>
-                            <p className="text-center text-[10px] text-gray-600 mt-3 uppercase tracking-wider">Agents Online: 4 // Wait Time: Instant</p>
+                            <p className="text-center text-[10px] text-gray-600 mt-3 uppercase tracking-wider">AI Status: Online // Wait Time: Instant</p>
                         </div>
                     </div>
                 )}
@@ -114,10 +128,10 @@ export const Support: React.FC = () => {
                         <div className="relative w-24 h-24 flex items-center justify-center mb-6">
                             <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
                             <div className="absolute inset-0 border-4 border-t-skillfi-neon border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                            <div className="text-2xl">📡</div>
+                            <div className="text-2xl">🤖</div>
                         </div>
-                        <h2 className="text-xl font-bold text-white animate-pulse">Establishing Secure Handshake...</h2>
-                        <p className="text-xs text-gray-500 mt-2 font-mono">Encrypting Payload // Routing via Mesh Network</p>
+                        <h2 className="text-xl font-bold text-white animate-pulse">Initializing AI Protocol...</h2>
+                        <p className="text-xs text-gray-500 mt-2 font-mono">Loading Knowledge Base // Establishing Secure Session</p>
                     </div>
                 )}
 
@@ -126,7 +140,7 @@ export const Support: React.FC = () => {
                         <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
                              <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <span className="text-xs font-bold text-green-500 uppercase">Live Connection</span>
+                                <span className="text-xs font-bold text-green-500 uppercase">Live AI Chat Bot</span>
                              </div>
                              <button onClick={() => setStatus('IDLE')} className="text-xs text-red-400 hover:text-red-300">End Session</button>
                         </div>
@@ -140,7 +154,7 @@ export const Support: React.FC = () => {
                                 </div>
                             ))}
                             {isTyping && (
-                                <div className="text-xs text-gray-500 italic animate-pulse">Agent is typing...</div>
+                                <div className="text-xs text-gray-500 italic animate-pulse">AI is typing...</div>
                             )}
                         </div>
 
@@ -167,7 +181,7 @@ export const Support: React.FC = () => {
             <div className="mt-8 flex justify-center w-full max-w-4xl text-center">
                 <div className="glass-panel p-4 rounded-xl w-full max-w-md">
                     <div className="text-gray-400 text-xs font-bold uppercase mb-1">Email Support</div>
-                    <div className="text-skillfi-neon text-sm font-mono">ops@skillfi.ai</div>
+                    <div className="text-skillfi-neon text-sm font-mono">usmanzahra19@gmail.com</div>
                 </div>
             </div>
         </div>

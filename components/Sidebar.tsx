@@ -23,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose,
     { id: 'trauma', label: 'Wellness', desc: 'Fortitude', icon: '☘️', action: 'MENTAL_HEALTH' },
     { id: 'relationships', label: t('relationships', currentLang), desc: 'Harmony', icon: '❤', action: 'RELATIONSHIPS_DASH' },
     { id: 'tribes', label: t('tribes', currentLang), desc: 'Network', icon: '⚔', action: 'TRIBES' },
+    { id: 'support', label: t('support', currentLang), desc: 'Assistance', icon: '🛟', action: 'SUPPORT' },
     { id: 'settings', label: t('settings', currentLang), desc: 'System', icon: '⚙', action: 'SETTINGS' },
     { id: 'logout', label: t('logout', currentLang), desc: 'Exit', icon: '⏎', action: 'LOGOUT' },
   ];

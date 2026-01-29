@@ -65,6 +65,12 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
         AudioService.playSuccess();
     };
 
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        AudioService.playSuccess();
+        alert(`Address copied: ${text}`);
+    };
+
     return (
         <div className="p-6 max-w-4xl mx-auto font-sans animate-fade-in overflow-y-auto h-full pb-20">
             <header className="mb-8 border-b border-gray-800 pb-4">
@@ -165,8 +171,50 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
                     </button>
                 </div>
 
+                {/* DONATION SECTION */}
+                <section className="mt-12">
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-[#020409] px-3 text-xs font-bold text-gray-500 uppercase tracking-widest">Support The Builder</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div 
+                            onClick={() => copyToClipboard('zahrah.nft')}
+                            className="bg-gradient-to-r from-purple-900/10 to-black border border-purple-500/20 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-purple-500/50 transition-all group hover:bg-purple-900/10"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-xl border border-purple-500/30">💎</div>
+                                <div>
+                                    <div className="text-[10px] text-purple-400 font-bold uppercase tracking-wide">Ethereum / ENS</div>
+                                    <div className="text-white font-mono text-sm tracking-wide">zahrah.nft</div>
+                                </div>
+                            </div>
+                            <span className="text-gray-600 text-[10px] font-bold uppercase tracking-widest group-hover:text-white transition-colors border border-white/10 px-2 py-1 rounded">Copy</span>
+                        </div>
+
+                        <div 
+                            onClick={() => copyToClipboard('arewa.base.eth')}
+                            className="bg-gradient-to-r from-blue-900/10 to-black border border-blue-500/20 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-blue-500/50 transition-all group hover:bg-blue-900/10"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-xl border border-blue-500/30">🔵</div>
+                                <div>
+                                    <div className="text-[10px] text-blue-400 font-bold uppercase tracking-wide">Base Network</div>
+                                    <div className="text-white font-mono text-sm tracking-wide">arewa.base.eth</div>
+                                </div>
+                            </div>
+                            <span className="text-gray-600 text-[10px] font-bold uppercase tracking-widest group-hover:text-white transition-colors border border-white/10 px-2 py-1 rounded">Copy</span>
+                        </div>
+                    </div>
+                </section>
+
                 {/* DANGER ZONE */}
-                <section className="bg-red-900/10 border border-red-900/30 rounded-2xl p-6 mt-12 backdrop-blur-sm">
+                <section className="bg-red-900/10 border border-red-900/30 rounded-2xl p-6 backdrop-blur-sm">
                     <h2 className="text-lg font-bold text-red-500 mb-4 flex items-center gap-2">
                         Danger Zone
                     </h2>
