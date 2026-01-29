@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona } from '../services/geminiService';
 import { LanguageCode } from '../types';
 
-type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'RWA' | 'TAX';
+type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX';
+type MarketCategory = 'METALS' | 'CRYPTO' | 'STOCKS';
 
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
@@ -17,9 +18,44 @@ const MONEY_QUOTES = [
     "Wealth consists not in having great possessions, but in having few wants."
 ];
 
+// --- MARKET DATA MOCKS ---
+const METALS = [
+    { id: 'gold', name: 'Gold', symbol: 'XAU', price: 2642.80, change: 0.45, icon: '🧈', color: 'text-yellow-500', desc: 'The eternal store of value.' },
+    { id: 'silver', name: 'Silver', symbol: 'XAG', price: 31.15, change: -0.12, icon: '🥈', color: 'text-gray-300', desc: 'Industrial and precious.' },
+    { id: 'platinum', name: 'Platinum', symbol: 'XPT', price: 980.50, change: 1.20, icon: '⚪', color: 'text-blue-100', desc: 'Rarer than gold.' },
+    { id: 'palladium', name: 'Palladium', symbol: 'XPD', price: 1105.20, change: -0.50, icon: '🔩', color: 'text-gray-400', desc: 'Critical for auto catalysts.' },
+    { id: 'rhodium', name: 'Rhodium', symbol: 'XRH', price: 4750.00, change: 0.10, icon: '🧪', color: 'text-pink-200', desc: 'The most expensive precious metal.' },
+];
+
+const CRYPTO = [
+    { id: 'btc', name: 'Bitcoin', symbol: 'BTC', price: 68450.00, change: 2.4, icon: '₿', color: 'text-orange-500' },
+    { id: 'eth', name: 'Ethereum', symbol: 'ETH', price: 3850.20, change: 1.8, icon: 'Ξ', color: 'text-purple-400' },
+    { id: 'sol', name: 'Solana', symbol: 'SOL', price: 145.50, change: 5.2, icon: '◎', color: 'text-green-400' },
+    { id: 'bnb', name: 'Binance Coin', symbol: 'BNB', price: 610.00, change: -0.5, icon: '🟡', color: 'text-yellow-400' },
+    { id: 'xrp', name: 'Ripple', symbol: 'XRP', price: 0.62, change: 0.1, icon: '✕', color: 'text-blue-400' },
+    { id: 'ada', name: 'Cardano', symbol: 'ADA', price: 0.45, change: -1.2, icon: '₳', color: 'text-blue-300' },
+    { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', price: 0.16, change: 8.5, icon: 'Ð', color: 'text-yellow-200' },
+    { id: 'dot', name: 'Polkadot', symbol: 'DOT', price: 7.50, change: -2.1, icon: '●', color: 'text-pink-500' },
+];
+
+const STOCKS = [
+    { id: 'spy', name: 'S&P 500', symbol: 'SPY', price: 520.00, change: 0.3, icon: '🇺🇸', color: 'text-green-500' },
+    { id: 'nvda', name: 'NVIDIA', symbol: 'NVDA', price: 950.00, change: 3.2, icon: '👁️', color: 'text-green-400' },
+    { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', price: 185.50, change: 0.5, icon: '🍎', color: 'text-gray-200' },
+    { id: 'msft', name: 'Microsoft', symbol: 'MSFT', price: 420.00, change: 1.2, icon: '🪟', color: 'text-blue-400' },
+    { id: 'tsla', name: 'Tesla', symbol: 'TSLA', price: 178.00, change: -1.5, icon: '🚗', color: 'text-red-400' },
+    { id: 'googl', name: 'Alphabet', symbol: 'GOOGL', price: 175.20, change: -0.4, icon: '🔍', color: 'text-yellow-400' },
+    { id: 'amzn', name: 'Amazon', symbol: 'AMZN', price: 180.00, change: 0.8, icon: '📦', color: 'text-orange-300' },
+    { id: 'meta', name: 'Meta', symbol: 'META', price: 490.00, change: 2.1, icon: '∞', color: 'text-blue-500' },
+];
+
 export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLang }) => {
   const [activeTab, setActiveTab] = useState<FinanceTab>('BUDGET');
   const [dailyQuote, setDailyQuote] = useState(MONEY_QUOTES[0]);
+
+  // Market State
+  const [marketCategory, setMarketCategory] = useState<MarketCategory>('METALS');
+  const [marketSearch, setMarketSearch] = useState('');
 
   // Budget State
   const [salary, setSalary] = useState(5000);
@@ -96,7 +132,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       setItemImage(null);
       setIsEnlightening(true);
 
-      // 1. Generate Explanation
       try {
           const chat = await initializeChat(currentLang);
           const prompt = `Explain strictly the financial mechanics of: ${item.name}. Is it an Asset, Liability, or Luxury? Why? If it's rare, explain its exclusivity to high society. Max 50 words. Simple language. Language: ${currentLang}`;
@@ -106,11 +141,42 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           setEnlightenment("Could not load data.");
       }
 
-      // 2. Generate Image
       const img = await generateItemVisual(item.name);
       setItemImage(img ? `data:image/jpeg;base64,${img}` : null);
       
       setIsEnlightening(false);
+  };
+
+  // --- Market Filters ---
+  const getFilteredMarketData = () => {
+      let data: any[] = [];
+      if (marketCategory === 'METALS') data = METALS;
+      if (marketCategory === 'CRYPTO') data = CRYPTO;
+      if (marketCategory === 'STOCKS') data = STOCKS;
+
+      if (marketSearch) {
+          const lower = marketSearch.toLowerCase();
+          const filtered = data.filter(item => 
+              item.name.toLowerCase().includes(lower) || 
+              item.symbol.toLowerCase().includes(lower)
+          );
+          
+          // Simulation for "All Cryptos/Stocks in the world"
+          if (filtered.length === 0 && marketSearch.length > 1) {
+              return [{
+                  id: 'sim-1',
+                  name: marketSearch.toUpperCase(),
+                  symbol: marketSearch.substring(0, 4).toUpperCase(),
+                  price: (Math.random() * 1000).toFixed(2),
+                  change: (Math.random() * 20 - 10).toFixed(2),
+                  icon: '🔍',
+                  color: 'text-white',
+                  isSimulated: true
+              }];
+          }
+          return filtered;
+      }
+      return data;
   };
 
   // --- Calculations ---
@@ -151,8 +217,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   const taxData = calculateTax();
 
   // --- Effects & Animations ---
-
-  // Portfolio Galaxy Animation
   useEffect(() => {
       if (activeTab === 'PROFIT') {
           const canvas = galaxyCanvasRef.current;
@@ -160,7 +224,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           
           if (!canvas || !ctx) return;
 
-          // Resize Handler
           const handleResize = () => {
              if (containerRef.current && canvas) {
                  canvas.width = containerRef.current.clientWidth;
@@ -174,7 +237,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           let animationFrameId: number;
           let particles: {x: number, y: number, size: number, speed: number, angle: number, radius: number}[] = [];
           
-          // Init Particles
           for(let i=0; i<40; i++) {
               particles.push({
                   x: 0, y: 0,
@@ -188,21 +250,18 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           const render = () => {
               if (!ctx || !canvas) return;
 
-              // Use current canvas dimensions to avoid clearing wrong area on resize
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               const centerX = canvas.width / 2;
               const centerY = canvas.height / 2;
               
               const isProfit = profitData.profit >= 0;
-              const primaryColor = isProfit ? '#00ffaa' : '#ff4444'; // Green/Cyan vs Red
+              const primaryColor = isProfit ? '#00ffaa' : '#ff4444'; 
               const glowColor = isProfit ? 'rgba(0, 255, 170, 0.2)' : 'rgba(255, 68, 68, 0.2)';
 
-              // Draw Central Star (Asset)
               const baseSize = 20;
-              const growth = Math.min(Math.abs(profitData.roi), 50) / 2; // Cap growth
+              const growth = Math.min(Math.abs(profitData.roi), 50) / 2;
               const starSize = baseSize + growth;
 
-              // Glow
               const gradient = ctx.createRadialGradient(centerX, centerY, starSize * 0.2, centerX, centerY, starSize * 3);
               gradient.addColorStop(0, primaryColor);
               gradient.addColorStop(1, 'transparent');
@@ -211,15 +270,13 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               ctx.arc(centerX, centerY, starSize * 3, 0, Math.PI * 2);
               ctx.fill();
 
-              // Core
               ctx.fillStyle = '#fff';
               ctx.beginPath();
               ctx.arc(centerX, centerY, starSize * 0.5, 0, Math.PI * 2);
               ctx.fill();
 
-              // Particles (Orbiting Market)
               particles.forEach(p => {
-                  p.angle += p.speed * (isProfit ? 1 : 0.5); // Fast market if profit
+                  p.angle += p.speed * (isProfit ? 1 : 0.5); 
                   p.x = centerX + Math.cos(p.angle) * p.radius;
                   p.y = centerY + Math.sin(p.angle) * p.radius;
                   
@@ -228,7 +285,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                   ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                   ctx.fill();
                   
-                  // Connect lines if close
                   if (Math.random() > 0.95) {
                        ctx.strokeStyle = glowColor;
                        ctx.lineWidth = 0.5;
@@ -249,7 +305,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       }
   }, [activeTab, profitData]);
 
-  // --- Handlers ---
   const addExpense = () => {
     if (newExpenseName && newExpenseCost) {
       setExpenses([...expenses, { id: Date.now(), name: newExpenseName, cost: Number(newExpenseCost) }]);
@@ -285,7 +340,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
     <div className="p-4 md:p-6 w-full mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-32 scrollbar-hide">
       <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools <span className="text-skillfi-neon text-shadow-neon">v4.2</span></h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools <span className="text-skillfi-neon text-shadow-neon">v4.3</span></h1>
             <p className="text-gray-500 text-sm mt-1">Control your financial future.</p>
         </div>
         <div className="p-3 bg-white/5 border-l-4 border-green-500 rounded-r-xl max-w-sm hidden md:block">
@@ -293,9 +348,9 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         </div>
       </header>
 
-      {/* Tabs - Scrollable on mobile */}
+      {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-white/5 pb-1 overflow-x-auto scrollbar-hide w-full">
-        {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'RWA', 'TAX'] as FinanceTab[]).map((tab) => (
+        {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'MARKETS', 'TAX'] as FinanceTab[]).map((tab) => (
             <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -316,7 +371,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {activeTab === 'BUDGET' && (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Income Input */}
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-skillfi-neon/30 transition-colors">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Monthly Income ($)</label>
                         <input 
@@ -327,9 +381,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         />
                     </div>
 
-                    {/* Savings Bloom Visualization */}
                     <div className="relative bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center overflow-hidden min-h-[160px]">
-                        {/* Bloom Animation Layer */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
                             <div 
                                 className={`w-32 h-32 rounded-full blur-3xl transition-all duration-1000 ${budgetData.savings >= 0 ? 'bg-skillfi-neon animate-pulse' : 'bg-red-600 animate-pulse'}`}
@@ -337,7 +389,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                             ></div>
                         </div>
 
-                        {/* Text Layer */}
                         <div className="relative z-10 text-center">
                             <div className="flex justify-center items-center gap-2 mb-1">
                                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Saved</span>
@@ -358,7 +409,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         <span className="text-[10px] normal-case bg-white/10 px-2 py-0.5 rounded text-white">${budgetData.totalExpenses.toLocaleString()} Total</span>
                     </h3>
                     
-                    {/* Expense Rivers List */}
                     <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
                         {expenses.map((exp) => (
                             <div key={exp.id} className="relative group overflow-hidden rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
@@ -372,7 +422,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                                         <button onClick={() => removeExpense(exp.id)} className="text-gray-600 hover:text-red-500 transition-colors">×</button>
                                     </div>
                                 </div>
-                                {/* Bar Proportion */}
                                 <div className="absolute bottom-0 left-0 h-0.5 bg-red-500/50" style={{ width: `${Math.min((exp.cost / (salary || 1)) * 100, 100)}%` }}></div>
                             </div>
                         ))}
@@ -425,7 +474,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                     </button>
                 </div>
 
-                {/* Wealth Persona Result */}
                 {wealthPersona && (
                     <div className="mt-6 animate-fade-in bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-serif">⚖️</div>
@@ -452,7 +500,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* PROFIT TAB */}
         {activeTab === 'PROFIT' && (
              <div className="space-y-6">
-                 {/* Inputs */}
                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                         { label: 'Buy Price ($)', val: buyPrice, set: setBuyPrice },
@@ -472,14 +519,12 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                     ))}
                  </div>
 
-                 {/* Portfolio Galaxy Canvas */}
                  <div ref={containerRef} className="relative w-full h-64 bg-black rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
                     <canvas 
                         ref={galaxyCanvasRef} 
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                     />
                     
-                    {/* Overlay Stats */}
                     <div className="relative z-10 text-center pointer-events-none backdrop-blur-md p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl mx-4">
                         <div className="flex justify-center items-center gap-2 mb-1">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Return</span>
@@ -510,7 +555,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
              </div>
         )}
 
-        {/* INTEREST TAB (Net Worth Orb) */}
+        {/* INTEREST TAB */}
         {activeTab === 'INTEREST' && (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -532,10 +577,8 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                     ))}
                 </div>
 
-                {/* Net Worth Orb Visualization */}
                 <div className="mt-6 min-h-[250px] p-6 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-skillfi-neon/30 transition-colors">
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                         {/* The Orb */}
                          <div 
                             className="rounded-full transition-all duration-1000 relative"
                             style={{
@@ -546,12 +589,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                                 transform: `scale(${1 + Math.min(interestTotal / 500000, 0.5)})`
                             }}
                          >
-                             {/* Inner Pulse */}
                              <div className="absolute inset-0 rounded-full animate-pulse bg-skillfi-neon/5"></div>
                          </div>
                     </div>
 
-                    {/* Orb Data */}
                     <div className="relative z-10 text-center">
                         <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block text-shadow-sm">Future Wealth</span>
                         <span className="text-4xl md:text-6xl font-black font-display text-white tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
@@ -565,13 +606,12 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
             </div>
         )}
 
-        {/* WEALTH MASTERY (NEW) */}
+        {/* WEALTH MASTERY */}
         {activeTab === 'MASTERY' && (
              <div className="space-y-8 animate-fade-in relative">
                  <p className="text-center text-gray-400 text-sm max-w-lg mx-auto">
                      Learn the difference between things that make you money (Assets) and things that take your money (Liabilities).
                  </p>
-                 {/* Item Inspector Modal */}
                  {selectedItem && (
                      <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-fade-in">
                         <div className="glass-panel w-full max-w-lg rounded-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
@@ -614,7 +654,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                  )}
 
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                     {/* ASSETS */}
                      <div className="space-y-4">
                          <h3 className="text-green-500 font-bold text-xs uppercase tracking-widest text-center">Real Assets (Good)</h3>
                          {masteryItems.assets.map((item, i) => (
@@ -628,7 +667,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                          ))}
                      </div>
 
-                     {/* LIABILITIES */}
                      <div className="space-y-4">
                          <h3 className="text-red-500 font-bold text-xs uppercase tracking-widest text-center">Liabilities (Bad)</h3>
                          {masteryItems.liabilities.map((item, i) => (
@@ -642,7 +680,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                          ))}
                      </div>
 
-                     {/* LUXURIES */}
                      <div className="space-y-4">
                          <h3 className="text-purple-500 font-bold text-xs uppercase tracking-widest text-center">Luxuries (Fun)</h3>
                          {masteryItems.luxuries.map((item, i) => (
@@ -657,7 +694,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                      </div>
                  </div>
 
-                 {/* 1% VAULT */}
                  <div className="glass-panel p-8 rounded-2xl border border-yellow-500/20 bg-gradient-to-br from-black to-yellow-900/10 relative overflow-hidden">
                      <div className="absolute top-0 right-0 p-6 opacity-5 text-8xl text-yellow-500 font-serif italic select-none">The 1%</div>
                      <h3 className="text-yellow-500 font-bold text-lg font-display mb-6 flex items-center gap-3">
@@ -678,47 +714,88 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
              </div>
         )}
 
-        {/* RWA MONITOR (Gold/Silver) */}
-        {activeTab === 'RWA' && (
+        {/* GLOBAL MARKETS (NEW) */}
+        {activeTab === 'MARKETS' && (
             <div className="space-y-6 animate-fade-in">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* GOLD (XAU) CARD */}
-                    <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-yellow-500 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:opacity-20 transition-opacity">🧈</div>
-                        <h3 className="text-yellow-500 font-bold text-sm tracking-widest uppercase mb-4">GOLD PRICE</h3>
-                        <div className="text-4xl font-black text-white mb-2">$2,642.80</div>
-                        <div className="text-green-400 text-xs font-mono font-bold mb-6">▲ +0.45% (Today)</div>
-                        
-                        {/* Mock Chart Line */}
-                        <div className="w-full h-16 flex items-end gap-1 opacity-50">
-                            {[40,45,42,50,55,53,60,65,62,70,75,80].map((h, i) => (
-                                <div key={i} className="flex-1 bg-yellow-500 rounded-t-sm" style={{height: `${h}%`}}></div>
-                            ))}
-                        </div>
+                 {/* Sub Filters */}
+                 <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                    <div className="flex bg-white/5 p-1 rounded-xl">
+                        {(['METALS', 'CRYPTO', 'STOCKS'] as MarketCategory[]).map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => { setMarketCategory(cat); setMarketSearch(''); }}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${
+                                    marketCategory === cat 
+                                    ? 'bg-skillfi-neon text-black shadow-lg' 
+                                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
-
-                    {/* SILVER (XAG) CARD */}
-                    <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-gray-300 relative overflow-hidden group">
-                         <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:opacity-20 transition-opacity">🥈</div>
-                        <h3 className="text-gray-300 font-bold text-sm tracking-widest uppercase mb-4">SILVER PRICE</h3>
-                        <div className="text-4xl font-black text-white mb-2">$31.15</div>
-                        <div className="text-red-400 text-xs font-mono font-bold mb-6">▼ -0.12% (Today)</div>
-
-                         {/* Mock Chart Line */}
-                         <div className="w-full h-16 flex items-end gap-1 opacity-50">
-                            {[60,55,58,50,45,48,40,42,38,35,40,38].map((h, i) => (
-                                <div key={i} className="flex-1 bg-gray-400 rounded-t-sm" style={{height: `${h}%`}}></div>
-                            ))}
-                        </div>
+                    <div className="relative w-full md:w-64">
+                         <input 
+                            type="text" 
+                            placeholder={`Search ${marketCategory.toLowerCase()}...`} 
+                            value={marketSearch}
+                            onChange={(e) => setMarketSearch(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-skillfi-neon outline-none"
+                        />
                     </div>
                  </div>
 
-                 <div className="glass-panel p-6 rounded-2xl">
-                     <h3 className="text-white font-bold mb-4">Vault Holdings</h3>
-                     <div className="text-center py-8 text-gray-500 text-xs uppercase tracking-widest border border-dashed border-white/10 rounded-xl">
-                         No Physical Assets Linked
+                 {/* Simulated Live Connection Banner */}
+                 <div className="bg-green-900/10 border border-green-500/20 p-3 rounded-lg flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                         <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Global Market Data Connection: Active</span>
                      </div>
+                     <span className="text-[10px] text-gray-500 font-mono">LATENCY: 12ms</span>
                  </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     {getFilteredMarketData().map((item, i) => (
+                         <div key={i} className={`glass-panel p-5 rounded-xl border border-white/5 hover:border-skillfi-neon/30 transition-all group ${item.isSimulated ? 'border-dashed border-gray-700' : ''}`}>
+                             <div className="flex justify-between items-start mb-4">
+                                 <div className="flex items-center gap-3">
+                                     <div className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</div>
+                                     <div>
+                                         <div className="font-bold text-white text-sm">{item.name}</div>
+                                         <div className="text-[10px] text-gray-500 font-mono">{item.symbol}</div>
+                                     </div>
+                                 </div>
+                                 <div className="text-right">
+                                     <div className={`text-sm font-bold ${item.color || 'text-white'}`}>${Number(item.price).toLocaleString()}</div>
+                                     <div className={`text-[10px] font-bold ${Number(item.change) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                         {Number(item.change) >= 0 ? '+' : ''}{item.change}%
+                                     </div>
+                                 </div>
+                             </div>
+                             
+                             {/* Mini Mock Chart */}
+                             <div className="h-10 flex items-end gap-1 opacity-30 mt-2">
+                                 {[...Array(20)].map((_, idx) => (
+                                     <div 
+                                        key={idx} 
+                                        className={`flex-1 rounded-t-sm ${Number(item.change) >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
+                                        style={{height: `${30 + Math.random() * 70}%`}}
+                                     ></div>
+                                 ))}
+                             </div>
+
+                             {item.desc && <p className="mt-3 text-[10px] text-gray-400 italic border-t border-white/5 pt-2">{item.desc}</p>}
+                             {item.isSimulated && <p className="mt-3 text-[9px] text-skillfi-neon uppercase tracking-widest text-center border-t border-dashed border-gray-700 pt-2">Simulated Data</p>}
+                         </div>
+                     ))}
+                 </div>
+                 
+                 {getFilteredMarketData().length === 0 && (
+                     <div className="text-center py-20 opacity-50">
+                         <div className="text-4xl mb-2">🔭</div>
+                         <p className="text-xs uppercase tracking-widest">Asset not found in top lists.</p>
+                     </div>
+                 )}
             </div>
         )}
 
@@ -756,7 +833,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Tax Liability Card */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Money Lost to Tax</span>
@@ -772,7 +848,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         <span className="text-[10px] text-gray-500 mt-2 text-right">You lose {taxData.effectiveRate.toFixed(1)}% of income</span>
                     </div>
 
-                    {/* Net Income Card */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Money You Keep</span>
