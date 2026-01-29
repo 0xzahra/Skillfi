@@ -353,7 +353,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
             <header className="mb-8">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tighter kinetic-type">
-                        Career Arsenal<span className="text-skillfi-neon">.</span>
+                        Career Toolkit<span className="text-skillfi-neon">.</span>
                     </h1>
                 </div>
                 <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest">Plan, Build, and Refine.</p>
