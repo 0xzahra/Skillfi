@@ -383,7 +383,149 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 ))}
             </div>
 
-            {/* --- RESUME BUILDER --- */}
+            {/* --- PATHFINDER --- */}
+            {activeModule === 'PATH' && (
+                 <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Path UI */}
+                    <div className="glass-panel p-6 rounded-2xl h-fit">
+                        <h2 className="text-xl font-bold text-white mb-2">Role Generator</h2>
+                        <p className="text-xs text-gray-500 mb-6">Assigning specific career roles based on profile.</p>
+
+                        <div className="space-y-6">
+                            {/* Profile Summary Card */}
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Detected Profile</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div className="text-[10px] text-gray-500">Age</div>
+                                        <div className="text-white font-bold">{user.age || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500">Type</div>
+                                        <div className="text-white font-bold">{user.userType || 'N/A'}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-[10px] text-gray-500">Education</div>
+                                        <div className="text-white font-bold text-sm">{user.qualification || 'N/A'}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-[10px] text-gray-500">Core Skills</div>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {user.skills.length > 0 ? user.skills.map(s => (
+                                                <span key={s} className="bg-skillfi-neon/10 text-skillfi-neon text-[9px] px-1.5 py-0.5 rounded border border-skillfi-neon/20">{s}</span>
+                                            )) : <span className="text-gray-600 text-xs">None listed</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Strategy Toggle */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Strategy Mode</label>
+                                <div className="grid grid-cols-2 gap-2 bg-black/40 p-1 rounded-xl">
+                                    <button 
+                                        onClick={() => setRiskTolerance('STABLE')}
+                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'STABLE' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        🛡️ Stable Role
+                                    </button>
+                                    <button 
+                                        onClick={() => setRiskTolerance('MOONSHOT')}
+                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'MOONSHOT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        🚀 Moonshot Role
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handlePathfinder}
+                                disabled={isMapping}
+                                className="w-full py-4 bg-gradient-to-r from-skillfi-neon to-yellow-500 text-black font-bold uppercase rounded-xl hover:shadow-[0_0_20px_#D4AF37] transition-all text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
+                            >
+                                {isMapping ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                        Computing...
+                                    </>
+                                ) : 'Generate Roles'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="glass-panel p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border border-white/10 flex flex-col">
+                         {careerMap ? (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="border-b border-white/10 pb-4">
+                                     <h3 className="text-skillfi-neon font-bold font-display text-lg mb-1">Strategic Analysis</h3>
+                                     <p className="text-gray-400 text-xs italic">"{careerMap.advice}"</p>
+                                </div>
+
+                                {/* Traditional Role Card */}
+                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-blue-500 hover:bg-white/10 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-lg font-bold text-white uppercase">{careerMap.web2.role}</div>
+                                        <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">TRADITIONAL</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {careerMap.web2.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
+                                    </div>
+                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5 mb-3">➤ {careerMap.web2.action}</div>
+                                    
+                                    {/* Global Salaries */}
+                                    <div className="bg-blue-900/10 p-3 rounded-lg border border-blue-500/20">
+                                        <div className="text-[10px] text-blue-300 font-bold uppercase mb-2">
+                                            Global Salary Intelligence
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {careerMap.web2.salaries?.map((item, idx) => (
+                                                <div key={idx} className="text-[9px] text-gray-300 bg-black/40 px-2 py-1.5 rounded border border-white/5 flex justify-between items-center">
+                                                    <span className="text-gray-500 font-bold uppercase">{item.country}</span>
+                                                    <span className="text-white font-mono">{item.amount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Web3 Role Card */}
+                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-purple-500 hover:bg-white/10 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-lg font-bold text-white uppercase">{careerMap.web3.role}</div>
+                                        <span className="text-[9px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded border border-purple-500/30">WEB3</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {careerMap.web3.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
+                                    </div>
+                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5 mb-3">➤ {careerMap.web3.action}</div>
+
+                                    {/* Global Salaries */}
+                                    <div className="bg-purple-900/10 p-3 rounded-lg border border-purple-500/20">
+                                        <div className="text-[10px] text-purple-300 font-bold uppercase mb-2">
+                                            Global Salary Intelligence
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {careerMap.web3.salaries?.map((item, idx) => (
+                                                <div key={idx} className="text-[9px] text-gray-300 bg-black/40 px-2 py-1.5 rounded border border-white/5 flex justify-between items-center">
+                                                    <span className="text-gray-500 font-bold uppercase">{item.country}</span>
+                                                    <span className="text-white font-mono">{item.amount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                         ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-gray-600 min-h-[300px]">
+                                <div className="text-5xl mb-4 opacity-20">🗺️</div>
+                                <p className="text-xs uppercase tracking-widest">Awaiting Command</p>
+                            </div>
+                         )}
+                    </div>
+                </div>
+            )}
+            
+            {/* ... Other modules ... */}
             {activeModule === 'RESUME' && (
                 <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
@@ -677,119 +819,6 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user }) => {
                 </div>
             )}
 
-            {/* --- PATHFINDER --- */}
-            {activeModule === 'PATH' && (
-                 <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Path UI */}
-                    <div className="glass-panel p-6 rounded-2xl h-fit">
-                        <h2 className="text-xl font-bold text-white mb-2">Route Planner</h2>
-                        <p className="text-xs text-gray-500 mb-6">Auto-calibrated to your profile.</p>
-
-                        <div className="space-y-6">
-                            {/* Profile Summary Card */}
-                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Detected Profile</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <div className="text-[10px] text-gray-500">Age</div>
-                                        <div className="text-white font-bold">{user.age || 'N/A'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] text-gray-500">Type</div>
-                                        <div className="text-white font-bold">{user.userType || 'N/A'}</div>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <div className="text-[10px] text-gray-500">Education</div>
-                                        <div className="text-white font-bold text-sm">{user.qualification || 'N/A'}</div>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <div className="text-[10px] text-gray-500">Core Skills</div>
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                            {user.skills.length > 0 ? user.skills.map(s => (
-                                                <span key={s} className="bg-skillfi-neon/10 text-skillfi-neon text-[9px] px-1.5 py-0.5 rounded border border-skillfi-neon/20">{s}</span>
-                                            )) : <span className="text-gray-600 text-xs">None listed</span>}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Strategy Toggle */}
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Strategy Mode</label>
-                                <div className="grid grid-cols-2 gap-2 bg-black/40 p-1 rounded-xl">
-                                    <button 
-                                        onClick={() => setRiskTolerance('STABLE')}
-                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'STABLE' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        🛡️ Stable Path
-                                    </button>
-                                    <button 
-                                        onClick={() => setRiskTolerance('MOONSHOT')}
-                                        className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'MOONSHOT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        🚀 Moonshot
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-gray-500 mt-2 text-center">
-                                    {riskTolerance === 'STABLE' ? 'Focuses on corporate ladders, job security, and steady income.' : 'Focuses on startups, high-risk equity, and rapid scaling.'}
-                                </p>
-                            </div>
-
-                            <button 
-                                onClick={handlePathfinder}
-                                disabled={isMapping}
-                                className="w-full py-4 bg-gradient-to-r from-skillfi-neon to-yellow-500 text-black font-bold uppercase rounded-xl hover:shadow-[0_0_20px_#D4AF37] transition-all text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
-                            >
-                                {isMapping ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        Computing...
-                                    </>
-                                ) : 'Generate Personal Roadmap'}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div className="glass-panel p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border border-white/10 flex flex-col">
-                         {careerMap ? (
-                            <div className="space-y-6 animate-fade-in">
-                                <div className="border-b border-white/10 pb-4">
-                                     <h3 className="text-skillfi-neon font-bold font-display text-lg mb-1">Strategic Analysis</h3>
-                                     <p className="text-gray-400 text-xs italic">"{careerMap.advice}"</p>
-                                </div>
-
-                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-blue-500 hover:bg-white/10 transition-colors">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="text-lg font-bold text-white">WEB2: {careerMap.web2.role}</div>
-                                        <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">TRADITIONAL</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {careerMap.web2.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
-                                    </div>
-                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5">➤ {careerMap.web2.action}</div>
-                                </div>
-
-                                <div className="bg-white/5 p-5 rounded-xl border-l-4 border-purple-500 hover:bg-white/10 transition-colors">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="text-lg font-bold text-white">WEB3: {careerMap.web3.role}</div>
-                                        <span className="text-[9px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded border border-purple-500/30">EMERGING</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {careerMap.web3.skills.map((s, i) => <span key={i} className="text-[9px] text-gray-400 bg-black/30 px-1.5 rounded">{s}</span>)}
-                                    </div>
-                                    <div className="text-xs bg-black/30 p-3 rounded text-white font-mono border border-white/5">➤ {careerMap.web3.action}</div>
-                                </div>
-                            </div>
-                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-gray-600 min-h-[300px]">
-                                <div className="text-5xl mb-4 opacity-20">🗺️</div>
-                                <p className="text-xs uppercase tracking-widest">Awaiting Command</p>
-                            </div>
-                         )}
-                    </div>
-                </div>
-            )}
-            
             {/* --- ELITE MODULE --- */}
             {activeModule === 'ELITE' && (
                 <div className="animate-fade-in relative">

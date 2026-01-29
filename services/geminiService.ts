@@ -299,34 +299,57 @@ export const generateCVContent = async (userContext: string): Promise<string | n
     }
 };
 
+export interface GlobalSalary {
+    country: string;
+    amount: string; // e.g. "$120k/yr" or "₦500k/mo"
+}
+
+export interface CareerRole {
+    role: string;
+    skills: string[];
+    action: string;
+    salaries: GlobalSalary[];
+}
+
 export interface CareerRoadmap {
-    web2: { role: string; skills: string[]; action: string };
-    web3: { role: string; skills: string[]; action: string };
+    web2: CareerRole;
+    web3: CareerRole;
     advice: string;
 }
 
 export const generateCareerRoadmap = async (userContext: string): Promise<CareerRoadmap | null> => {
     const ai = getClient();
     const prompt = `
-    Analyze this user context deeply: "${userContext}".
+    Analyze this user context: "${userContext}".
     
-    Based on their background, age, and risk profile, suggest 2 distinct career paths:
-    1. Web2: A traditional, stable corporate or tech role.
-    2. Web3: An emerging, decentralized, or blockchain-based role (high potential).
+    Recommend 2 specific professional paths ("Roles").
     
-    Return STRICT JSON format:
+    1. 'web2': A SIMPLE, TRADITIONAL ROLE. Use standard titles everyone knows (e.g., Doctor, Pilot, Tailor, Teacher, Designer, Accountant, Chef, Nurse). Do not use complex corporate jargon.
+    2. 'web3': A SPECIFIC WEB3 ROLE. Distinguish between roles clearly (e.g., 'Community Moderator' is different from 'Community Manager', 'Collab Manager' is different from 'Alpha Hunter').
+    
+    For EACH role, you must provide:
+    - Exact Role Title (Simple & Clear).
+    - 3 Hard Skills.
+    - 1 specific First Step Action.
+    - 'salaries': An array of 4 distinct global locations with their LOCAL currency and time period (yr/mo). 
+       Example: { "country": "USA", "amount": "$120k/yr" }, { "country": "Nigeria", "amount": "₦500k/mo" }.
+       Ensure you include a mix of regions (US/Europe, Africa/Asia).
+    
+    Return STRICT JSON format matching the interface:
     {
       "web2": { 
-        "role": "Role Title", 
-        "skills": ["Skill1", "Skill2"], 
-        "action": "Specific first step (e.g. Learn X, Build Y)" 
+        "role": "Title", 
+        "skills": ["A","B","C"], 
+        "action": "Step",
+        "salaries": [ { "country": "USA", "amount": "..." }, { "country": "India", "amount": "..." }, ... ]
       },
       "web3": { 
-        "role": "Role Title", 
-        "skills": ["Skill1", "Skill2"], 
-        "action": "Specific first step" 
+        "role": "Title", 
+        "skills": ["A","B","C"], 
+        "action": "Step",
+        "salaries": [ { "country": "Remote (US)", "amount": "..." }, { "country": "Dubai", "amount": "..." }, ... ]
       },
-      "advice": "One sentence highly strategic advice bridging both worlds, customized to their age and risk tolerance."
+      "advice": "One strategic sentence bridging both worlds."
     }
     `;
 
