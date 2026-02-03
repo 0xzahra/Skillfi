@@ -206,7 +206,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isRecording ? "Listening to audio stream..." : "Enter Command..."}
+          placeholder={isRecording ? "Logging secure audio stream..." : "Brief your strategist..."}
           className="flex-1 bg-transparent border-none px-2 py-3.5 text-white placeholder-gray-500 focus:outline-none text-base resize-none h-[52px] max-h-32 transition-colors relative z-10 font-medium"
           disabled={isLoading || isRecording}
           rows={1}
