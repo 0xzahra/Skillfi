@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose,
         {/* Footer */}
         <div className="p-6 border-t border-skillfi-neon/10 text-center">
             <p className="text-[9px] text-skillfi-neon/50 font-display uppercase tracking-[0.3em]">
-                System v4.2
+                System Online
             </p>
         </div>
       </div>

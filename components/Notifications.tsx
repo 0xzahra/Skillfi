@@ -10,7 +10,7 @@ export const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
     const notifications: Notification[] = [
         { id: '1', type: 'LIKE', text: 'CryptoKing liked your post in Web3 Builders.', time: '2m ago', isRead: false },
         { id: '2', type: 'FOLLOW', text: 'Alice_Web3 started following you.', time: '15m ago', isRead: false },
-        { id: '3', type: 'SYSTEM', text: 'Welcome to Skillfi v2.5. Your profile is ready.', time: '1h ago', isRead: true },
+        { id: '3', type: 'SYSTEM', text: 'Welcome to Skillfi. Your profile is ready.', time: '1h ago', isRead: true },
         { id: '4', type: 'MENTION', text: 'DevOps_Dan mentioned you: "@User check this PR"', time: '3h ago', isRead: true },
         { id: '5', type: 'LIKE', text: 'DesignGuru liked your portfolio update.', time: '5h ago', isRead: true },
     ];
@@ -47,11 +47,12 @@ export const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
                     <div 
                         key={notif.id} 
                         onClick={() => handleClick(notif)}
-                        className={`p-4 rounded-xl border flex items-start gap-4 transition-all cursor-pointer group ${
+                        className={`p-4 rounded-xl border flex items-start gap-4 transition-all cursor-pointer group relative overflow-hidden ${
                             notif.isRead 
                             ? 'bg-transparent border-white/5 opacity-70 hover:bg-white/5' 
                             : 'bg-white/5 border-skillfi-neon/30 opacity-100 shadow-[0_0_10px_rgba(0,0,0,0.3)] hover:bg-white/10'
                         }`}
+                        title="Click to view"
                     >
                         <div className={`p-2 rounded-full flex-shrink-0 transition-colors group-hover:bg-white/10 ${
                             notif.type === 'LIKE' ? 'bg-red-500/10 text-red-400' :
@@ -65,14 +66,17 @@ export const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
                             {notif.type === 'SYSTEM' && '⚡'}
                         </div>
                         <div className="flex-1">
-                            <p className="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">{notif.text}</p>
+                            <p className="text-gray-200 text-sm font-medium group-hover:text-white transition-colors pr-6">{notif.text}</p>
                             <span className="text-[10px] text-gray-500 uppercase tracking-wider mt-1 block">{notif.time}</span>
                         </div>
+                        
                         {!notif.isRead && (
                             <div className="w-2 h-2 bg-skillfi-neon rounded-full mt-2"></div>
                         )}
-                        <div className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                        
+                        {/* Go Arrow */}
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-skillfi-neon">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                             </svg>
                         </div>

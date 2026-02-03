@@ -15,6 +15,7 @@ interface HeaderProps {
     unreadMessages?: number;
     onToggleTheme?: () => void;
     theme?: 'dark' | 'light';
+    onSync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -26,7 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
     onToggleTheme,
     theme = 'dark',
     unreadNotifications = 2,
-    unreadMessages = 1
+    unreadMessages = 1,
+    onSync
 }) => {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const currentLangData = LANGUAGES.find(l => l.code === currentLang) || LANGUAGES[0];
@@ -45,16 +47,6 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         
         <div className="flex items-center gap-3 select-none">
-          {/* Consistent System Logo */}
-          <div className="w-10 h-10 flex items-center justify-center">
-             <svg viewBox="0 0 100 100" className="w-full h-full text-skillfi-neon fill-current">
-                <path d="M50 0 L60 20 L40 20 Z" /> {/* Arrow Tip */}
-                <path d="M45 20 L55 20 L55 50 C55 65 75 65 75 50 C75 35 55 35 55 20" stroke="currentColor" strokeWidth="8" fill="none" />
-                <path d="M45 20 L45 50 C45 65 25 65 25 50 C25 35 45 35 45 20" stroke="currentColor" strokeWidth="8" fill="none" />
-                <circle cx="25" cy="50" r="8" fill="currentColor" />
-                <circle cx="75" cy="50" r="8" fill="currentColor" />
-             </svg>
-          </div>
           <h1 className="text-2xl font-bold font-display tracking-[0.2em] dark:text-white text-slate-900 text-shadow-gold">
             SKILLFI
           </h1>
@@ -63,6 +55,19 @@ export const Header: React.FC<HeaderProps> = ({
       
       <div className="flex items-center gap-2 md:gap-4">
         
+        {/* Sync Button */}
+        {onSync && (
+            <button 
+                onClick={onSync}
+                className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+                title="Force Refresh Data"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+            </button>
+        )}
+
         {/* Inbox Icon - Spaced out */}
         <button 
             onClick={onViewInbox}

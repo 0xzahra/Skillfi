@@ -1,4 +1,4 @@
-import { GoogleGenAI, Chat, Content, Part, Modality } from "@google/genai";
+import { GoogleGenAI, Chat, Part, Modality } from "@google/genai";
 import { getSystemInstruction } from "../constants";
 import { LanguageCode } from "../types";
 
@@ -156,6 +156,192 @@ export const generateItemVisual = async (itemDescription: string): Promise<strin
     }
 };
 
+// --- REAL TIME DATA FETCHING (SEARCH GROUNDED) ---
+
+export interface RealScholarship {
+    title: string;
+    amount: string;
+    deadline: string;
+    source: string;
+    description?: string;
+    link?: string;
+}
+
+export const fetchLiveScholarships = async (): Promise<RealScholarship[]> => {
+    const ai = getClient();
+    const prompt = `
+    Find 5 currently active and open scholarships for 2024/2025. 
+    Focus on STEM, Arts, and Leadership.
+    
+    Format the output strictly as a list separated by "---".
+    For each scholarship, follow this format:
+    Title: [Scholarship Name]
+    Amount: [Value]
+    Deadline: [Date]
+    Source: [Organization]
+    Description: [1 sentence summary]
+    ---
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                tools: [{ googleSearch: {} }] // Enable Google Search
+            }
+        });
+
+        const text = response.text || "";
+        const rawItems = text.split('---').map(s => s.trim()).filter(s => s.length > 20);
+        
+        return rawItems.map(item => {
+            const getField = (key: string) => {
+                const match = item.match(new RegExp(`${key}:\\s*(.*)`, 'i'));
+                return match ? match[1].trim() : "TBD";
+            };
+            
+            // Extract URL from grounding metadata if possible, otherwise rely on text
+            // For now, we return the parsed text. The UI will render grounding links separately if needed.
+            return {
+                title: getField('Title'),
+                amount: getField('Amount'),
+                deadline: getField('Deadline'),
+                source: getField('Source'),
+                description: getField('Description')
+            };
+        }).slice(0, 5); // Ensure max 5
+
+    } catch (error) {
+        console.error("Scholarship Fetch Error:", error);
+        return [];
+    }
+};
+
+export interface ForbesProfile {
+    name: string;
+    category: string;
+    headline: string;
+    description: string;
+}
+
+export const fetchForbesRealTime = async (): Promise<ForbesProfile[]> => {
+    const ai = getClient();
+    const prompt = `
+    Search for the latest "Forbes 30 Under 30" or recent "Forbes 400" notable lists for the current year (2024/2025).
+    Identify 4 distinct young high-achievers or influential figures mentioned recently.
+    
+    Format the output strictly as a list separated by "---".
+    Name: [Person Name]
+    Category: [Industry, e.g. Tech, Finance, Art]
+    Headline: [Short punchy title, e.g. "The AI Pioneer"]
+    Description: [2 sentence bio about what they built or achieved]
+    ---
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                tools: [{ googleSearch: {} }]
+            }
+        });
+
+        const text = response.text || "";
+        const rawItems = text.split('---').map(s => s.trim()).filter(s => s.length > 20);
+
+        return rawItems.map(item => {
+            const getField = (key: string) => {
+                const match = item.match(new RegExp(`${key}:\\s*(.*)`, 'i'));
+                return match ? match[1].trim() : "Unknown";
+            };
+            return {
+                name: getField('Name'),
+                category: getField('Category'),
+                headline: getField('Headline'),
+                description: getField('Description')
+            };
+        }).slice(0, 4);
+
+    } catch (error) {
+        console.error("Forbes Fetch Error:", error);
+        return [];
+    }
+};
+
+export interface MarketTickerData {
+    name: string;
+    symbol: string;
+    price: string;
+    change: string;
+    exchanges: string[]; // List of exchanges
+    description: string;
+}
+
+export const fetchMarketTicker = async (query: string): Promise<MarketTickerData | null> => {
+    const ai = getClient();
+    const prompt = `
+    Search for current live market data for: "${query}".
+    
+    Return a STRICT JSON object with these fields:
+    - name: Full asset name (e.g. Bitcoin, Apple Inc.)
+    - symbol: Ticker symbol (e.g. BTC, AAPL)
+    - price: Current price with currency symbol (e.g. $65,000)
+    - change: 24h change with sign (e.g. +2.5%)
+    - exchanges: Array of top 3 major exchanges/platforms where this is traded (e.g. ["Binance", "Coinbase", "Kraken"] or ["NYSE", "Robinhood"]).
+    - description: One concise sentence explaining what this asset is.
+    
+    If data is not found, guess reasonable values based on latest knowledge or return generic placeholders, but try to be accurate using the search tool.
+    Output JSON ONLY. No markdown.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                responseMimeType: 'application/json',
+                tools: [{ googleSearch: {} }]
+            }
+        });
+
+        const text = response.text || "{}";
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Market Ticker Error:", error);
+        return null;
+    }
+};
+
+export const fetchBatchStockPrices = async (tickers: string[]): Promise<Record<string, { price: number; change: number }> | null> => {
+    const ai = getClient();
+    const prompt = `
+    Get the current live market price and 24h percentage change for these tickers: ${tickers.join(', ')}.
+    
+    Return a STRICT JSON object where keys are the ticker symbols (exactly as provided) and values are objects with 'price' (number) and 'change' (number).
+    Example: { "BTC": { "price": 65000, "change": 2.5 }, "AAPL": { "price": 180.5, "change": -0.5 } }
+    
+    Use Google Search to ensure data is current.
+    Output JSON ONLY.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                responseMimeType: 'application/json',
+                tools: [{ googleSearch: {} }]
+            }
+        });
+        return JSON.parse(response.text || "{}");
+    } catch (error) {
+        console.error("Batch Price Fetch Error:", error);
+        return null;
+    }
+};
+
 // --- NEW FEATURES ---
 
 export interface ContentPack {
@@ -244,18 +430,16 @@ export const generatePortfolioHTML = async (userContext: string): Promise<string
 export const generateResumeContent = async (userContext: string): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
-    Generate a high-impact, CORPORATE RESUME (Resume style, not CV) for:
-    "${userContext}".
+    Act as a Senior HR Hiring Manager and Professional Resume Writer.
+    Objective: Create a top-tier, corporate-ready resume for this user: "${userContext}".
     
-    Structure the output as clean HTML suitable for exporting to a Word document.
-    
-    Requirements:
-    - Style: Concise, Result-Oriented, 1-Page optimized.
-    - Focus: Quantifiable achievements, strong action verbs.
-    - Sections: Header, Summary (2 lines max), Skills (Tags), Experience (Bullets), Education, Projects.
-    - Use standard HTML tags: <h1>, <h2>, <p>, <ul>, <li>, <strong>.
-    - No external CSS classes, use inline styles for basic layout.
-    - Do NOT wrap in markdown code blocks. Return raw HTML body content.
+    Format using HTML for structure (<h3>, <ul>, <li>, <p>, <strong>).
+    Do NOT use markdown. Return raw HTML suitable for a div.
+    Structure:
+    - Summary
+    - Professional Experience
+    - Education
+    - Skills
     `;
 
     try {
@@ -263,28 +447,23 @@ export const generateResumeContent = async (userContext: string): Promise<string
             model: 'gemini-3-flash-preview',
             contents: { parts: [{ text: prompt }] }
         });
-        return response.text;
+        let html = response.text || "";
+        html = html.replace(/```html/g, '').replace(/```/g, '');
+        return html;
     } catch (error) {
         console.error("Resume Gen Error:", error);
         return null;
     }
 };
 
+// --- NEW EXPORTS TO FIX ERRORS ---
+
 export const generateCVContent = async (userContext: string): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
-    Generate a comprehensive, ACADEMIC/EXECUTIVE CURRICULUM VITAE (CV) for:
-    "${userContext}".
-    
-    Structure the output as clean HTML suitable for exporting to a Word document.
-    
-    Requirements:
-    - Style: Academic, Detailed, Comprehensive.
-    - Focus: Depth of expertise, research, publications, certifications.
-    - Sections: Header, Detailed Profile, Education (include thesis/honors), Professional Experience, Publications/Research, Awards, Certifications, Skills, References.
-    - Use standard HTML tags: <h1>, <h2>, <p>, <ul>, <li>, <strong>.
-    - No external CSS classes, use inline styles for basic layout.
-    - Do NOT wrap in markdown code blocks. Return raw HTML body content.
+    Act as an Academic Registrar. Create a comprehensive Academic CV for: "${userContext}".
+    Format as clean HTML (<h3>, <ul>, <li>).
+    Focus on Research, Publications, and Academic Honors.
     `;
 
     try {
@@ -292,64 +471,73 @@ export const generateCVContent = async (userContext: string): Promise<string | n
             model: 'gemini-3-flash-preview',
             contents: { parts: [{ text: prompt }] }
         });
-        return response.text;
+        let html = response.text || "";
+        html = html.replace(/```html/g, '').replace(/```/g, '');
+        return html;
     } catch (error) {
         console.error("CV Gen Error:", error);
         return null;
     }
 };
 
-export interface GlobalSalary {
-    country: string;
-    amount: string; // e.g. "$120k/yr" or "₦500k/mo"
-}
-
-export interface CareerRole {
-    role: string;
-    skills: string[];
-    action: string;
-    salaries: GlobalSalary[];
-}
-
-export interface CareerRoadmap {
-    web2: CareerRole;
-    web3: CareerRole;
-    advice: string;
-}
-
-export const generateCareerRoadmap = async (userContext: string): Promise<CareerRoadmap | null> => {
+export const proofreadDocument = async (base64Data: string, mimeType: string, type: 'CV' | 'RESUME'): Promise<string | null> => {
     const ai = getClient();
     const prompt = `
-    Analyze this user context: "${userContext}".
-    
-    Recommend 2 specific professional paths ("Roles").
-    
-    1. 'web2': A SIMPLE, TRADITIONAL ROLE. Use standard titles everyone knows (e.g., Doctor, Pilot, Tailor, Teacher, Designer, Accountant, Chef, Nurse). Do not use complex corporate jargon.
-    2. 'web3': A SPECIFIC WEB3 ROLE. Distinguish between roles clearly (e.g., 'Community Moderator' is different from 'Community Manager', 'Collab Manager' is different from 'Alpha Hunter').
-    
-    For EACH role, you must provide:
-    - Exact Role Title (Simple & Clear).
-    - 3 Hard Skills.
-    - 1 specific First Step Action.
-    - 'salaries': An array of 4 distinct global locations with their LOCAL currency and time period (yr/mo). 
-       Example: { "country": "USA", "amount": "$120k/yr" }, { "country": "Nigeria", "amount": "₦500k/mo" }.
-       Ensure you include a mix of regions (US/Europe, Africa/Asia).
-    
-    Return STRICT JSON format matching the interface:
+    Review this ${type} document. 
+    1. Extract the text.
+    2. Improve the grammar, flow, and impact verbs.
+    3. Return the IMPROVED version as clean HTML structure.
+    `;
+
+    try {
+        // Using Gemini 2.5 Flash for vision capability
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image', 
+            contents: {
+                parts: [
+                    { inlineData: { data: base64Data, mimeType: mimeType } },
+                    { text: prompt }
+                ]
+            }
+        });
+        let html = response.text || "";
+        html = html.replace(/```html/g, '').replace(/```/g, '');
+        return html;
+    } catch (error) {
+        console.error("Proofread Error:", error);
+        return null;
+    }
+};
+
+export interface CareerRoadmap {
+    advice: string;
+    web2: { role: string; skills: string[]; action: string; salaries: {country: string, amount: string}[] };
+    web3: { role: string; skills: string[]; action: string; salaries: {country: string, amount: string}[] };
+}
+
+export const generateCareerRoadmap = async (context: string): Promise<CareerRoadmap | null> => {
+    const ai = getClient();
+    const prompt = `
+    Analyze this user profile: "${context}".
+    Suggest two distinct career paths:
+    1. A traditional Web2/Corporate role.
+    2. A Web3/Emerging Tech role.
+
+    Return JSON format:
     {
-      "web2": { 
-        "role": "Title", 
-        "skills": ["A","B","C"], 
-        "action": "Step",
-        "salaries": [ { "country": "USA", "amount": "..." }, { "country": "India", "amount": "..." }, ... ]
+      "advice": "One sentence strategic summary.",
+      "web2": {
+        "role": "Job Title",
+        "skills": ["Skill1", "Skill2", "Skill3"],
+        "action": "Next specific step to take.",
+        "salaries": [{"country": "USA", "amount": "$100k"}, {"country": "UK", "amount": "£70k"}]
       },
-      "web3": { 
-        "role": "Title", 
-        "skills": ["A","B","C"], 
-        "action": "Step",
-        "salaries": [ { "country": "Remote (US)", "amount": "..." }, { "country": "Dubai", "amount": "..." }, ... ]
-      },
-      "advice": "One strategic sentence bridging both worlds."
+      "web3": {
+        "role": "Job Title",
+        "skills": ["Skill1", "Skill2", "Skill3"],
+        "action": "Next specific step to take.",
+        "salaries": [{"country": "Global", "amount": "$120k USDC"}]
+      }
     }
     `;
 
@@ -361,7 +549,7 @@ export const generateCareerRoadmap = async (userContext: string): Promise<Career
         });
         return JSON.parse(response.text || "{}");
     } catch (error) {
-        console.error("Roadmap Gen Error:", error);
+        console.error("Roadmap Error:", error);
         return null;
     }
 };
@@ -372,19 +560,16 @@ export interface FinancialPersona {
     tips: string[];
 }
 
-export const analyzeFinancialHealth = async (financialData: string): Promise<FinancialPersona | null> => {
+export const analyzeFinancialHealth = async (data: string): Promise<FinancialPersona | null> => {
     const ai = getClient();
     const prompt = `
-    Act as a ruthless financial auditor. Analyze this data: "${financialData}".
+    Analyze this financial snapshot: "${data}".
+    Determine the user's "Financial Persona" (e.g., The Saver, The High Roller, The Strategist).
     
-    1. Assign a "Financial Persona" (e.g., The Bleeding Heart, The Accumulator, The Hedonist, The Strategist).
-    2. Provide a 1-sentence brutal analysis of their situation.
-    3. Provide 3 specific, tactical steps to optimize (Cut X, Invest in Y, Leverage Z).
-
-    Return STRICT JSON:
+    Return JSON:
     {
-        "persona": "Title",
-        "analysis": "Sentence",
+        "persona": "Name of Persona",
+        "analysis": "1-2 sentence psychological analysis.",
         "tips": ["Tip 1", "Tip 2", "Tip 3"]
     }
     `;
@@ -397,7 +582,7 @@ export const analyzeFinancialHealth = async (financialData: string): Promise<Fin
         });
         return JSON.parse(response.text || "{}");
     } catch (error) {
-        console.error("Finance Audit Error:", error);
+        console.error("Finance Analysis Error:", error);
         return null;
     }
 };

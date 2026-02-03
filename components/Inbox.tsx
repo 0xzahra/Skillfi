@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DMConversation } from '../types';
 
 export const Inbox: React.FC = () => {
@@ -32,9 +31,18 @@ export const Inbox: React.FC = () => {
         }
     ]);
     const [newMessage, setNewMessage] = useState('');
-
-    // Mock search results for new users
     const [searchResults, setSearchResults] = useState<string[]>([]);
+    
+    // Ref for auto-scroll and auto-focus
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (activeChatId) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            inputRef.current?.focus();
+        }
+    }, [activeChatId, conversations]);
 
     const handleSearch = (term: string) => {
         setSearchTerm(term);
@@ -147,7 +155,9 @@ export const Inbox: React.FC = () => {
                 {activeConversation ? (
                     <>
                         <div className="p-4 border-b border-white/5 flex items-center gap-3">
-                            <button onClick={() => setActiveChatId(null)} className="md:hidden text-gray-400">←</button>
+                            <button onClick={() => setActiveChatId(null)} className="md:hidden text-gray-400 px-2 py-1 hover:bg-white/5 rounded">
+                                ←
+                            </button>
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center text-sm font-bold text-white">
                                 {activeConversation.contactName[0]}
                             </div>
@@ -162,7 +172,7 @@ export const Inbox: React.FC = () => {
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {activeConversation.messages.map(msg => (
                                 <div key={msg.id} className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[70%] p-3 rounded-2xl text-sm ${
+                                    <div className={`max-w-[70%] p-3 rounded-2xl text-sm shadow-sm ${
                                         msg.isMe 
                                         ? 'bg-skillfi-neon text-black rounded-tr-none' 
                                         : 'bg-white/10 text-gray-200 rounded-tl-none'
@@ -172,11 +182,13 @@ export const Inbox: React.FC = () => {
                                     </div>
                                 </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         <div className="p-4 border-t border-white/5 bg-[#050505]">
                             <div className="flex gap-2">
                                 <input 
+                                    ref={inputRef}
                                     type="text" 
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
@@ -186,7 +198,7 @@ export const Inbox: React.FC = () => {
                                 />
                                 <button 
                                     onClick={handleSendMessage}
-                                    className="bg-skillfi-neon text-black px-4 rounded-xl font-bold hover:bg-white transition-colors"
+                                    className="bg-skillfi-neon text-black px-4 rounded-xl font-bold hover:bg-white transition-colors shadow-lg"
                                 >
                                     ➤
                                 </button>

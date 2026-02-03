@@ -17,6 +17,11 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
         linkedin: user.socials?.linkedin || '',
         github: user.socials?.github || ''
     });
+    
+    // Password State
+    const [showPasswordChange, setShowPasswordChange] = useState(false);
+    const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+
     const [isSaved, setIsSaved] = useState(false);
     const [passkey, setPasskey] = useState('');
     const [parentalControl, setParentalControl] = useState(false);
@@ -26,11 +31,21 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
         setIsSaved(false);
     };
 
-    const handleSave = () => {
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPasswords({ ...passwords, [e.target.name]: e.target.value });
+    };
+
+    const handleSaveProfile = () => {
+        // Validation
+        if (!formData.email.includes('@')) {
+            alert("Please enter a valid email address.");
+            return;
+        }
+
         const updatedUser: UserProfile = {
             ...user,
             username: formData.username,
-            email: formData.email,
+            email: formData.email, // Email update
             socials: {
                 twitter: formData.twitter,
                 linkedin: formData.linkedin,
@@ -41,6 +56,26 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
         setIsSaved(true);
         AudioService.playSuccess();
         setTimeout(() => setIsSaved(false), 3000);
+    };
+
+    const handleSubmitPassword = () => {
+        if (passwords.new.length < 6) {
+            alert("Password must be at least 6 characters.");
+            return;
+        }
+        if (passwords.new !== passwords.confirm) {
+            alert("New passwords do not match.");
+            return;
+        }
+        
+        // Mock API Call
+        AudioService.playProcessing();
+        setTimeout(() => {
+            AudioService.playSuccess();
+            alert("Password updated successfully.");
+            setPasswords({ current: '', new: '', confirm: '' });
+            setShowPasswordChange(false);
+        }, 1000);
     };
 
     const handleExportData = () => {
@@ -99,7 +134,7 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Secure Link (Email)</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Email Address</label>
                             <input 
                                 name="email"
                                 type="email" 
@@ -108,6 +143,14 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
                                 className="w-full bg-[#080808] border border-gray-700 p-3 rounded-xl text-white focus:border-skillfi-neon outline-none transition-colors"
                             />
                         </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                        <button 
+                            onClick={handleSaveProfile}
+                            className="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-skillfi-neon transition-all flex items-center gap-2 shadow-lg text-sm uppercase tracking-wider"
+                        >
+                            {isSaved ? 'Updated' : 'Update Profile'}
+                        </button>
                     </div>
                 </section>
 
@@ -119,57 +162,101 @@ export const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onClearA
                         </svg>
                         Security & Controls
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Set Passkey (PIN)</label>
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="password" 
-                                        value={passkey}
-                                        onChange={(e) => setPasskey(e.target.value)}
-                                        placeholder="Enter PIN"
-                                        className="flex-1 bg-[#080808] border border-gray-700 p-3 rounded-xl text-white focus:border-skillfi-neon outline-none"
-                                        maxLength={6}
-                                    />
-                                    <button onClick={handleSetPasskey} className="bg-white/10 hover:bg-white/20 px-4 rounded-xl text-sm font-bold uppercase">Set</button>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between bg-[#080808] p-3 rounded-xl border border-gray-700">
+                    
+                    <div className="space-y-6">
+                        {/* Change Password Block */}
+                        <div className="bg-[#080808] p-4 rounded-xl border border-gray-700">
+                            <div className="flex justify-between items-center">
                                 <div>
-                                    <div className="text-sm font-bold text-white">Parental Control</div>
-                                    <div className="text-[10px] text-gray-500">Restricts Finance/Trading modules</div>
+                                    <h3 className="font-bold text-white text-sm">Login Password</h3>
+                                    <p className="text-xs text-gray-500">Update your primary access credentials.</p>
                                 </div>
                                 <button 
-                                    onClick={() => { setParentalControl(!parentalControl); localStorage.setItem('skillfi_parental', (!parentalControl).toString()); }}
-                                    className={`w-12 h-6 rounded-full p-1 transition-colors ${parentalControl ? 'bg-skillfi-neon' : 'bg-gray-700'}`}
+                                    onClick={() => setShowPasswordChange(!showPasswordChange)}
+                                    className="text-xs text-skillfi-neon border border-skillfi-neon/30 px-3 py-1.5 rounded hover:bg-skillfi-neon hover:text-black transition-all"
                                 >
-                                    <div className={`w-4 h-4 bg-black rounded-full transition-transform ${parentalControl ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    {showPasswordChange ? 'Cancel' : 'Change'}
                                 </button>
                             </div>
+
+                            {showPasswordChange && (
+                                <div className="mt-4 space-y-3 animate-fade-in border-t border-gray-800 pt-4">
+                                    <input 
+                                        type="password" 
+                                        name="current"
+                                        placeholder="Current Password"
+                                        value={passwords.current}
+                                        onChange={handlePasswordChange}
+                                        className="w-full bg-black/40 border border-gray-700 p-3 rounded-lg text-white text-sm outline-none focus:border-skillfi-neon"
+                                    />
+                                    <input 
+                                        type="password" 
+                                        name="new"
+                                        placeholder="New Password"
+                                        value={passwords.new}
+                                        onChange={handlePasswordChange}
+                                        className="w-full bg-black/40 border border-gray-700 p-3 rounded-lg text-white text-sm outline-none focus:border-skillfi-neon"
+                                    />
+                                    <input 
+                                        type="password" 
+                                        name="confirm"
+                                        placeholder="Confirm New Password"
+                                        value={passwords.confirm}
+                                        onChange={handlePasswordChange}
+                                        className="w-full bg-black/40 border border-gray-700 p-3 rounded-lg text-white text-sm outline-none focus:border-skillfi-neon"
+                                    />
+                                    <button 
+                                        onClick={handleSubmitPassword}
+                                        className="w-full bg-skillfi-neon text-black font-bold py-2 rounded-lg text-xs uppercase tracking-widest hover:bg-white"
+                                    >
+                                        Update Password
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex flex-col justify-center space-y-4">
-                             <button 
-                                onClick={handleExportData}
-                                className="w-full py-3 bg-blue-900/20 border border-blue-500/30 text-blue-400 font-bold uppercase text-xs rounded-xl hover:bg-blue-900/40 transition-all flex items-center justify-center gap-2"
+
+                        {/* Passkey */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Set Passkey (PIN)</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="password" 
+                                    value={passkey}
+                                    onChange={(e) => setPasskey(e.target.value)}
+                                    placeholder="Enter PIN"
+                                    className="flex-1 bg-[#080808] border border-gray-700 p-3 rounded-xl text-white focus:border-skillfi-neon outline-none"
+                                    maxLength={6}
+                                />
+                                <button onClick={handleSetPasskey} className="bg-white/10 hover:bg-white/20 px-4 rounded-xl text-sm font-bold uppercase">Set</button>
+                            </div>
+                        </div>
+
+                        {/* Parental Control */}
+                        <div className="flex items-center justify-between bg-[#080808] p-3 rounded-xl border border-gray-700">
+                            <div>
+                                <div className="text-sm font-bold text-white">Parental Control</div>
+                                <div className="text-[10px] text-gray-500">Restricts Finance/Trading modules</div>
+                            </div>
+                            <button 
+                                onClick={() => { setParentalControl(!parentalControl); localStorage.setItem('skillfi_parental', (!parentalControl).toString()); }}
+                                className={`w-12 h-6 rounded-full p-1 transition-colors ${parentalControl ? 'bg-skillfi-neon' : 'bg-gray-700'}`}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                </svg>
-                                Export User Data (JSON)
+                                <div className={`w-4 h-4 bg-black rounded-full transition-transform ${parentalControl ? 'translate-x-6' : 'translate-x-0'}`}></div>
                             </button>
                         </div>
+
+                        {/* Data Export */}
+                        <button 
+                            onClick={handleExportData}
+                            className="w-full py-3 bg-blue-900/20 border border-blue-500/30 text-blue-400 font-bold uppercase text-xs rounded-xl hover:bg-blue-900/40 transition-all flex items-center justify-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Export User Data (JSON)
+                        </button>
                     </div>
                 </section>
-
-                <div className="flex justify-end">
-                    <button 
-                        onClick={handleSave}
-                        className="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-skillfi-neon transition-all flex items-center gap-2 shadow-lg"
-                    >
-                        {isSaved ? 'Saved Successfully' : 'Save Changes'}
-                    </button>
-                </div>
 
                 {/* DONATION SECTION */}
                 <section className="mt-12">

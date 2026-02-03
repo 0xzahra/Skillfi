@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateResumeContent, generateCareerRoadmap, generateItemVisual, CareerRoadmap } from '../services/geminiService';
+import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateResumeContent, generateCareerRoadmap, generateItemVisual, proofreadDocument, CareerRoadmap } from '../services/geminiService';
 import { AudioService } from '../services/audioService';
 import { UserProfile } from '../types';
 
@@ -18,54 +18,141 @@ const CAREER_QUOTES = [
 ];
 
 // --- RICH KNOWLEDGE BASE ---
-const ELITE_KNOWLEDGE_BASE: Record<string, { philosophy: string; mechanics: string; advanced: string; pro_tip: string }> = {
+interface EliteSkillData {
+    icon: string;
+    desc: string;
+    philosophy: string;
+    mechanics: string;
+    advanced: string;
+    pro_tip: string;
+}
+
+const ELITE_DATA: Record<string, EliteSkillData> = {
     'Dining Etiquette': {
+        icon: '🍽️',
+        desc: 'Master the art of the business dinner.',
         philosophy: "The meal is never about the food; it is about the conversation and the comfort of others. Your table manners signal your awareness and discipline.",
         mechanics: "1. **The Place Setting:** Utensils are used from the outside in. Forks on the left, knives/spoons on the right. Solids (bread) on the left, liquids (drinks) on the right (BMW: Bread, Meal, Water).\n2. **The Napkin:** Place it on your lap immediately. If you leave the table, place it on the chair, not the table. When finished, place it loosely to the left of the plate.\n3. **Eating:** Cut one bite at a time. Rest wrists on the table edge (continental style), never elbows.",
         advanced: "**The Silent Service Code:** To signal you are pausing, place knife and fork in an inverted 'V' (knife blade inward). To signal you are finished, place them parallel at the 4 o'clock position (handles at 4, tips at 10). Never season food before tasting; it insults the chef.",
         pro_tip: "If you drop a utensil, do not dive for it. Simply signal the server for a replacement. Treat the server with the same respect as the CEO; this is the ultimate test of character."
     },
     'Networking': {
+        icon: '🤝',
+        desc: 'How to enter a room and remember names.',
         philosophy: "Networking is not asking for favors; it is farming. It is planting seeds of value today to harvest relationships years from now. Be the 'Host', not the 'Guest'.",
         mechanics: "1. **The Entry:** Enter a room, pause, scan, and smile. Do not rush to the bar or your phone.\n2. **The Handshake:** Firm, dry, web-to-web contact, 2-3 pumps. Eye contact is mandatory.\n3. **The Name:** Repeat their name immediately ('Nice to meet you, Sarah'). Use it once more in conversation.",
         advanced: "**The 'Host' Mentality:** Even if it's not your event, act like a host. Introduce people to each other. 'John, have you met Lisa? She works in Fintech.' You become the connector, the node of value. People will gravitate toward you because you make them feel comfortable.",
         pro_tip: "Never ask 'What do you do?' immediately. Ask 'What are you working on that excites you right now?' It opens up passion, not just job titles."
     },
     'Strategic Negotiation': {
+        icon: '♟️',
+        desc: 'Win without making enemies.',
         philosophy: "In business and life, you do not get what you deserve; you get what you negotiate. It is not about conflict, but about collaboration to expand the pie.",
         mechanics: "1. **The Anchor:** The first number spoken anchors the entire deal. Make it ambitious but defensible.\n2. **Silence:** After making an offer, shut up. The next person to speak loses leverage.\n3. **Labeling:** 'It seems like you are hesitant about the price.' Call out emotions to diffuse them.",
         advanced: "**The Ackerman Model:** Offer 65% of target, then 85%, 95%, and finally 100%. Use odd, precise numbers (e.g., $37,550) to imply calculation, not estimation.",
         pro_tip: "Never accept the first offer, even if it's good. It makes the other side feel they left money on the table. Flinch, pause, then counter."
     },
     'Golf Diplomacy': {
+        icon: '⛳',
+        desc: 'Business is done on the fairway.',
         philosophy: "Golf is the only sport where a CEO and an intern can play together on equal footing. It reveals character: how one handles adversity, luck, and honesty.",
         mechanics: "1. **Pace of Play:** You don't have to be good, but you must be fast. Be ready to hit when it's your turn.\n2. **Silence:** Absolute silence when others are addressing the ball.\n3. **The Green:** Never walk on someone's 'line' (the path between their ball and the hole).",
         advanced: "**Business Timing:** Never discuss business on the first few holes. Build rapport. Business happens naturally on the cart or at the 19th hole (drinks after). Let the senior person bring it up.",
         pro_tip: "If you are bad, admit it early and laugh about it. People enjoy playing with a happy loser, but they hate playing with an angry one. Cheating is the ultimate sin; if you cheat at golf, you cheat at contracts."
     },
     'Horology': {
+        icon: '⌚',
+        desc: 'Understanding timepieces and engineering.',
         philosophy: "A watch is the only piece of jewelry a man can wear that serves a function. It signals appreciation for engineering, heritage, and the value of time itself.",
         mechanics: "1. **Movements:** Quartz (battery, cheap, accurate) vs. Mechanical (springs, expensive, art). High society respects Mechanical.\n2. **Fit:** The lugs (where the strap attaches) should not overhang your wrist.\n3. **Occasion:** Dress watch (leather strap) for suits. Diver/Steel for casual.",
         advanced: "**The Holy Trinity:** Patek Philippe, Audemars Piguet, Vacheron Constantin. Knowing these brands shows deep knowledge. Rolex is king of marketing, but Patek is king of legacy.",
         pro_tip: "Match your leathers. If you wear a watch with a brown leather strap, your belt and shoes must be brown. Black strap? Black shoes."
     },
     'Art Collecting': {
+        icon: '🎨',
+        desc: 'Asset preservation through culture.',
         philosophy: "Art is the ultimate asset class of the ultra-wealthy. It preserves capital while signaling cultural patronage. It is an intellectual pursuit, not just decoration.",
         mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the artist/gallery (first sale). Secondary is buying at auction (resale).\n2. **Provenance:** The history of ownership. A clear paper trail adds immense value.\n3. **Medium:** Oil on canvas generally holds value better than prints or paper.",
         advanced: "**Blue Chip vs. Emerging:** Blue Chip artists (Picasso, Warhol, Basquiat) are safe 'bonds'. Emerging artists are high-risk 'stocks'. Diversify your collection like a portfolio.",
         pro_tip: "Buy with your eyes, not just your ears. If you buy for investment only, you will lose. Buy what you love; if it goes to zero, you still have a beautiful object on your wall."
     },
     'Private Aviation': {
+        icon: '✈️',
+        desc: 'The language of the skies.',
         philosophy: "Time is the only non-renewable asset. Private aviation is not about luxury; it is about buying time. Understanding this world signals high-level operational awareness.",
         mechanics: "1. **Part 91 vs 135:** Part 91 is non-commercial (own plane). Part 135 is charter (renting). Know the difference.\n2. **The Empty Leg:** A flight returning empty. This is how smart players fly private for commercial prices.\n3. **FBO:** Fixed Base Operator. You don't go to a terminal; you go to the FBO.",
         advanced: "**Aircraft Classes:** Light Jets (CJ3) for short hops. Mid-size (Challenger 300) for coast-to-coast. Ultra-Long Range (Global 7500) for oceans. Don't ask a Light Jet to cross the Atlantic.",
         pro_tip: "Treat the pilots like gold. They hold your life in their hands. Acknowledge them before you acknowledge the champagne."
+    },
+    'Fine Wine Mastery': {
+        icon: '🍷',
+        desc: 'Reading labels, pairing, and tasting.',
+        philosophy: "Wine is history in a bottle. Knowing it commands respect at the table and shows patience and refinement.",
+        mechanics: "1. **The Swirl:** Aerates the wine, releasing aromas. 2. **The Sniff:** 80% of taste is smell. Don't skip this. 3. **The Sip:** Let it coat your tongue before swallowing.",
+        advanced: "**Terroir:** Understanding how soil and climate affect taste. Old World (Earth/Mineral) vs New World (Fruit/Oak).",
+        pro_tip: "Never fill the glass more than one-third. It allows the wine to breathe and prevents spills. Holding the glass by the stem prevents warming the wine."
+    },
+    'Cigar Lounge Protocol': {
+        icon: '🪵',
+        desc: 'The gentleman\'s club ritual.',
+        philosophy: "A cigar is not smoked; it is experienced. It requires patience (45m+) and signals a moment of reflection and celebration.",
+        mechanics: "1. **The Cut:** Just the cap, don't unravel it. 2. **The Light:** Toast the foot first, don't char it directly. 3. **The Ash:** Let it grow long; it cools the smoke.",
+        advanced: "**Cuban vs. Dominican:** Recognize the flavor profiles. Cohiba is the Rolex of cigars, but Padron is the Patek.",
+        pro_tip: "Never stub a cigar out. Let it die with dignity in the ashtray. Stubbing creates a foul odor that offends the room."
+    },
+    'Equestrian Culture': {
+        icon: '🐎',
+        desc: 'The sport of kings.',
+        philosophy: "Horses represent power controlled by grace. Connection with the animal is paramount in high society circles.",
+        mechanics: "1. **Approach:** Always from the shoulder, never the rear. 2. **Mounting:** Left side only. 3. **Attire:** Breeches and boots, never jeans.",
+        advanced: "**Dressage vs. Jumping:** Dressage is 'horse ballet'; Jumping is precision speed. Know the difference before attending an event.",
+        pro_tip: "Always thank the groom. They do the hard work. Acknowledging them shows true class and lack of pretension."
+    },
+    'Yachting Etiquette': {
+        icon: '🛥️',
+        desc: 'Rules of the open sea.',
+        philosophy: "A yacht is a floating palace with strict hierarchy and safety protocols. It is a closed environment where manners are magnified.",
+        mechanics: "1. **Barefoot Rule:** Shoes off at the gangway immediately. 2. **Luggage:** Soft bags only; hard cases damage teak decks.",
+        advanced: "**Port vs. Starboard:** Left is Port (Red), Right is Starboard (Green). Use the correct terminology.",
+        pro_tip: "The Captain's word is law. Never argue with the crew regarding safety or route. Tipping the crew (10-20% of charter) is mandatory."
+    },
+    'Auction Strategy': {
+        icon: '🔨',
+        desc: 'Winning at Christie\'s and Sotheby\'s.',
+        philosophy: "Auctions are theater. Emotional control wins the lot, not just money. It is a battle of wills.",
+        mechanics: "1. **The Paddle:** Keep it visible but subtle. 2. **The Reserve:** The hidden minimum price. 3. **The Hammer:** Sold is sold.",
+        advanced: "**Buyer's Premium:** Remember the house takes ~25% on top of your bid. Calculate this before lifting your hand.",
+        pro_tip: "Bid late. Let the amateurs exhaust themselves early. Enter when the room goes quiet to show dominance."
+    },
+    'Bespoke Tailoring': {
+        icon: '🧵',
+        desc: 'The difference between clothing and style.',
+        philosophy: "Fit is everything. A $500 suit fitted perfectly looks better than a $5000 suit off the rack.",
+        mechanics: "1. **The Break:** Where pants hit the shoe (No break, half break, full break). 2. **The Cuff:** Shows 1/2 inch of shirt sleeve.",
+        advanced: "**Canvas Construction:** Full canvas suits mold to your body over time. Fused suits bubble and look cheap.",
+        pro_tip: "Working buttons on the sleeve ('Surgeon's Cuffs') are the hallmark of true bespoke. Leave the last one unbuttoned to signal quality."
+    },
+    'Opera & Ballet': {
+        icon: '🎭',
+        desc: 'High culture and performance arts.',
+        philosophy: "Art refines the soul. Silence during performance is sacred. It is a communal meditative experience.",
+        mechanics: "1. **Arrival:** Never late. If late, wait for intermission. 2. **Applause:** Only at the end of acts or specific arias, not during.",
+        advanced: "**Bravo code:** 'Bravo' (Male), 'Brava' (Female), 'Bravi' (Group). Use correctly to impress.",
+        pro_tip: "Read the synopsis beforehand. You cannot appreciate the nuance if you are confused about the plot."
+    },
+    'Philanthropy': {
+        icon: '🏛️',
+        desc: 'Strategic giving and legacy building.',
+        philosophy: "Wealth is a tool for impact. True power is changing lives, not just buying things. Legacy is what you give, not what you keep.",
+        mechanics: "1. **The Mission:** Focus on one cause (e.g., Clean Water) rather than scattering small gifts. 2. **Due Diligence:** Vet the charity's overhead costs.",
+        advanced: "**Endowments:** Creating a perpetual fund that sustains an institution forever. The ultimate legacy.",
+        pro_tip: "Don't just give money; give time and network. Joining a board is more impactful and respected than just writing a check."
     }
 };
 
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScoutData }) => {
     // TABS
-    const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE'>('PATH');
+    const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE' | 'CORPORATE_OPS' | 'TRENDS'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
     
     // Pathfinder State
@@ -92,6 +179,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     });
     const [cvContent, setCvContent] = useState<string | null>(null);
     const [isGeneratingCV, setIsGeneratingCV] = useState(false);
+    const cvUploadRef = useRef<HTMLInputElement>(null);
 
     // Resume State
     const [resumeInputs, setResumeInputs] = useState({
@@ -104,6 +192,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     const [resumeContent, setResumeContent] = useState<string | null>(null);
     const [isGeneratingResume, setIsGeneratingResume] = useState(false);
     const [isSocialCardMode, setIsSocialCardMode] = useState(false);
+    const resumeUploadRef = useRef<HTMLInputElement>(null);
 
     // Pitch Deck State
     const [pitchTopic, setPitchTopic] = useState('');
@@ -114,6 +203,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     const [activeEliteItem, setActiveEliteItem] = useState<{title: string, icon: string, desc: string} | null>(null);
     const [eliteImage, setEliteImage] = useState<string | null>(null);
     const [eliteLoading, setEliteLoading] = useState(false);
+    const [eliteSearch, setEliteSearch] = useState('');
 
     // --- PERSISTENCE ---
     useEffect(() => {
@@ -164,17 +254,20 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     };
 
     // --- ELITE HANDLERS ---
-    const eliteItems = [
-        { title: 'Dining Etiquette', icon: '🍽️', desc: 'Master the art of the business dinner.' },
-        { title: 'Networking', icon: '🤝', desc: 'How to enter a room and remember names.' },
-        { title: 'Strategic Negotiation', icon: '♟️', desc: 'Win without making enemies.' },
-        { title: 'Golf Diplomacy', icon: '⛳', desc: 'Business is done on the fairway.' },
-        { title: 'Horology', icon: '⌚', desc: 'Understanding timepieces and engineering.' },
-        { title: 'Art Collecting', icon: '🎨', desc: 'Asset preservation through culture.' },
-        { title: 'Private Aviation', icon: '✈️', desc: 'The language of the skies.' },
-    ];
+    const getFilteredEliteItems = () => {
+        const term = eliteSearch.toLowerCase();
+        return Object.entries(ELITE_DATA)
+            .filter(([title, data]) => 
+                title.toLowerCase().includes(term) || 
+                data.desc.toLowerCase().includes(term)
+            )
+            .map(([title, data]) => ({
+                title,
+                ...data
+            }));
+    };
 
-    const openEliteModal = async (item: typeof eliteItems[0]) => {
+    const openEliteModal = async (item: {title: string, icon: string, desc: string}) => {
         setActiveEliteItem(item);
         setEliteImage(null);
         setEliteLoading(true);
@@ -370,8 +463,45 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
         setIsGeneratingHeadshot(false);
     };
 
+    const handleProofreadUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'CV' | 'RESUME') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (type === 'CV') setIsGeneratingCV(true);
+        else setIsGeneratingResume(true);
+        
+        AudioService.playProcessing();
+
+        try {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64String = reader.result as string;
+                const base64Data = base64String.split(',')[1]; 
+                
+                const result = await proofreadDocument(base64Data, file.type, type);
+                
+                if (result) {
+                    if (type === 'CV') setCvContent(result);
+                    else setResumeContent(result);
+                    AudioService.playSuccess();
+                } else {
+                    AudioService.playAlert();
+                    alert("Could not analyze document. Please ensure it is a PDF or Image.");
+                }
+                
+                if (type === 'CV') setIsGeneratingCV(false);
+                else setIsGeneratingResume(false);
+            };
+            reader.readAsDataURL(file);
+        } catch (err) {
+            console.error(err);
+            if (type === 'CV') setIsGeneratingCV(false);
+            else setIsGeneratingResume(false);
+        }
+    };
+
     const getEliteContent = (title: string) => {
-        return ELITE_KNOWLEDGE_BASE[title] || { philosophy: "Loading...", mechanics: "...", advanced: "...", pro_tip: "..." };
+        return ELITE_DATA[title] || { philosophy: "Loading...", mechanics: "...", advanced: "...", pro_tip: "..." };
     };
 
     return (
@@ -390,6 +520,8 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                     {[
                         { id: 'PATH', label: 'Pathfinder' },
+                        { id: 'CORPORATE_OPS', label: 'Corp Ops' },
+                        { id: 'TRENDS', label: 'Trend Radar' },
                         { id: 'RESUME', label: 'Resume' },
                         { id: 'CV', label: 'CV (Academic)' },
                         { id: 'PITCH', label: 'Pitch Deck' },
@@ -410,6 +542,165 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                     ))}
                 </div>
             </div>
+
+            {/* --- CORPORATE OPS MODULE (NEW) --- */}
+            {activeModule === 'CORPORATE_OPS' && (
+                <div className="animate-fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            {
+                                title: "Surviving the Boss",
+                                icon: "👔",
+                                tips: [
+                                    "Manage Up: Send a 'Weekly Win' email every Friday. 3 bullets: What you did, what you're stuck on, what's next.",
+                                    "The 'No' Buffer: Never say 'No'. Say 'I can do that, but X will be delayed. Which is priority?'",
+                                    "Feed the Ego: If your boss loves data, give data. If they love stories, give stories. Mirror their language."
+                                ]
+                            },
+                            {
+                                title: "HR Confidential",
+                                icon: "📂",
+                                tips: [
+                                    "HR is Not Your Friend: They protect the company, not you. Document everything in a personal email, not work email.",
+                                    "Salary Neg: Never give a number first. Ask 'What is the budget for this role?'",
+                                    "Exit Strategy: Never burn bridges. The world is small. Leave with grace, even if you hate them."
+                                ]
+                            },
+                            {
+                                title: "Meeting Mastery",
+                                icon: "🗣️",
+                                tips: [
+                                    "The Pre-Wire: Talk to key decision makers BEFORE the big meeting. The meeting is just for the rubber stamp.",
+                                    "Action Items: Always end with 'Who is doing What by When?'.",
+                                    "Silence is Power: Don't speak just to fill air. Speak when you have high-value insight."
+                                ]
+                            },
+                            {
+                                title: "Email Tactics",
+                                icon: "📧",
+                                tips: [
+                                    "BLUF: Bottom Line Up Front. Put the request in the first sentence.",
+                                    "The 24h Rule: Never reply when angry. Draft it, sleep on it, delete it.",
+                                    "CC Strategy: CC is for visibility, BCC is for protection. Use wisely."
+                                ]
+                            },
+                            {
+                                title: "Project Proposals",
+                                icon: "📑",
+                                tips: [
+                                    "Problem-Solution-Benefit: Don't sell the feature, sell the relief of pain.",
+                                    "ROI Focused: Always include a slide on 'What happens if we do nothing?' (The cost of inaction).",
+                                    "Pre-mortem: List why it might fail and how you'll prevent it. Shows maturity."
+                                ]
+                            },
+                            {
+                                title: "Office Politics",
+                                icon: "🎭",
+                                tips: [
+                                    "The Grapevine: Listen to gossip, never contribute. Information is currency.",
+                                    "Allies: Make friends with the Executive Assistants and IT support. They run the company.",
+                                    "Visibility: Do good work, but ensure the right people see it. Perception is reality."
+                                ]
+                            }
+                        ].map((card, i) => (
+                            <div key={i} className="glass-panel p-6 rounded-2xl hover:bg-white/5 transition-all">
+                                <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-3">
+                                    <span className="text-3xl">{card.icon}</span>
+                                    <h3 className="font-bold text-white text-lg">{card.title}</h3>
+                                </div>
+                                <ul className="space-y-4">
+                                    {card.tips.map((tip, idx) => (
+                                        <li key={idx} className="text-xs text-gray-400 leading-relaxed pl-2 border-l-2 border-skillfi-neon/30">
+                                            {tip}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* --- TREND RADAR MODULE (NEW) --- */}
+            {activeModule === 'TRENDS' && (
+                <div className="animate-fade-in space-y-8">
+                    <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 text-9xl font-black select-none">WEB3</div>
+                        <h2 className="text-2xl font-bold text-white mb-6">Timeline of Evolution</h2>
+                        
+                        <div className="relative border-l-2 border-skillfi-neon/20 ml-4 space-y-12">
+                            {/* Web 1.0 */}
+                            <div className="relative pl-8">
+                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-gray-600 rounded-full border-4 border-black"></div>
+                                <h3 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-1">1990 - 2004: Web 1.0 (Read Only)</h3>
+                                <p className="text-gray-500 text-xs mb-2">Static pages, directories, dial-up. The "Information Superhighway".</p>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Netscape</span>
+                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Yahoo</span>
+                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Email</span>
+                                </div>
+                            </div>
+
+                            {/* Web 2.0 */}
+                            <div className="relative pl-8">
+                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-blue-500 rounded-full border-4 border-black shadow-[0_0_10px_#3b82f6]"></div>
+                                <h3 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">2004 - 2020: Web 2.0 (Read-Write)</h3>
+                                <p className="text-gray-400 text-xs mb-2">Social media, mobile apps, cloud computing. Users create content, platforms own data.</p>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">Facebook</span>
+                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">iPhone</span>
+                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">AWS</span>
+                                </div>
+                            </div>
+
+                            {/* Web 3.0 */}
+                            <div className="relative pl-8">
+                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-purple-500 rounded-full border-4 border-black shadow-[0_0_10px_#a855f7]"></div>
+                                <h3 className="text-purple-400 font-bold text-sm uppercase tracking-widest mb-1">2020 - Present: Web 3.0 (Read-Write-Own)</h3>
+                                <p className="text-gray-300 text-xs mb-2">Decentralization, Tokenization, Digital Ownership. Users own their data and assets.</p>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">Bitcoin/ETH</span>
+                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">NFTs</span>
+                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">DeFi</span>
+                                </div>
+                            </div>
+
+                            {/* AI Era */}
+                            <div className="relative pl-8">
+                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-skillfi-neon rounded-full border-4 border-black shadow-[0_0_15px_#D4AF37] animate-pulse"></div>
+                                <h3 className="text-skillfi-neon font-bold text-sm uppercase tracking-widest mb-1">2023+: The Intelligence Era (Agentic Web)</h3>
+                                <p className="text-white text-xs mb-2">Generative AI, Autonomous Agents, Human-AI Hybrid workforce. Tasks are automated, creativity is amplified.</p>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">LLMs</span>
+                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">Robotics</span>
+                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">AGI</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-blue-500">
+                            <h3 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-3">Current Meta Trends (Web2)</h3>
+                            <ul className="space-y-3 text-xs text-gray-300">
+                                <li>• <strong>Remote/Hybrid Normalization:</strong> Office is a tool, not a place.</li>
+                                <li>• <strong>Creator Economy:</strong> Individuals are media companies.</li>
+                                <li>• <strong>SaaS Saturation:</strong> Move from "Systems of Record" to "Systems of Intelligence".</li>
+                                <li>• <strong>Short-Form Video:</strong> Attention spans are the new oil (TikTokification).</li>
+                            </ul>
+                        </div>
+                        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-purple-500">
+                            <h3 className="text-purple-400 font-bold text-sm uppercase tracking-widest mb-3">Future Meta Trends (Web3/AI)</h3>
+                            <ul className="space-y-3 text-xs text-gray-300">
+                                <li>• <strong>Tokenized Assets (RWA):</strong> Real estate and bonds moving on-chain.</li>
+                                <li>• <strong>DeSci (Decentralized Science):</strong> Funding research via crypto rails.</li>
+                                <li>• <strong>Hyper-Personalization:</strong> AI generates custom UI/UX for every user.</li>
+                                <li>• <strong>Sovereign Identity:</strong> Login with Wallet vs Login with Google.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* --- PATHFINDER --- */}
             {activeModule === 'PATH' && (
@@ -456,19 +747,19 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
 
                             {/* Strategy Toggle */}
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Strategy Mode</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Career Strategy</label>
                                 <div className="grid grid-cols-2 gap-2 bg-black/40 p-1 rounded-xl">
                                     <button 
                                         onClick={() => setRiskTolerance('STABLE')}
                                         className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'STABLE' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                     >
-                                        🛡️ Stable Role
+                                        🛡️ Safe Path
                                     </button>
                                     <button 
                                         onClick={() => setRiskTolerance('MOONSHOT')}
                                         className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${riskTolerance === 'MOONSHOT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                     >
-                                        🚀 Moonshot Role
+                                        🚀 Bold Path
                                     </button>
                                 </div>
                             </div>
@@ -616,18 +907,24 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                                     placeholder="Launched mobile app with 10k users..."
                                 />
                             </div>
-                            <button 
-                                onClick={handleGenerateResume}
-                                disabled={isGeneratingResume}
-                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
-                            >
-                                {isGeneratingResume ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        Compiling Resume...
-                                    </>
-                                ) : 'Generate Resume'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleGenerateResume}
+                                    disabled={isGeneratingResume}
+                                    className="flex-1 py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    {isGeneratingResume ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                            Thinking...
+                                        </>
+                                    ) : 'Create'}
+                                </button>
+                                <div onClick={() => resumeUploadRef.current?.click()} className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-colors flex items-center justify-center" title="Proofread Existing">
+                                    <input type="file" ref={resumeUploadRef} className="hidden" accept=".pdf,image/*" onChange={(e) => handleProofreadUpload(e, 'RESUME')} />
+                                    <span className="text-xl">📤</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     )}
@@ -792,18 +1089,24 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                                     placeholder="Nobel Prize, PMP Certification..."
                                 />
                             </div>
-                            <button 
-                                onClick={handleGenerateCV}
-                                disabled={isGeneratingCV}
-                                className="w-full py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
-                            >
-                                {isGeneratingCV ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        Compiling CV...
-                                    </>
-                                ) : 'Generate Academic CV'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleGenerateCV}
+                                    disabled={isGeneratingCV}
+                                    className="flex-1 py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
+                                >
+                                    {isGeneratingCV ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                                            Compiling CV...
+                                        </>
+                                    ) : 'Generate Academic CV'}
+                                </button>
+                                <div onClick={() => cvUploadRef.current?.click()} className="mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-colors flex items-center justify-center" title="Proofread Existing">
+                                    <input type="file" ref={cvUploadRef} className="hidden" accept=".pdf,image/*" onChange={(e) => handleProofreadUpload(e, 'CV')} />
+                                    <span className="text-xl">📤</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -882,9 +1185,23 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
 
             {/* --- ELITE MODULE --- */}
             {activeModule === 'ELITE' && (
-                <div className="animate-fade-in relative">
+                <div className="animate-fade-in relative space-y-6">
+                    {/* Search Bar for Elite */}
+                    <div className="glass-panel p-4 rounded-xl border border-white/10 flex items-center gap-3 relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                        <input 
+                            type="text" 
+                            placeholder="Search high-value skills..." 
+                            value={eliteSearch}
+                            onChange={(e) => setEliteSearch(e.target.value)}
+                            className="bg-transparent w-full text-white outline-none placeholder-gray-500 text-sm"
+                        />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {eliteItems.map((item, i) => (
+                        {getFilteredEliteItems().map((item, i) => (
                             <div 
                                 key={i}
                                 onClick={() => openEliteModal(item)}
@@ -892,13 +1209,19 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                             >
                                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
                                 <h3 className="font-bold text-white text-lg">{item.title}</h3>
-                                <p className="text-gray-400 text-xs mt-2">{item.desc}</p>
+                                <p className="text-gray-400 text-xs mt-2 line-clamp-2">{item.desc}</p>
                                 <div className="mt-4 text-[10px] text-skillfi-neon font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                                     Click to Learn
                                 </div>
                             </div>
                         ))}
                     </div>
+                    
+                    {getFilteredEliteItems().length === 0 && (
+                        <div className="text-center py-20 text-gray-500">
+                            <p>No elite skills found matching "{eliteSearch}".</p>
+                        </div>
+                    )}
 
                     {/* Elite Modal */}
                     {activeEliteItem && (

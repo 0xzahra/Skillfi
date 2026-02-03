@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona } from '../services/geminiService';
+import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona, fetchMarketTicker, fetchBatchStockPrices, MarketTickerData } from '../services/geminiService';
 import { LanguageCode } from '../types';
 
 type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX';
@@ -9,6 +9,7 @@ type TimeFilter = '1D' | '1W' | '1M' | 'YTD' | 'ALL';
 interface FinanceToolsProps {
     onAnalyze?: (data: string) => void;
     currentLang: LanguageCode;
+    lastSync?: number;
 }
 
 interface Expense {
@@ -28,6 +29,7 @@ interface MarketAsset {
     color: string;
     desc?: string;
     isSimulated?: boolean;
+    exchanges?: string[];
 }
 
 const MONEY_QUOTES = [
@@ -37,6 +39,42 @@ const MONEY_QUOTES = [
     "Beware of little expenses. A small leak will sink a great ship.",
     "Wealth consists not in having great possessions, but in having few wants."
 ];
+
+// --- STRATEGY DATA ---
+const MARKET_STRATEGIES: Record<MarketCategory, { title: string; tips: string[] }> = {
+    METALS: {
+        title: "Hard Asset Preservation",
+        tips: [
+            "Hedge against inflation: Allocate 5-10% of portfolio to Gold/Silver.",
+            "Physical vs. Paper: Physical storage has insurance costs; ETFs are liquid but have counterparty risk.",
+            "Industrial Demand: Watch manufacturing data for Silver and Copper volatility."
+        ]
+    },
+    CRYPTO: {
+        title: "Asymmetric Upside Protocol",
+        tips: [
+            "Self-Custody: 'Not your keys, not your coins.' Use hardware wallets for long-term holds.",
+            "Bitcoin Halving Cycles: Historically, price action correlates with the 4-year halving cycle.",
+            "DCA Strategy: Dollar Cost Average to mitigate extreme volatility. Don't chase green candles."
+        ]
+    },
+    STOCKS: {
+        title: "Equity Growth Engine",
+        tips: [
+            "Index Fund Core: S&P 500 (VOO/SPY) historically returns ~10% annually. Make this your foundation.",
+            "Dividend Reinvestment: DRIP programs compound wealth automatically over decades.",
+            "Sector Rotation: Shift exposure based on economic cycle (Tech in growth, Staples in recession)."
+        ]
+    },
+    FOREX: {
+        title: "Currency Arbitrage",
+        tips: [
+            "Macro Drivers: Interest rate differentials between central banks drive long-term trends.",
+            "Leverage Risk: Forex leverage is high. Risk management (Stop Loss) is non-negotiable.",
+            "Session Overlaps: Trade when London and NY sessions overlap for maximum liquidity."
+        ]
+    }
+};
 
 // --- STATIC MARKET DATA BASE ---
 const METALS: MarketAsset[] = [
@@ -84,13 +122,17 @@ const FOREX: MarketAsset[] = [
     { id: 'usdinr', name: 'Indian Rupee', symbol: 'USD/INR', basePrice: 83.40, change: 0.05, icon: '🇮🇳', color: 'text-orange-400' },
 ];
 
-export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLang }) => {
+export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLang, lastSync }) => {
   const [activeTab, setActiveTab] = useState<FinanceTab>('BUDGET');
   const [dailyQuote, setDailyQuote] = useState(MONEY_QUOTES[0]);
 
   // Market State
   const [marketCategory, setMarketCategory] = useState<MarketCategory>('METALS');
   const [marketSearch, setMarketSearch] = useState('');
+  const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
+  const [globalSearchResult, setGlobalSearchResult] = useState<MarketAsset | null>(null);
+  const [isLiveRefreshing, setIsLiveRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<number>(Date.now());
   
   // Real-time Simulation State
   const [livePrices, setLivePrices] = useState<Record<string, { price: number, change: number }>>({});
@@ -135,6 +177,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   const [taxRate, setTaxRate] = useState(22);
 
   // Mastery State
+  const [masterySearch, setMasterySearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [enlightenment, setEnlightenment] = useState<string>('');
   const [itemImage, setItemImage] = useState<string | null>(null);
@@ -148,43 +191,119 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       setDailyQuote(MONEY_QUOTES[Math.floor(Math.random() * MONEY_QUOTES.length)]);
   }, []);
 
-  // --- Real-Time Simulation Engine ---
+  // --- Real-Time Updates ---
   useEffect(() => {
-      // Initialize prices
+      // 1. Initial State Set
       const allAssets = [...METALS, ...CRYPTO, ...STOCKS, ...FOREX];
       const initial: Record<string, { price: number, change: number }> = {};
       allAssets.forEach(a => {
-          initial[a.id] = { price: a.basePrice, change: a.change };
+          if (!livePrices[a.id]) {
+              initial[a.id] = { price: a.basePrice, change: a.change };
+          }
       });
-      setLivePrices(initial);
+      if (Object.keys(initial).length > 0) {
+          setLivePrices(prev => ({ ...prev, ...initial }));
+      }
 
-      // Heartbeat Loop
-      const interval = setInterval(() => {
+      // 2. High-Frequency Simulation Loop (Visual Noise)
+      const simInterval = setInterval(() => {
           setLivePrices(prev => {
               const next = { ...prev };
               Object.keys(next).forEach(key => {
-                  // Simulate realistic volatility based on asset type (roughly)
-                  const volatility = key.length === 3 ? 0.002 : 0.0005; // Crypto vs Forex
+                  const volatility = key.length === 3 ? 0.0005 : 0.0001; // Tiny noise
                   const move = (Math.random() - 0.5) * volatility;
-                  
                   const currentPrice = next[key].price;
-                  const newPrice = currentPrice * (1 + move);
-                  
-                  // Accumulate change slightly
-                  const currentChange = next[key].change;
-                  const newChange = currentChange + (move * 100);
-
                   next[key] = { 
-                      price: newPrice, 
-                      change: parseFloat(newChange.toFixed(2)) 
+                      price: currentPrice * (1 + move), 
+                      change: next[key].change
                   };
               });
               return next;
           });
-      }, 3000); // Update every 3 seconds
+      }, 3000);
 
-      return () => clearInterval(interval);
-  }, []);
+      // 3. True Refresh Loop (Real Data Fetch)
+      const fetchRealData = async () => {
+          if (activeTab !== 'MARKETS') return;
+          
+          setIsLiveRefreshing(true);
+          let symbols: string[] = [];
+          
+          // Determine active symbols based on category
+          if (marketCategory === 'METALS') symbols = METALS.map(m => m.symbol);
+          if (marketCategory === 'CRYPTO') symbols = CRYPTO.map(m => m.symbol);
+          if (marketCategory === 'STOCKS') symbols = STOCKS.map(m => m.symbol);
+          if (marketCategory === 'FOREX') symbols = FOREX.map(m => m.symbol);
+
+          // Call API
+          const realData = await fetchBatchStockPrices(symbols);
+          
+          if (realData) {
+              setLivePrices(prev => {
+                  const next = { ...prev };
+                  // Map symbols back to IDs
+                  const currentList = marketCategory === 'METALS' ? METALS : 
+                                    marketCategory === 'CRYPTO' ? CRYPTO : 
+                                    marketCategory === 'STOCKS' ? STOCKS : FOREX;
+                  
+                  currentList.forEach(asset => {
+                      if (realData[asset.symbol]) {
+                          next[asset.id] = {
+                              price: realData[asset.symbol].price,
+                              change: realData[asset.symbol].change
+                          };
+                      }
+                  });
+                  return next;
+              });
+              setLastRefreshed(Date.now());
+          }
+          setIsLiveRefreshing(false);
+      };
+
+      // Initial fetch on mount/tab change or global sync trigger
+      if (activeTab === 'MARKETS') {
+          fetchRealData();
+      }
+
+      // Set 60s Interval
+      const refreshInterval = setInterval(fetchRealData, 60000);
+
+      return () => {
+          clearInterval(simInterval);
+          clearInterval(refreshInterval);
+      };
+  }, [activeTab, marketCategory, lastSync]);
+
+  // --- Global Search Handler ---
+  const handleGlobalSearch = async () => {
+      if (!marketSearch.trim()) return;
+      setIsSearchingGlobal(true);
+      setGlobalSearchResult(null);
+
+      try {
+          const data = await fetchMarketTicker(marketSearch);
+          if (data) {
+              const asset: MarketAsset = {
+                  id: `live-${Date.now()}`,
+                  name: data.name,
+                  symbol: data.symbol,
+                  basePrice: parseFloat(data.price.replace(/[^0-9.-]/g, '')),
+                  change: parseFloat(data.change.replace(/[^0-9.-]/g, '')),
+                  icon: '🔍',
+                  color: 'text-white',
+                  desc: data.description,
+                  exchanges: data.exchanges,
+                  isSimulated: true 
+              };
+              setGlobalSearchResult(asset);
+          }
+      } catch (e) {
+          console.error("Global search failed");
+      } finally {
+          setIsSearchingGlobal(false);
+      }
+  };
 
   // --- Deep Analysis Handler ---
   const handleInspectAsset = async (asset: MarketAsset) => {
@@ -297,6 +416,11 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       setIsEnlightening(false);
   };
 
+  const handleMasterySearch = () => {
+      if (!masterySearch.trim()) return;
+      handleInspectItem({ name: masterySearch, type: 'UNKNOWN', icon: '❓', desc: 'Custom Search' });
+  };
+
   // --- Market Filters ---
   const getFilteredMarketData = () => {
       let data: MarketAsset[] = [];
@@ -305,31 +429,38 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       if (marketCategory === 'STOCKS') data = STOCKS;
       if (marketCategory === 'FOREX') data = FOREX;
 
-      if (marketSearch) {
+      if (marketSearch && !globalSearchResult) {
           const lower = marketSearch.toLowerCase();
-          const filtered = data.filter(item => 
+          return data.filter(item => 
               item.name.toLowerCase().includes(lower) || 
               item.symbol.toLowerCase().includes(lower)
           );
-          
-          // Simulation for "All Cryptos/Stocks in the world"
-          if (filtered.length === 0 && marketSearch.length > 1) {
-              return [{
-                  id: 'sim-1',
-                  name: marketSearch.toUpperCase(),
-                  symbol: marketSearch.substring(0, 4).toUpperCase(),
-                  basePrice: 0, // Placeholder
-                  change: 0,
-                  icon: '🔍',
-                  color: 'text-white',
-                  isSimulated: true,
-                  desc: 'Search Result'
-              }];
-          }
-          return filtered;
       }
+      if (globalSearchResult) return [globalSearchResult];
+      
       return data;
   };
+
+  // Calculate Market Sentiment for Galaxy
+  const marketSentiment = useMemo(() => {
+      const data = getFilteredMarketData();
+      if (data.length === 0) return { avg: 0, vol: 0 };
+      
+      let total = 0;
+      let vol = 0;
+      
+      data.forEach(item => {
+          const priceData = livePrices[item.id];
+          const change = priceData ? priceData.change : item.change;
+          total += change;
+          vol += Math.abs(change);
+      });
+      
+      return { 
+          avg: total / data.length, 
+          vol: vol / data.length 
+      };
+  }, [marketCategory, livePrices, marketSearch, globalSearchResult]);
 
   // --- Chart Data Logic ---
   const getChartData = useMemo(() => {
@@ -457,7 +588,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
   // --- Effects & Animations ---
   useEffect(() => {
-      if (activeTab === 'PROFIT') {
+      if (activeTab === 'PROFIT' || activeTab === 'MARKETS') {
           const canvas = galaxyCanvasRef.current;
           const ctx = canvas?.getContext('2d');
           
@@ -476,15 +607,20 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           let animationFrameId: number;
           let particles: {x: number, y: number, size: number, speed: number, angle: number, radius: number}[] = [];
           
-          for(let i=0; i<40; i++) {
-              particles.push({
-                  x: 0, y: 0,
-                  size: Math.random() * 2,
-                  speed: 0.005 + Math.random() * 0.01,
-                  angle: Math.random() * Math.PI * 2,
-                  radius: 50 + Math.random() * 80
-              });
-          }
+          // Initialize particles
+          const initParticles = () => {
+              particles = [];
+              for(let i=0; i<60; i++) {
+                  particles.push({
+                      x: 0, y: 0,
+                      size: Math.random() * 2,
+                      speed: 0.005 + Math.random() * 0.01,
+                      angle: Math.random() * Math.PI * 2,
+                      radius: 50 + Math.random() * 80
+                  });
+              }
+          };
+          initParticles();
 
           const render = () => {
               if (!ctx || !canvas) return;
@@ -493,46 +629,90 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               const centerX = canvas.width / 2;
               const centerY = canvas.height / 2;
               
-              const isProfit = profitData.profit >= 0;
-              const primaryColor = isProfit ? '#00ffaa' : '#ff4444'; 
-              const glowColor = isProfit ? 'rgba(0, 255, 170, 0.2)' : 'rgba(255, 68, 68, 0.2)';
+              if (activeTab === 'PROFIT') {
+                  const isProfit = profitData.profit >= 0;
+                  const primaryColor = isProfit ? '#00ffaa' : '#ff4444'; 
+                  const glowColor = isProfit ? 'rgba(0, 255, 170, 0.2)' : 'rgba(255, 68, 68, 0.2)';
 
-              const baseSize = 20;
-              const growth = Math.min(Math.abs(profitData.roi), 50) / 2;
-              const starSize = baseSize + growth;
+                  const baseSize = 20;
+                  const growth = Math.min(Math.abs(profitData.roi), 50) / 2;
+                  const starSize = baseSize + growth;
 
-              const gradient = ctx.createRadialGradient(centerX, centerY, starSize * 0.2, centerX, centerY, starSize * 3);
-              gradient.addColorStop(0, primaryColor);
-              gradient.addColorStop(1, 'transparent');
-              ctx.fillStyle = gradient;
-              ctx.beginPath();
-              ctx.arc(centerX, centerY, starSize * 3, 0, Math.PI * 2);
-              ctx.fill();
-
-              ctx.fillStyle = '#fff';
-              ctx.beginPath();
-              ctx.arc(centerX, centerY, starSize * 0.5, 0, Math.PI * 2);
-              ctx.fill();
-
-              particles.forEach(p => {
-                  p.angle += p.speed * (isProfit ? 1 : 0.5); 
-                  p.x = centerX + Math.cos(p.angle) * p.radius;
-                  p.y = centerY + Math.sin(p.angle) * p.radius;
-                  
-                  ctx.fillStyle = isProfit ? '#ffffffaa' : '#ffaaaa';
+                  const gradient = ctx.createRadialGradient(centerX, centerY, starSize * 0.2, centerX, centerY, starSize * 3);
+                  gradient.addColorStop(0, primaryColor);
+                  gradient.addColorStop(1, 'transparent');
+                  ctx.fillStyle = gradient;
                   ctx.beginPath();
-                  ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                  ctx.arc(centerX, centerY, starSize * 3, 0, Math.PI * 2);
                   ctx.fill();
+
+                  ctx.fillStyle = '#fff';
+                  ctx.beginPath();
+                  ctx.arc(centerX, centerY, starSize * 0.5, 0, Math.PI * 2);
+                  ctx.fill();
+
+                  particles.forEach(p => {
+                      p.angle += p.speed * (isProfit ? 1 : 0.5); 
+                      p.x = centerX + Math.cos(p.angle) * p.radius;
+                      p.y = centerY + Math.sin(p.angle) * p.radius;
+                      
+                      ctx.fillStyle = isProfit ? '#ffffffaa' : '#ffaaaa';
+                      ctx.beginPath();
+                      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                      ctx.fill();
+                      
+                      if (Math.random() > 0.95) {
+                           ctx.strokeStyle = glowColor;
+                           ctx.lineWidth = 0.5;
+                           ctx.beginPath();
+                           ctx.moveTo(centerX, centerY);
+                           ctx.lineTo(p.x, p.y);
+                           ctx.stroke();
+                      }
+                  });
+              } 
+              else if (activeTab === 'MARKETS') {
+                  // Market rendering based on sentiment
+                  const isBullish = marketSentiment.avg >= 0;
+                  const colorBase = isBullish ? `0, 255, 170` : `255, 68, 68`;
                   
-                  if (Math.random() > 0.95) {
-                       ctx.strokeStyle = glowColor;
-                       ctx.lineWidth = 0.5;
-                       ctx.beginPath();
-                       ctx.moveTo(centerX, centerY);
-                       ctx.lineTo(p.x, p.y);
-                       ctx.stroke();
-                  }
-              });
+                  // Central glow
+                  const gradient = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, canvas.width/1.5);
+                  gradient.addColorStop(0, `rgba(${colorBase}, 0.1)`);
+                  gradient.addColorStop(1, 'transparent');
+                  ctx.fillStyle = gradient;
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                  particles.forEach((p, i) => {
+                      // Speed affected by volatility
+                      const speedMult = 1 + (marketSentiment.vol / 5);
+                      p.angle += p.speed * speedMult * (isBullish ? 1 : -1);
+                      p.x = centerX + Math.cos(p.angle) * (p.radius * 1.5); // Elliptical for markets
+                      p.y = centerY + Math.sin(p.angle) * p.radius;
+                      
+                      ctx.beginPath();
+                      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                      ctx.fillStyle = `rgba(${colorBase}, ${0.5 + Math.random() * 0.5})`;
+                      ctx.fill();
+                      
+                      // Draw connections between close particles
+                      particles.forEach((p2, j) => {
+                          if (i !== j) {
+                              const dx = p.x - p2.x;
+                              const dy = p.y - p2.y;
+                              const dist = Math.sqrt(dx*dx + dy*dy);
+                              if (dist < 60) {
+                                  ctx.beginPath();
+                                  ctx.strokeStyle = `rgba(${colorBase}, ${0.15 * (1 - dist/60)})`;
+                                  ctx.lineWidth = 0.5;
+                                  ctx.moveTo(p.x, p.y);
+                                  ctx.lineTo(p2.x, p2.y);
+                                  ctx.stroke();
+                              }
+                          }
+                      });
+                  });
+              }
 
               animationFrameId = requestAnimationFrame(render);
           };
@@ -542,7 +722,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               cancelAnimationFrame(animationFrameId);
           };
       }
-  }, [activeTab, profitData]);
+  }, [activeTab, profitData, marketSentiment]);
 
   const addExpense = () => {
     if (newExpenseName && newExpenseCost) {
@@ -579,7 +759,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
     <div className="p-4 md:p-6 w-full mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-32 scrollbar-hide">
       <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools <span className="text-skillfi-neon text-shadow-neon">v4.3</span></h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display text-white tracking-tight drop-shadow-md kinetic-type">Money Tools</h1>
             <p className="text-gray-500 text-sm mt-1">Control your financial future.</p>
         </div>
         <div className="p-3 bg-white/5 border-l-4 border-green-500 rounded-r-xl max-w-sm hidden md:block">
@@ -914,9 +1094,29 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* WEALTH MASTERY */}
         {activeTab === 'MASTERY' && (
              <div className="space-y-8 animate-fade-in relative">
-                 <p className="text-center text-gray-400 text-sm max-w-lg mx-auto">
-                     Learn the difference between things that make you money (Assets) and things that take your money (Liabilities).
-                 </p>
+                 <div className="glass-panel p-6 rounded-2xl border border-white/10 shadow-lg bg-gradient-to-br from-gray-900 to-black">
+                    <h3 className="text-white font-bold font-display text-lg mb-2 flex items-center gap-2">
+                        <span className="text-2xl">🧐</span> Analyze Any Item
+                    </h3>
+                    <p className="text-gray-400 text-xs mb-4">Enter an item (e.g. "Private Jet", "Bitcoin", "Diamond") to see if it's an Asset or Liability.</p>
+                    <div className="flex gap-2">
+                        <input 
+                            type="text" 
+                            value={masterySearch}
+                            onChange={(e) => setMasterySearch(e.target.value)}
+                            placeholder="Type any asset name..." 
+                            onKeyDown={(e) => e.key === 'Enter' && handleMasterySearch()}
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-skillfi-neon outline-none text-sm placeholder-gray-600 transition-colors"
+                        />
+                        <button 
+                            onClick={handleMasterySearch}
+                            className="bg-skillfi-neon text-black px-6 rounded-xl font-bold uppercase text-xs tracking-wider hover:bg-white transition-all shadow-lg"
+                        >
+                            Analyze
+                        </button>
+                    </div>
+                </div>
+
                  {selectedItem && (
                      <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-fade-in">
                         <div className="glass-panel w-full max-w-lg rounded-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
@@ -1056,26 +1256,56 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                                          <p className="text-sm text-gray-500 mt-2 font-mono">Analyzing {selectedAsset.name} market data streams.</p>
                                      </div>
                                  ) : analysisData ? (
-                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {[
-                                            { title: 'Fundamental', key: 'Fundamental', icon: '📊', color: 'border-blue-500' },
-                                            { title: 'Technical', key: 'Technical', icon: '📈', color: 'border-purple-500' },
-                                            { title: 'Sentiment', key: 'Sentiment', icon: '🧠', color: 'border-yellow-500' },
-                                            { title: 'Macroeconomy', key: 'Macro', icon: '🌐', color: 'border-indigo-500' },
-                                            { title: 'Psychology', key: 'Psychology', icon: '🎭', color: 'border-pink-500' },
-                                            { title: 'Action Plan', key: 'Action', icon: '🎯', color: 'border-green-500' },
-                                        ].map((section, i) => (
-                                            <div key={i} className={`bg-white/5 border-l-4 ${section.color} p-5 rounded-r-xl shadow-lg hover:bg-white/10 transition-colors`}>
-                                                <div className="flex items-center gap-2 mb-3 border-b border-white/5 pb-2">
-                                                    <span className="text-xl">{section.icon}</span>
-                                                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">{section.title}</h3>
+                                     <>
+                                        {/* MARKET AVAILABILITY */}
+                                        <div className="mb-8">
+                                            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2">Market Intelligence</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">Available On</span>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedAsset.exchanges && selectedAsset.exchanges.length > 0 
+                                                            ? selectedAsset.exchanges.map((ex, i) => (
+                                                                <span key={i} className="px-3 py-1 bg-black/40 rounded text-xs font-mono text-white border border-white/10">{ex}</span>
+                                                            ))
+                                                            : ["Binance", "Coinbase", "Kraken"].map(ex => ( // Fallback
+                                                                <span key={ex} className="px-3 py-1 bg-black/40 rounded text-xs font-mono text-white border border-white/10">{ex}</span>
+                                                            ))
+                                                        }
+                                                    </div>
                                                 </div>
-                                                <p className="text-gray-300 text-xs leading-relaxed font-medium">
-                                                    {analysisData[section.key] || 'Data unavailable.'}
-                                                </p>
+                                                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">Deep Data Tools</span>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <a href={`https://www.tradingview.com/symbols/${selectedAsset.symbol.replace('/','')}/`} target="_blank" rel="noreferrer" className="px-3 py-1 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-xs font-bold uppercase transition-colors">TradingView</a>
+                                                        <a href={`https://www.investing.com/search/?q=${selectedAsset.name}`} target="_blank" rel="noreferrer" className="px-3 py-1 bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white rounded text-xs font-bold uppercase transition-colors">Investing.com</a>
+                                                        <a href={`https://finance.yahoo.com/quote/${selectedAsset.symbol.replace('/','-')}`} target="_blank" rel="noreferrer" className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded text-xs font-bold uppercase transition-colors">Yahoo Finance</a>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        ))}
-                                     </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {[
+                                                { title: 'Fundamental', key: 'Fundamental', icon: '📊', color: 'border-blue-500' },
+                                                { title: 'Technical', key: 'Technical', icon: '📈', color: 'border-purple-500' },
+                                                { title: 'Sentiment', key: 'Sentiment', icon: '🧠', color: 'border-yellow-500' },
+                                                { title: 'Macroeconomy', key: 'Macro', icon: '🌐', color: 'border-indigo-500' },
+                                                { title: 'Psychology', key: 'Psychology', icon: '🎭', color: 'border-pink-500' },
+                                                { title: 'Action Plan', key: 'Action', icon: '🎯', color: 'border-green-500' },
+                                            ].map((section, i) => (
+                                                <div key={i} className={`bg-white/5 border-l-4 ${section.color} p-5 rounded-r-xl shadow-lg hover:bg-white/10 transition-colors`}>
+                                                    <div className="flex items-center gap-2 mb-3 border-b border-white/5 pb-2">
+                                                        <span className="text-xl">{section.icon}</span>
+                                                        <h3 className="font-bold text-white text-sm uppercase tracking-wider">{section.title}</h3>
+                                                    </div>
+                                                    <p className="text-gray-300 text-xs leading-relaxed font-medium">
+                                                        {analysisData[section.key] || 'Data unavailable.'}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                     </>
                                  ) : (
                                      <div className="text-center py-20 text-red-400">Unable to retrieve market data. Connection error.</div>
                                  )}
@@ -1084,13 +1314,30 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                      </div>
                  )}
 
-                 {/* Sub Filters */}
+                 {/* Market Pulse Header (Canvas) */}
+                 <div ref={containerRef} className="relative w-full h-48 bg-black/40 rounded-2xl border border-white/10 overflow-hidden mb-6 flex items-center justify-center group shadow-2xl">
+                    <canvas ref={galaxyCanvasRef} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                    <div className="relative z-10 text-center backdrop-blur-sm p-4 rounded-xl border border-white/5 bg-black/20">
+                        <h2 className="text-xl font-bold font-display text-white uppercase tracking-widest mb-1 flex items-center justify-center gap-2">
+                            {marketCategory} Index
+                            <span className={`w-2 h-2 rounded-full animate-pulse ${marketSentiment.avg >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        </h2>
+                        <div className={`text-4xl font-black font-mono ${marketSentiment.avg >= 0 ? 'text-green-400' : 'text-red-500'} drop-shadow-lg tracking-tight`}>
+                            {marketSentiment.avg >= 0 ? '+' : ''}{marketSentiment.avg.toFixed(2)}%
+                        </div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mt-2 border-t border-white/10 pt-2 inline-block">
+                            Volatility: {(marketSentiment.vol * 10).toFixed(1)}/100
+                        </p>
+                    </div>
+                 </div>
+
+                 {/* Sub Filters & Global Search */}
                  <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                     <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto max-w-full">
                         {(['METALS', 'CRYPTO', 'STOCKS', 'FOREX'] as MarketCategory[]).map(cat => (
                             <button
                                 key={cat}
-                                onClick={() => { setMarketCategory(cat); setMarketSearch(''); }}
+                                onClick={() => { setMarketCategory(cat); setMarketSearch(''); setGlobalSearchResult(null); }}
                                 className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all whitespace-nowrap ${
                                     marketCategory === cat 
                                     ? 'bg-skillfi-neon text-black shadow-lg' 
@@ -1101,24 +1348,43 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                             </button>
                         ))}
                     </div>
-                    <div className="relative w-full md:w-64">
+                    <div className="relative w-full md:w-80 flex gap-2">
                          <input 
                             type="text" 
-                            placeholder={`Search ${marketCategory.toLowerCase()}...`} 
+                            placeholder={`Search ${marketCategory.toLowerCase()} or Global...`} 
                             value={marketSearch}
                             onChange={(e) => setMarketSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleGlobalSearch()}
                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-skillfi-neon outline-none"
                         />
+                        <button 
+                            onClick={handleGlobalSearch}
+                            disabled={!marketSearch.trim() || isSearchingGlobal}
+                            className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-3 flex items-center justify-center transition-colors"
+                            title="Global Search"
+                        >
+                            {isSearchingGlobal ? (
+                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                            )}
+                        </button>
                     </div>
                  </div>
 
                  {/* Simulated Live Connection Banner */}
                  <div className="bg-green-900/10 border border-green-500/20 p-3 rounded-lg flex items-center justify-between">
                      <div className="flex items-center gap-2">
-                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                         <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Global Market Data Connection: Active</span>
+                         <span className={`w-1.5 h-1.5 rounded-full ${isLiveRefreshing ? 'bg-yellow-400 animate-bounce' : 'bg-green-500 animate-pulse'}`}></span>
+                         <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
+                             {isLiveRefreshing ? 'SYNCING LIVE DATA...' : 'GLOBAL MARKET FEED ACTIVE'}
+                         </span>
                      </div>
-                     <span className="text-[10px] text-gray-500 font-mono">LATENCY: 12ms</span>
+                     <span className="text-[10px] text-gray-500 font-mono uppercase">
+                         UPDATED: {new Date(lastRefreshed).toLocaleTimeString()}
+                     </span>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1131,11 +1397,11 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                              <div 
                                 key={item.id} 
                                 onClick={() => handleInspectAsset(item)}
-                                className={`glass-panel p-5 rounded-xl border border-white/5 hover:border-skillfi-neon/50 transition-all group cursor-pointer ${item.isSimulated ? 'border-dashed border-gray-700' : ''}`}
+                                className={`glass-panel p-5 rounded-xl border border-white/5 hover:border-skillfi-neon/50 transition-all group cursor-pointer relative overflow-hidden ${item.isSimulated ? 'border-dashed border-skillfi-neon/30 bg-skillfi-neon/5' : ''}`}
                              >
-                                 <div className="flex justify-between items-start mb-4">
+                                 <div className="flex justify-between items-start mb-4 relative z-10">
                                      <div className="flex items-center gap-3">
-                                         <div className="text-3xl group-hover:scale-110 transition-transform">{item.icon}</div>
+                                         <div className="text-3xl group-hover:scale-110 transition-transform duration-300">{item.icon}</div>
                                          <div>
                                              <div className="font-bold text-white text-sm group-hover:text-skillfi-neon transition-colors">{item.name}</div>
                                              <div className="text-[10px] text-gray-500 font-mono">{item.symbol}</div>
@@ -1143,24 +1409,16 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                                      </div>
                                      <div className="text-right">
                                          <div className={`text-sm font-bold font-mono ${item.color || 'text-white'}`}>${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 4 })}</div>
-                                         <div className={`text-[10px] font-bold ${currentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                         <div className={`text-[10px] font-bold px-2 py-0.5 rounded ${currentChange >= 0 ? 'bg-green-900/30 text-green-400 border border-green-500/20' : 'bg-red-900/30 text-red-400 border border-red-500/20'}`}>
                                              {currentChange >= 0 ? '+' : ''}{currentChange.toFixed(2)}%
                                          </div>
                                      </div>
                                  </div>
                                  
-                                 {/* Mini Mock Chart */}
-                                 <div className="h-10 flex items-end gap-1 opacity-30 mt-2">
-                                     {[...Array(20)].map((_, idx) => (
-                                         <div 
-                                            key={idx} 
-                                            className={`flex-1 rounded-t-sm ${currentChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
-                                            style={{height: `${30 + Math.random() * 70}%`}}
-                                         ></div>
-                                     ))}
-                                 </div>
+                                 {/* Background Pulse Effect on Change */}
+                                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 bg-gradient-to-br ${currentChange >= 0 ? 'from-green-500 to-transparent' : 'from-red-500 to-transparent'}`}></div>
 
-                                 <div className="mt-3 pt-2 border-t border-white/5 flex justify-between items-center">
+                                 <div className="mt-3 pt-2 border-t border-white/5 flex justify-between items-center relative z-10">
                                      <span className="text-[9px] text-gray-500 italic truncate max-w-[70%]">{item.desc || 'Click for deep analysis.'}</span>
                                      <span className="text-[9px] bg-white/10 px-2 py-0.5 rounded text-white uppercase tracking-wider group-hover:bg-skillfi-neon group-hover:text-black transition-colors">Analyze</span>
                                  </div>
@@ -1168,11 +1426,28 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                          );
                      })}
                  </div>
+
+                 {/* ASSET STRATEGY CARD */}
+                 <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-skillfi-neon mt-4 animate-fade-in relative overflow-hidden">
+                     <div className="absolute top-0 right-0 p-4 opacity-5 text-6xl font-black">♟️</div>
+                     <h3 className="text-skillfi-neon font-bold font-display text-sm uppercase tracking-widest mb-4">
+                         Strategic Protocol: {MARKET_STRATEGIES[marketCategory].title}
+                     </h3>
+                     <ul className="space-y-3">
+                         {MARKET_STRATEGIES[marketCategory].tips.map((tip, idx) => (
+                             <li key={idx} className="flex items-start gap-3 text-sm text-gray-300">
+                                 <span className="text-skillfi-neon font-bold text-xs mt-0.5">0{idx + 1}.</span>
+                                 <span>{tip}</span>
+                             </li>
+                         ))}
+                     </ul>
+                 </div>
                  
                  {getFilteredMarketData().length === 0 && (
                      <div className="text-center py-20 opacity-50">
                          <div className="text-4xl mb-2">🔭</div>
-                         <p className="text-xs uppercase tracking-widest">Asset not found in top lists.</p>
+                         <p className="text-xs uppercase tracking-widest">Asset not found locally.</p>
+                         <button onClick={handleGlobalSearch} className="mt-2 text-skillfi-neon underline text-xs">Try Global Search</button>
                      </div>
                  )}
             </div>

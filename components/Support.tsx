@@ -118,7 +118,7 @@ export const Support: React.FC = () => {
                                 </svg>
                                 Connect to Agent
                             </button>
-                            <p className="text-center text-[10px] text-gray-600 mt-3 uppercase tracking-wider">Agents Online: 3 // Wait Time: <1 min</p>
+                            <p className="text-center text-[10px] text-gray-600 mt-3 uppercase tracking-wider">Agents Online: 3 // Wait Time: &lt;1 min</p>
                         </div>
                     </div>
                 )}

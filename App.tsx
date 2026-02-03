@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [lastSync, setLastSync] = useState<number>(Date.now()); // Global Refresh Trigger
   
   // Feature State: Instant Scout
   const [scoutPrompt, setScoutPrompt] = useState<string | null>(null);
@@ -347,6 +348,12 @@ const App: React.FC = () => {
       handleSendMessage(`[SYSTEM AUDIT REQUEST]\nDATA PACKAGE:\n${dataContext}\n\nTASK: Analyze this financial data. Provide a ruthless, optimized strategy to maximize wealth and efficiency. Spot leaks and suggest improvements.`);
   };
 
+  const handleGlobalSync = () => {
+      setLastSync(Date.now());
+      AudioService.playProcessing();
+      setTimeout(() => AudioService.playSuccess(), 500);
+  };
+
   const handleSendMessage = async (text: string, attachment?: { data: string; mimeType: string }) => {
     if (!text.trim() && !attachment) return;
 
@@ -570,6 +577,7 @@ const App: React.FC = () => {
                     }}
                     onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     theme={theme}
+                    onSync={handleGlobalSync}
                 />
 
                 <main className="flex-1 overflow-hidden relative flex flex-col w-full">
@@ -587,12 +595,13 @@ const App: React.FC = () => {
                       <CareerArsenal 
                         user={user!} 
                         initialScoutData={scoutPrompt} 
+                        lastSync={lastSync}
                       />
                   )}
-                  {currentView === 'EDUCATION' && <EducationCenter />}
+                  {currentView === 'EDUCATION' && <EducationCenter lastSync={lastSync} />}
                   {currentView === 'RELATIONSHIPS_DASH' && <RelationshipsDash />}
                   {currentView === 'MENTAL_HEALTH' && <MentalHealth />}
-                  {currentView === 'FORBES' && <Forbes />}
+                  {currentView === 'FORBES' && <Forbes lastSync={lastSync} />}
 
                   {currentView === 'CHAT' && (
                     <>
@@ -613,7 +622,7 @@ const App: React.FC = () => {
                     </>
                   )}
 
-                  {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} currentLang={currentLang} />}
+                  {currentView === 'TOOLS_CALC' && <FinanceTools onAnalyze={handleAnalyzeFinance} currentLang={currentLang} lastSync={lastSync} />}
                   
                   {currentView === 'TRIBES' && <Tribes userCredits={user?.credits || 0} onNavigate={handleNavigate} />}
 
