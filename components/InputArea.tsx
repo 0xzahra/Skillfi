@@ -117,6 +117,57 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
     }
   };
 
+  const menuItems = [
+      { 
+          icon: '👁️', 
+          label: 'Visual Uplink', 
+          desc: 'Analyze Images', 
+          action: () => handleFileTrigger('image/*'), 
+          color: 'text-blue-400', 
+          bg: 'bg-blue-500/10' 
+      },
+      { 
+          icon: '📄', 
+          label: 'Doc Parser', 
+          desc: 'Read PDFs/Txt', 
+          action: () => handleFileTrigger('.pdf,.doc,.docx,.txt'), 
+          color: 'text-purple-400', 
+          bg: 'bg-purple-500/10' 
+      },
+      { 
+          icon: '🎙️', 
+          label: 'Voice Log', 
+          desc: 'Record Memo', 
+          action: () => toggleRecording(), 
+          color: 'text-red-400', 
+          bg: 'bg-red-500/10' 
+      },
+      { 
+          icon: '🧠', 
+          label: 'Strategist', 
+          desc: 'Deep Reasoning', 
+          action: () => handleModeSelect('[DEEP THINKING MODE]:'), 
+          color: 'text-skillfi-neon', 
+          bg: 'bg-yellow-500/10' 
+      },
+      { 
+          icon: '🌐', 
+          label: 'Live Data', 
+          desc: 'Web Search', 
+          action: () => handleModeSelect('[WEB SEARCH]:'), 
+          color: 'text-green-400', 
+          bg: 'bg-green-500/10' 
+      },
+      { 
+          icon: '🏗️', 
+          label: 'Architect', 
+          desc: 'Code Gen', 
+          action: () => handleModeSelect('[CODE INTERPRETER]:'), 
+          color: 'text-orange-400', 
+          bg: 'bg-orange-500/10' 
+      }
+  ];
+
   return (
     <div className="w-full flex flex-col gap-3 font-sans relative z-50">
       
@@ -132,14 +183,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
               </div>
               
               <div className="grid grid-cols-3 gap-4">
-                  {[
-                      { icon: '👁️', label: 'Visual Uplink', desc: 'Analyze Images', action: () => handleFileTrigger('image/*'), color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                      { icon: '📄', label: 'Doc Parser', desc: 'Read PDFs/Txt', action: () => handleFileTrigger('.pdf,.doc,.docx,.txt'), color: 'text-purple-400', bg: 'bg-purple-500/10' },
-                      { icon: '🎙️', label: 'Voice Log', desc: 'Record Memo', action: () => toggleRecording(), color: 'text-red-400', bg: 'bg-red-500/10' },
-                      { icon: '🧠', label: 'Strategist', desc: 'Deep Reasoning', action: () => handleModeSelect('[DEEP THINKING MODE]:'), color: 'text-skillfi-neon', bg: 'bg-yellow-500/10' },
-                      { icon: '🌐', label: 'Live Data', desc: 'Web Search', action: () => handleModeSelect('[WEB SEARCH]:'), color: 'text-green-400', bg: 'bg-green-500/10' },
-                      { icon: '🏗️', label: 'Architect', desc: 'Code Gen', action: () => handleModeSelect('[CODE INTERPRETER]:'), color: 'text-orange-400', bg: 'bg-orange-500/10' },
-                  ].map((btn, idx) => (
+                  {menuItems.map((btn, idx) => (
                       <button 
                         key={idx} 
                         onClick={btn.action} 

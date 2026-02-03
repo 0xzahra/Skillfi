@@ -116,7 +116,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
             const mockGoogleUser: UserProfile = {
                 id: `GOOG-${Date.now()}`,
                 username: "Google User",
-                email: "user@gmail.com", // In a real app, this comes from the token
+                email: "user@gmail.com",
                 netWorth: 0,
                 xp: 0,
                 level: 'ROOKIE',
