@@ -244,7 +244,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, currentLang }) => {
                         Skillfi<span className="text-skillfi-neon">.</span>
                     </h2>
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] font-mono">
-                        {isRegister ? "Initialize Agent Profile" : "Access Secure Terminal"}
+                        The Career and Financial Guidance Counselor
                     </p>
                 </div>
 
