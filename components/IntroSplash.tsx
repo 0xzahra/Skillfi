@@ -72,8 +72,8 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
                 SKILLFI
             </h1>
             <div className="h-px w-32 bg-skillfi-neon mx-auto my-6 shadow-[0_0_10px_#D4AF37]"></div>
-            <p className="text-skillfi-neon text-sm font-sans uppercase tracking-[0.3em] font-medium drop-shadow-md bg-black/30 px-4 py-1 rounded-full backdrop-blur-sm inline-block border border-skillfi-neon/20">
-                Legacy . Wealth . Future
+            <p className="text-skillfi-neon text-xs md:text-sm font-sans uppercase tracking-[0.2em] font-medium drop-shadow-md bg-black/30 px-6 py-2 rounded-full backdrop-blur-sm inline-block border border-skillfi-neon/20">
+                The Career and Financial Guidance Counselor
             </p>
         </div>
     </div>
