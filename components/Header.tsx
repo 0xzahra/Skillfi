@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LanguageCode, LANGUAGES } from '../types';
 
@@ -16,6 +17,7 @@ interface HeaderProps {
     onToggleTheme?: () => void;
     theme?: 'dark' | 'light';
     onSync?: () => void;
+    onToggleTour?: () => void; // New Tour Toggle Prop
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -28,15 +30,29 @@ export const Header: React.FC<HeaderProps> = ({
     theme = 'dark',
     unreadNotifications = 2,
     unreadMessages = 1,
-    onSync
+    onSync,
+    onToggleTour
 }) => {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const currentLangData = LANGUAGES.find(l => l.code === currentLang) || LANGUAGES[0];
 
+  const handleShareApp = () => {
+      if (navigator.share) {
+          navigator.share({
+              title: 'Skillfi',
+              text: 'Check out Skillfi - The AI Career and Financial Guidance Counselor.',
+              url: window.location.href,
+          }).catch(console.error);
+      } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+      }
+  };
+
   return (
     <>
     <header className="px-4 md:px-6 py-4 glass-panel border-b-0 flex items-center justify-between sticky top-0 z-40 shadow-2xl shrink-0 mx-4 mt-2 rounded-xl">
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 flex-1 mr-4">
         <button 
           onClick={onToggleMenu}
           className="md:hidden p-2 text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30"
@@ -55,6 +71,30 @@ export const Header: React.FC<HeaderProps> = ({
       
       <div className="flex items-center gap-2 md:gap-4">
         
+        {/* Share Button (New) */}
+        <button 
+            onClick={handleShareApp}
+            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+            title="Share App"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+            </svg>
+        </button>
+
+        {/* Tour Toggle (New) */}
+        {onToggleTour && (
+            <button 
+                onClick={onToggleTour}
+                className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+                title="Interactive Tour"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+            </button>
+        )}
+
         {/* Sync Button */}
         {onSync && (
             <button 
@@ -68,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
         )}
 
-        {/* Inbox Icon - Spaced out */}
+        {/* Inbox Icon */}
         <button 
             onClick={onViewInbox}
             className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors relative"
@@ -113,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
                     </svg>
-                )}
+                ) }
             </button>
         )}
 

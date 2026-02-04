@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { ChatInterface } from './components/ChatInterface';
@@ -19,6 +20,7 @@ import { EducationCenter } from './components/EducationCenter';
 import { RelationshipsDash } from './components/RelationshipsDash';
 import { MentalHealth } from './components/MentalHealth';
 import { Forbes } from './components/Forbes';
+import { OnboardingTour } from './components/OnboardingTour';
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
 import { AudioService } from './services/audioService';
 import { Message, ViewMode, UserProfile, ActivityLog, ChatSession, LanguageCode } from './types';
@@ -28,6 +30,7 @@ const App: React.FC = () => {
   // --- STATE ---
   const [showSplash, setShowSplash] = useState(true);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+  const [showTour, setShowTour] = useState(false); // Tour State
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
@@ -217,6 +220,11 @@ const App: React.FC = () => {
       setCurrentView('DASHBOARD');
       AudioService.playSuccess();
       initChat(currentLang);
+      // Auto-trigger tour for new logins if desired, but user asked for toggle
+      if (!localStorage.getItem('skillfi_tour_seen')) {
+          setShowTour(true);
+          localStorage.setItem('skillfi_tour_seen', 'true');
+      }
   };
 
   const handleUpdateUser = (updatedUser: UserProfile) => {
@@ -548,6 +556,9 @@ const App: React.FC = () => {
           </div>
       )}
 
+      {/* Onboarding Tour Overlay */}
+      {showTour && <OnboardingTour onClose={() => setShowTour(false)} />}
+
       {/* Main App (Dashboard/Chat/etc) */}
       {!showSplash && !showLanguageSelect && currentView !== 'AUTH' && (
           <div className="flex h-screen w-full overflow-hidden relative z-20">
@@ -571,6 +582,7 @@ const App: React.FC = () => {
                     onViewNotifications={() => handleNavigate('NOTIFICATIONS')}
                     onViewInbox={() => handleNavigate('INBOX')}
                     onShare={() => {
+                        // Legacy transcript share if needed, otherwise rely on Header's new social share
                         const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
                         navigator.clipboard.writeText(transcript);
                         alert("Session transcript copied to clipboard.");
@@ -578,6 +590,7 @@ const App: React.FC = () => {
                     onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     theme={theme}
                     onSync={handleGlobalSync}
+                    onToggleTour={() => setShowTour(!showTour)}
                 />
 
                 <main className="flex-1 overflow-hidden relative flex flex-col w-full">

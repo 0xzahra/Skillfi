@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Chat, Part, Modality } from "@google/genai";
 import { getSystemInstruction } from "../constants";
 import { LanguageCode } from "../types";
@@ -69,14 +70,14 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
         // Strip markdown links for speech
         const cleanText = text.replace(/\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]/g, '').substring(0, 400);
         
-        // Use a prompt to guide the tone if the model allows, otherwise rely on the voice config
+        // Using 'Kore' for a more balanced, professional, and slightly warmer tone.
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: { parts: [{ text: cleanText }] },
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Fenrir' } }, // Fenrir is often deeper/more authoritative
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
                 },
             },
         });

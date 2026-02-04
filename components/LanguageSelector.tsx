@@ -27,7 +27,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onSelect }) 
             <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
                 Skillfi<span className="text-skillfi-neon">.</span>
             </h1>
-            <p className="text-gray-500 text-xs font-mono uppercase tracking-[0.3em]">Select Protocol Language</p>
+            <p className="text-gray-500 text-xs font-mono uppercase tracking-[0.3em]">Select your preferred dialect</p>
          </div>
          
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto p-4 scrollbar-hide w-full max-w-4xl relative z-10">
