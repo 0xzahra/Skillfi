@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { generateItemVisual, sendMessageToSkillfi, initializeChat, analyzeFinancialHealth, FinancialPersona, fetchMarketTicker, fetchBatchStockPrices, MarketTickerData } from '../services/geminiService';
 import { LanguageCode } from '../types';
 
-type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX';
+type FinanceTab = 'BUDGET' | 'PROFIT' | 'INTEREST' | 'MASTERY' | 'MARKETS' | 'TAX' | 'SIMULATOR';
 type MarketCategory = 'METALS' | 'CRYPTO' | 'STOCKS' | 'FOREX';
 type TimeFilter = '1D' | '1W' | '1M' | 'YTD' | 'ALL';
 
@@ -32,6 +32,7 @@ interface MarketAsset {
     exchanges?: string[];
 }
 
+// ... existing constants ...
 const MONEY_QUOTES = [
     "Do not save what is left after spending, but spend what is left after saving.",
     "The more you learn, the more you earn.",
@@ -76,7 +77,7 @@ const MARKET_STRATEGIES: Record<MarketCategory, { title: string; tips: string[] 
     }
 };
 
-// --- STATIC MARKET DATA BASE ---
+// ... existing static market data ...
 const METALS: MarketAsset[] = [
     { id: 'gold', name: 'Gold', symbol: 'XAU/USD', basePrice: 2642.80, change: 0.45, icon: '🧈', color: 'text-yellow-500', desc: 'The eternal store of value.' },
     { id: 'silver', name: 'Silver', symbol: 'XAG/USD', basePrice: 31.15, change: -0.12, icon: '🥈', color: 'text-gray-300', desc: 'Industrial and precious.' },
@@ -145,11 +146,11 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   // Budget State
   const [salary, setSalary] = useState(5000);
   const [expenses, setExpenses] = useState<Expense[]>([
-      { id: 1, name: 'Rent', cost: 1200, date: Date.now() - 250000000 }, // ~3 days ago
-      { id: 2, name: 'Groceries', cost: 400, date: Date.now() - 80000000 }, // ~1 day ago
-      { id: 3, name: 'Transport', cost: 150, date: Date.now() - 500000000 }, // ~6 days ago
-      { id: 4, name: 'Utilities', cost: 200, date: Date.now() - 2000000000 }, // ~23 days ago
-      { id: 5, name: 'Dining', cost: 350, date: Date.now() - 15000000 }, // ~4 hours ago
+      { id: 1, name: 'Rent', cost: 1200, date: Date.now() - 250000000 }, 
+      { id: 2, name: 'Groceries', cost: 400, date: Date.now() - 80000000 }, 
+      { id: 3, name: 'Transport', cost: 150, date: Date.now() - 500000000 }, 
+      { id: 4, name: 'Utilities', cost: 200, date: Date.now() - 2000000000 }, 
+      { id: 5, name: 'Dining', cost: 350, date: Date.now() - 15000000 }, 
   ]);
   const [newExpenseName, setNewExpenseName] = useState('');
   const [newExpenseCost, setNewExpenseCost] = useState('');
@@ -182,6 +183,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
   const [enlightenment, setEnlightenment] = useState<string>('');
   const [itemImage, setItemImage] = useState<string | null>(null);
   const [isEnlightening, setIsEnlightening] = useState(false);
+
+  // Simulator State (New)
+  const [simAssets, setSimAssets] = useState<{name: string, value: number, rate: number}[]>([]);
+  const [newSimAsset, setNewSimAsset] = useState({ name: '', value: '', rate: '' });
 
   // Canvas Refs
   const galaxyCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -229,19 +234,16 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           setIsLiveRefreshing(true);
           let symbols: string[] = [];
           
-          // Determine active symbols based on category
           if (marketCategory === 'METALS') symbols = METALS.map(m => m.symbol);
           if (marketCategory === 'CRYPTO') symbols = CRYPTO.map(m => m.symbol);
           if (marketCategory === 'STOCKS') symbols = STOCKS.map(m => m.symbol);
           if (marketCategory === 'FOREX') symbols = FOREX.map(m => m.symbol);
 
-          // Call API
           const realData = await fetchBatchStockPrices(symbols);
           
           if (realData) {
               setLivePrices(prev => {
                   const next = { ...prev };
-                  // Map symbols back to IDs
                   const currentList = marketCategory === 'METALS' ? METALS : 
                                     marketCategory === 'CRYPTO' ? CRYPTO : 
                                     marketCategory === 'STOCKS' ? STOCKS : FOREX;
@@ -261,12 +263,10 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           setIsLiveRefreshing(false);
       };
 
-      // Initial fetch on mount/tab change or global sync trigger
       if (activeTab === 'MARKETS') {
           fetchRealData();
       }
 
-      // Set 60s Interval
       const refreshInterval = setInterval(fetchRealData, 60000);
 
       return () => {
@@ -333,7 +333,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
 
         const response = await sendMessageToSkillfi(chat, prompt);
         
-        // Parse the response manually to handle potential AI formatting variations
         const sections: Record<string, string> = {
             Fundamental: "Analysis unavailable.",
             Technical: "Analysis unavailable.",
@@ -469,14 +468,11 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       let filteredExpenses = expenses;
 
       if (timeFilter === '1D') {
-          // Show last 24h as rough blocks or just today's items
           filteredExpenses = expenses.filter(e => (now.getTime() - e.date) < 24 * 60 * 60 * 1000);
-          // Group by item name for Day view to show specifics
           filteredExpenses.forEach(e => {
               dataPoints.push({ label: e.name.substring(0,4), value: e.cost, height: 0 });
           });
       } else if (timeFilter === '1W') {
-          // Last 7 days
           for (let i = 6; i >= 0; i--) {
               const dayStart = new Date(now);
               dayStart.setDate(now.getDate() - i);
@@ -495,7 +491,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               });
           }
       } else if (timeFilter === '1M') {
-          // Group by weeks (4 weeks) or just daily for month? Let's do Day for last 15 days to fit UI
           for (let i = 14; i >= 0; i--) {
               const dayStart = new Date(now);
               dayStart.setDate(now.getDate() - i);
@@ -513,7 +508,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               });
           }
       } else if (timeFilter === 'YTD') {
-          // Monthly
           for (let i = 0; i <= now.getMonth(); i++) {
               const monthTotal = expenses
                   .filter(e => new Date(e.date).getMonth() === i && new Date(e.date).getFullYear() === now.getFullYear())
@@ -528,7 +522,6 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
               });
           }
       } else if (timeFilter === 'ALL') {
-          // Group by Year
           const years = [...new Set(expenses.map(e => new Date(e.date).getFullYear()))].sort();
           if (years.length === 0) years.push(now.getFullYear());
           
@@ -540,8 +533,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
           });
       }
 
-      // Calculate relative heights (0-100%)
-      const maxValue = Math.max(...dataPoints.map(d => d.value), 100); // Avoid div by zero
+      const maxValue = Math.max(...dataPoints.map(d => d.value), 100);
       return dataPoints.map(d => ({
           ...d,
           height: (d.value / maxValue) * 100
@@ -581,10 +573,21 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       return { taxableIncome, taxAmount, netIncome, monthlyNet, effectiveRate };
   };
 
+  const calculateSimPortfolio = () => {
+      let totalCurrent = 0;
+      let totalFuture = 0;
+      simAssets.forEach(asset => {
+          totalCurrent += asset.value;
+          totalFuture += asset.value * Math.pow(1 + asset.rate / 100, 10); // 10 Year projection
+      });
+      return { totalCurrent, totalFuture };
+  };
+
   const budgetData = calculateBudget();
   const profitData = calculateProfit();
   const interestTotal = calculateInterest();
   const taxData = calculateTax();
+  const simData = calculateSimPortfolio();
 
   // --- Effects & Animations ---
   useEffect(() => {
@@ -755,6 +758,13 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       onAnalyze(data);
   };
 
+  const addSimAsset = () => {
+      if (newSimAsset.name && newSimAsset.value) {
+          setSimAssets([...simAssets, { name: newSimAsset.name, value: Number(newSimAsset.value), rate: Number(newSimAsset.rate) || 0 }]);
+          setNewSimAsset({ name: '', value: '', rate: '' });
+      }
+  };
+
   return (
     <div className="p-4 md:p-6 w-full mx-auto animate-fade-in font-sans h-full overflow-y-auto pb-32 scrollbar-hide">
       <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -770,7 +780,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
       {/* Tabs - Sticky */}
       <div className="sticky top-0 z-30 bg-skillfi-bg/95 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5 mb-6">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide w-full">
-            {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'MARKETS', 'TAX'] as FinanceTab[]).map((tab) => (
+            {(['BUDGET', 'PROFIT', 'INTEREST', 'MASTERY', 'MARKETS', 'TAX', 'SIMULATOR'] as FinanceTab[]).map((tab) => (
                 <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -852,22 +862,16 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         {getChartData.length > 0 ? (
                             getChartData.map((data, idx) => (
                                 <div key={idx} className="flex-1 h-full flex flex-col justify-end group relative">
-                                    {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-white text-[10px] px-2 py-1 rounded border border-white/20 whitespace-nowrap z-20 pointer-events-none">
                                         <span className="font-bold text-skillfi-neon">${data.value.toLocaleString()}</span>
                                         <span className="block text-gray-400">{data.label}</span>
                                     </div>
-                                    
-                                    {/* Bar */}
                                     <div 
                                         className="w-full bg-gradient-to-t from-gray-800 to-gray-600 rounded-t-sm group-hover:from-skillfi-neon group-hover:to-yellow-200 transition-all duration-300 relative animate-bar-grow"
-                                        style={{ height: `${Math.max(data.height, 2)}%` }} // Min height for visibility
+                                        style={{ height: `${Math.max(data.height, 2)}%` }} 
                                     >
-                                        {/* Highlight Line */}
                                         <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/50 opacity-0 group-hover:opacity-100"></div>
                                     </div>
-                                    
-                                    {/* Label */}
                                     <div className="text-[8px] md:text-[9px] text-gray-500 text-center mt-2 font-mono truncate w-full group-hover:text-white transition-colors">
                                         {data.label}
                                     </div>
@@ -985,6 +989,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* PROFIT TAB */}
         {activeTab === 'PROFIT' && (
              <div className="space-y-6">
+                 {/* ... Profit content kept same as previous ... */}
                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                         { label: 'Buy Price ($)', val: buyPrice, set: setBuyPrice },
@@ -1086,6 +1091,43 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         <div className="mt-3 text-[10px] text-gray-400 uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full inline-block border border-gray-800 backdrop-blur-md">
                             You Invested: ${(principal + (monthly * 12 * years)).toLocaleString()}
                         </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* SIMULATOR TAB (NEW) */}
+        {activeTab === 'SIMULATOR' && (
+            <div className="space-y-8 animate-fade-in">
+                <div className="glass-panel p-6 rounded-2xl border border-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl font-black select-none pointer-events-none">$$$</div>
+                    <h2 className="text-xl font-bold text-white mb-2">Portfolio Sandbox</h2>
+                    <p className="text-xs text-gray-500 mb-6">Simulate hypothetical assets. Risk-free projection.</p>
+
+                    <div className="flex flex-col md:flex-row gap-4 mb-6">
+                        <input type="text" placeholder="Asset Name (e.g. BTC)" value={newSimAsset.name} onChange={(e) => setNewSimAsset({...newSimAsset, name: e.target.value})} className="bg-white/5 border border-white/10 p-3 rounded-xl text-white text-sm outline-none flex-1" />
+                        <input type="number" placeholder="Value ($)" value={newSimAsset.value} onChange={(e) => setNewSimAsset({...newSimAsset, value: e.target.value})} className="bg-white/5 border border-white/10 p-3 rounded-xl text-white text-sm outline-none w-32" />
+                        <input type="number" placeholder="Est. Rate (%)" value={newSimAsset.rate} onChange={(e) => setNewSimAsset({...newSimAsset, rate: e.target.value})} className="bg-white/5 border border-white/10 p-3 rounded-xl text-white text-sm outline-none w-24" />
+                        <button onClick={addSimAsset} className="bg-skillfi-neon text-black px-6 rounded-xl font-bold uppercase text-xs hover:bg-white transition-colors">Add</button>
+                    </div>
+
+                    <div className="space-y-2 mb-6">
+                        {simAssets.map((asset, i) => (
+                            <div key={i} className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                                <span className="text-white font-bold text-sm">{asset.name}</span>
+                                <div className="text-right">
+                                    <div className="text-white font-mono">${asset.value.toLocaleString()}</div>
+                                    <div className="text-[10px] text-green-400">+{asset.rate}% APY</div>
+                                </div>
+                            </div>
+                        ))}
+                        {simAssets.length === 0 && <div className="text-center text-gray-600 text-xs py-4">No simulated assets added.</div>}
+                    </div>
+
+                    <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-6 rounded-xl border border-white/10 text-center">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Projected Net Worth (10 Years)</span>
+                        <div className="text-4xl font-black text-white mt-2 mb-1">${simData.totalFuture.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                        <span className="text-xs text-gray-500">Current Value: ${simData.totalCurrent.toLocaleString()}</span>
                     </div>
                 </div>
             </div>
@@ -1325,9 +1367,18 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
                         <div className={`text-4xl font-black font-mono ${marketSentiment.avg >= 0 ? 'text-green-400' : 'text-red-500'} drop-shadow-lg tracking-tight`}>
                             {marketSentiment.avg >= 0 ? '+' : ''}{marketSentiment.avg.toFixed(2)}%
                         </div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mt-2 border-t border-white/10 pt-2 inline-block">
-                            Volatility: {(marketSentiment.vol * 10).toFixed(1)}/100
-                        </p>
+                        
+                        {/* Risk Radar */}
+                        <div className="mt-3 flex justify-center gap-4">
+                            <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] inline-block">
+                                Volatility: {(marketSentiment.vol * 10).toFixed(1)}/100
+                            </p>
+                            {Math.abs(marketSentiment.avg) > 1 && (
+                                <div className="bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-0.5 rounded text-[10px] font-bold uppercase animate-pulse">
+                                    High Activity Signal
+                                </div>
+                            )}
+                        </div>
                     </div>
                  </div>
 
@@ -1456,6 +1507,7 @@ export const FinanceTools: React.FC<FinanceToolsProps> = ({ onAnalyze, currentLa
         {/* TAX TAB */}
         {activeTab === 'TAX' && (
             <div className="space-y-8">
+                {/* ... Tax content ... */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                      <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Yearly Income</label>

@@ -17,7 +17,6 @@ export const EducationCenter: React.FC = () => {
                 setMatches(data);
                 setLastUpdated(Date.now());
                 if (data.length > 0) {
-                    // Only play sound on initial load to avoid annoyance on refresh
                     if (scanning) AudioService.playSuccess();
                 } 
             } catch (e) {
@@ -35,7 +34,6 @@ export const EducationCenter: React.FC = () => {
     }, []);
 
     const handleApply = (index: number) => {
-        // Just visual feedback since we don't have real application backends
         const newMatches = [...matches];
         // @ts-ignore
         newMatches[index].applied = true;
@@ -80,17 +78,20 @@ export const EducationCenter: React.FC = () => {
                 </div>
             )}
 
-            {/* SCANNER STATUS */}
+            {/* GUARDIAN SCANNER STATUS */}
             <div className="mb-8">
-                {scanning && matches.length === 0 ? (
-                    <div className="glass-panel p-6 rounded-2xl flex items-center gap-6 animate-pulse">
+                {scanning ? (
+                    <div className="glass-panel p-6 rounded-2xl flex items-center gap-6 animate-pulse relative overflow-hidden">
+                        {/* Scanner Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent animate-[shimmer_1.5s_infinite]"></div>
+                        
                         <div className="relative w-16 h-16 flex items-center justify-center">
-                            <div className="absolute inset-0 border-4 border-t-green-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                            <span className="text-2xl">📡</span>
+                            <div className="absolute inset-0 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                            <span className="text-2xl">🛡️</span>
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white">Scanning Global Databases...</h2>
-                            <p className="text-xs text-green-500 font-mono mt-1">TARGET: LIVE SCHOLARSHIPS // REGION: GLOBAL</p>
+                            <h2 className="text-xl font-bold text-white">Guardian Protocol Active</h2>
+                            <p className="text-xs text-blue-400 font-mono mt-1">SCANNING FOR SCAMS & VERIFYING SOURCES...</p>
                         </div>
                     </div>
                 ) : (
@@ -100,14 +101,13 @@ export const EducationCenter: React.FC = () => {
                                  ✓
                              </div>
                              <div>
-                                <h2 className="text-xl font-bold text-white">Scan Complete</h2>
-                                <p className="text-xs text-gray-400 font-mono mt-1">{matches.length} OPPORTUNITIES IDENTIFIED</p>
+                                <h2 className="text-xl font-bold text-white">Verified Opportunities</h2>
+                                <p className="text-xs text-gray-400 font-mono mt-1">{matches.length} SAFE MATCHES IDENTIFIED</p>
                             </div>
                          </div>
                          <div className="text-right hidden md:block">
                              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Last Updated</p>
                              <p className="text-xs text-white font-mono">{new Date(lastUpdated).toLocaleTimeString()}</p>
-                             {scanning && <span className="text-[9px] text-green-400 animate-pulse block mt-1">Refreshing...</span>}
                          </div>
                     </div>
                 )}

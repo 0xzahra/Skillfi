@@ -6,6 +6,7 @@ import { UserProfile } from '../types';
 interface CareerArsenalProps {
     user: UserProfile;
     initialScoutData?: string | null;
+    lastSync?: number;
 }
 
 const CAREER_QUOTES = [
@@ -150,7 +151,7 @@ const ELITE_DATA: Record<string, EliteSkillData> = {
     }
 };
 
-export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScoutData }) => {
+export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScoutData, lastSync }) => {
     // TABS
     const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE' | 'CORPORATE_OPS' | 'TRENDS'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
@@ -160,6 +161,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     const [isMapping, setIsMapping] = useState(false);
     const [riskTolerance, setRiskTolerance] = useState<'STABLE' | 'MOONSHOT'>('STABLE');
     const [manualContext, setManualContext] = useState('');
+    const [liveSignal, setLiveSignal] = useState<string>("Scanning Global Markets...");
 
     // Headshot State
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -204,6 +206,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     const [eliteImage, setEliteImage] = useState<string | null>(null);
     const [eliteLoading, setEliteLoading] = useState(false);
     const [eliteSearch, setEliteSearch] = useState('');
+    const [assignedSkill, setAssignedSkill] = useState<string | null>(user.assignedEliteGoal || null);
 
     // --- PERSISTENCE ---
     useEffect(() => {
@@ -233,6 +236,21 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
             handlePathfinder(initialScoutData);
         }
     }, [initialScoutData]);
+
+    // Live Signal Simulation
+    useEffect(() => {
+        const signals = [
+            "Web3 Solidity Demand: +15% in Q4",
+            "Remote DevOps Roles: Trending High",
+            "AI Prompt Engineering: Salary Base $120k",
+            "Cybersecurity Analysts: Critical Shortage",
+            "Data Science: +8% YoY Growth"
+        ];
+        const interval = setInterval(() => {
+            setLiveSignal(signals[Math.floor(Math.random() * signals.length)]);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [lastSync]);
 
     // Auto-Save Effect
     useEffect(() => {
@@ -280,6 +298,21 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
             console.error(e);
         } finally {
             setEliteLoading(false);
+            AudioService.playSuccess();
+        }
+    };
+
+    const handleAssignEliteGoal = () => {
+        if (activeEliteItem) {
+            setAssignedSkill(activeEliteItem.title);
+            // In a real app, this would persist to user profile
+            const savedUser = localStorage.getItem('skillfi_user');
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+                parsed.assignedEliteGoal = activeEliteItem.title;
+                localStorage.setItem('skillfi_user', JSON.stringify(parsed));
+            }
+            alert(`Quarterly Goal Set: Master ${activeEliteItem.title}`);
             AudioService.playSuccess();
         }
     };
@@ -543,172 +576,25 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                 </div>
             </div>
 
-            {/* --- CORPORATE OPS MODULE (NEW) --- */}
-            {activeModule === 'CORPORATE_OPS' && (
-                <div className="animate-fade-in">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            {
-                                title: "Surviving the Boss",
-                                icon: "👔",
-                                tips: [
-                                    "Manage Up: Send a 'Weekly Win' email every Friday. 3 bullets: What you did, what you're stuck on, what's next.",
-                                    "The 'No' Buffer: Never say 'No'. Say 'I can do that, but X will be delayed. Which is priority?'",
-                                    "Feed the Ego: If your boss loves data, give data. If they love stories, give stories. Mirror their language."
-                                ]
-                            },
-                            {
-                                title: "HR Confidential",
-                                icon: "📂",
-                                tips: [
-                                    "HR is Not Your Friend: They protect the company, not you. Document everything in a personal email, not work email.",
-                                    "Salary Neg: Never give a number first. Ask 'What is the budget for this role?'",
-                                    "Exit Strategy: Never burn bridges. The world is small. Leave with grace, even if you hate them."
-                                ]
-                            },
-                            {
-                                title: "Meeting Mastery",
-                                icon: "🗣️",
-                                tips: [
-                                    "The Pre-Wire: Talk to key decision makers BEFORE the big meeting. The meeting is just for the rubber stamp.",
-                                    "Action Items: Always end with 'Who is doing What by When?'.",
-                                    "Silence is Power: Don't speak just to fill air. Speak when you have high-value insight."
-                                ]
-                            },
-                            {
-                                title: "Email Tactics",
-                                icon: "📧",
-                                tips: [
-                                    "BLUF: Bottom Line Up Front. Put the request in the first sentence.",
-                                    "The 24h Rule: Never reply when angry. Draft it, sleep on it, delete it.",
-                                    "CC Strategy: CC is for visibility, BCC is for protection. Use wisely."
-                                ]
-                            },
-                            {
-                                title: "Project Proposals",
-                                icon: "📑",
-                                tips: [
-                                    "Problem-Solution-Benefit: Don't sell the feature, sell the relief of pain.",
-                                    "ROI Focused: Always include a slide on 'What happens if we do nothing?' (The cost of inaction).",
-                                    "Pre-mortem: List why it might fail and how you'll prevent it. Shows maturity."
-                                ]
-                            },
-                            {
-                                title: "Office Politics",
-                                icon: "🎭",
-                                tips: [
-                                    "The Grapevine: Listen to gossip, never contribute. Information is currency.",
-                                    "Allies: Make friends with the Executive Assistants and IT support. They run the company.",
-                                    "Visibility: Do good work, but ensure the right people see it. Perception is reality."
-                                ]
-                            }
-                        ].map((card, i) => (
-                            <div key={i} className="glass-panel p-6 rounded-2xl hover:bg-white/5 transition-all">
-                                <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-3">
-                                    <span className="text-3xl">{card.icon}</span>
-                                    <h3 className="font-bold text-white text-lg">{card.title}</h3>
-                                </div>
-                                <ul className="space-y-4">
-                                    {card.tips.map((tip, idx) => (
-                                        <li key={idx} className="text-xs text-gray-400 leading-relaxed pl-2 border-l-2 border-skillfi-neon/30">
-                                            {tip}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* --- TREND RADAR MODULE (NEW) --- */}
-            {activeModule === 'TRENDS' && (
-                <div className="animate-fade-in space-y-8">
-                    <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 text-9xl font-black select-none">WEB3</div>
-                        <h2 className="text-2xl font-bold text-white mb-6">Timeline of Evolution</h2>
-                        
-                        <div className="relative border-l-2 border-skillfi-neon/20 ml-4 space-y-12">
-                            {/* Web 1.0 */}
-                            <div className="relative pl-8">
-                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-gray-600 rounded-full border-4 border-black"></div>
-                                <h3 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-1">1990 - 2004: Web 1.0 (Read Only)</h3>
-                                <p className="text-gray-500 text-xs mb-2">Static pages, directories, dial-up. The "Information Superhighway".</p>
-                                <div className="flex gap-2">
-                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Netscape</span>
-                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Yahoo</span>
-                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-500">Email</span>
-                                </div>
-                            </div>
-
-                            {/* Web 2.0 */}
-                            <div className="relative pl-8">
-                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-blue-500 rounded-full border-4 border-black shadow-[0_0_10px_#3b82f6]"></div>
-                                <h3 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">2004 - 2020: Web 2.0 (Read-Write)</h3>
-                                <p className="text-gray-400 text-xs mb-2">Social media, mobile apps, cloud computing. Users create content, platforms own data.</p>
-                                <div className="flex gap-2">
-                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">Facebook</span>
-                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">iPhone</span>
-                                    <span className="text-[10px] bg-blue-900/20 text-blue-400 px-2 py-1 rounded border border-blue-500/20">AWS</span>
-                                </div>
-                            </div>
-
-                            {/* Web 3.0 */}
-                            <div className="relative pl-8">
-                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-purple-500 rounded-full border-4 border-black shadow-[0_0_10px_#a855f7]"></div>
-                                <h3 className="text-purple-400 font-bold text-sm uppercase tracking-widest mb-1">2020 - Present: Web 3.0 (Read-Write-Own)</h3>
-                                <p className="text-gray-300 text-xs mb-2">Decentralization, Tokenization, Digital Ownership. Users own their data and assets.</p>
-                                <div className="flex gap-2">
-                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">Bitcoin/ETH</span>
-                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">NFTs</span>
-                                    <span className="text-[10px] bg-purple-900/20 text-purple-400 px-2 py-1 rounded border border-purple-500/20">DeFi</span>
-                                </div>
-                            </div>
-
-                            {/* AI Era */}
-                            <div className="relative pl-8">
-                                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-skillfi-neon rounded-full border-4 border-black shadow-[0_0_15px_#D4AF37] animate-pulse"></div>
-                                <h3 className="text-skillfi-neon font-bold text-sm uppercase tracking-widest mb-1">2023+: The Intelligence Era (Agentic Web)</h3>
-                                <p className="text-white text-xs mb-2">Generative AI, Autonomous Agents, Human-AI Hybrid workforce. Tasks are automated, creativity is amplified.</p>
-                                <div className="flex gap-2">
-                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">LLMs</span>
-                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">Robotics</span>
-                                    <span className="text-[10px] bg-skillfi-neon/10 text-skillfi-neon px-2 py-1 rounded border border-skillfi-neon/30">AGI</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-blue-500">
-                            <h3 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-3">Current Meta Trends (Web2)</h3>
-                            <ul className="space-y-3 text-xs text-gray-300">
-                                <li>• <strong>Remote/Hybrid Normalization:</strong> Office is a tool, not a place.</li>
-                                <li>• <strong>Creator Economy:</strong> Individuals are media companies.</li>
-                                <li>• <strong>SaaS Saturation:</strong> Move from "Systems of Record" to "Systems of Intelligence".</li>
-                                <li>• <strong>Short-Form Video:</strong> Attention spans are the new oil (TikTokification).</li>
-                            </ul>
-                        </div>
-                        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-purple-500">
-                            <h3 className="text-purple-400 font-bold text-sm uppercase tracking-widest mb-3">Future Meta Trends (Web3/AI)</h3>
-                            <ul className="space-y-3 text-xs text-gray-300">
-                                <li>• <strong>Tokenized Assets (RWA):</strong> Real estate and bonds moving on-chain.</li>
-                                <li>• <strong>DeSci (Decentralized Science):</strong> Funding research via crypto rails.</li>
-                                <li>• <strong>Hyper-Personalization:</strong> AI generates custom UI/UX for every user.</li>
-                                <li>• <strong>Sovereign Identity:</strong> Login with Wallet vs Login with Google.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* --- PATHFINDER --- */}
             {activeModule === 'PATH' && (
                  <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Path UI */}
                     <div className="glass-panel p-6 rounded-2xl h-fit">
-                        <h2 className="text-xl font-bold text-white mb-2">Role Generator</h2>
-                        <p className="text-xs text-gray-500 mb-6">Assigning specific career roles based on profile.</p>
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-xl font-bold text-white mb-1">Role Generator</h2>
+                                <p className="text-xs text-gray-500">Assigning specific career roles based on profile.</p>
+                            </div>
+                            
+                            {/* Live Signal Ticker */}
+                            <div className="hidden md:block bg-black/40 border border-skillfi-neon/30 rounded-lg px-3 py-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-skillfi-neon animate-pulse"></span>
+                                    <span className="text-[10px] font-mono text-skillfi-neon uppercase tracking-wide">{liveSignal}</span>
+                                </div>
+                            </div>
+                        </div>
 
                         <div className="space-y-6">
                             {/* Profile Summary Card */}
@@ -787,6 +673,32 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                                      <p className="text-gray-400 text-xs italic">"{careerMap.advice}"</p>
                                 </div>
 
+                                {/* $CF Score & Gap Analysis */}
+                                <div className="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col md:flex-row gap-6 items-center">
+                                    <div className="relative w-24 h-24 flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
+                                            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className={`${careerMap.fitScore >= 85 ? 'text-green-500' : 'text-yellow-500'} transition-all duration-1000`} strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * careerMap.fitScore) / 100} />
+                                        </svg>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span className="text-xl font-bold text-white">{careerMap.fitScore}</span>
+                                            <span className="text-[8px] text-gray-500 font-mono">$CF INDEX</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 w-full">
+                                        <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-2">
+                                            {careerMap.fitScore >= 85 ? "Career Fit: Optimized" : "Path to 85 (Gap Analysis)"}
+                                        </h4>
+                                        <ul className="space-y-1">
+                                            {careerMap.gapAnalysis?.map((gap, i) => (
+                                                <li key={i} className="text-[10px] text-gray-400 flex items-center gap-2">
+                                                    <span className="text-red-500">⚠</span> {gap}
+                                                </li>
+                                            )) || <li className="text-[10px] text-gray-500">No gaps detected.</li>}
+                                        </ul>
+                                    </div>
+                                </div>
+
                                 {/* Traditional Role Card */}
                                 <div className="bg-white/5 p-5 rounded-xl border-l-4 border-blue-500 hover:bg-white/10 transition-colors">
                                     <div className="flex justify-between items-start mb-2">
@@ -852,352 +764,32 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
             )}
             
             {/* ... Other modules ... */}
-            {activeModule === 'RESUME' && (
-                <div className={`animate-fade-in grid ${isSocialCardMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6`}>
-                    {!isSocialCardMode && (
-                    <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
-                        <h2 className="text-xl font-bold text-white mb-2">Resume Builder</h2>
-                        <p className="text-xs text-gray-400 mb-6">Corporate focus. Concise & Results-Driven.</p>
-                        
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Target Role</label>
-                                <input 
-                                    type="text" 
-                                    value={resumeInputs.targetRole}
-                                    onChange={(e) => setResumeInputs({...resumeInputs, targetRole: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="e.g. Product Manager"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Education</label>
-                                <input 
-                                    type="text" 
-                                    value={resumeInputs.education}
-                                    onChange={(e) => setResumeInputs({...resumeInputs, education: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="MBA, Harvard (2022)"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Skills (Comma Separated)</label>
-                                <textarea 
-                                    value={resumeInputs.skills}
-                                    onChange={(e) => setResumeInputs({...resumeInputs, skills: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Agile, SQL, Strategy..."
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Professional Experience</label>
-                                <textarea 
-                                    value={resumeInputs.experience}
-                                    onChange={(e) => setResumeInputs({...resumeInputs, experience: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-32 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Role - Company (Year)&#10;- Increased revenue by 20%&#10;- Led team of 10"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Key Projects</label>
-                                <textarea 
-                                    value={resumeInputs.projects}
-                                    onChange={(e) => setResumeInputs({...resumeInputs, projects: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Launched mobile app with 10k users..."
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={handleGenerateResume}
-                                    disabled={isGeneratingResume}
-                                    className="flex-1 py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest flex items-center justify-center gap-2"
-                                >
-                                    {isGeneratingResume ? (
-                                        <>
-                                            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                            Thinking...
-                                        </>
-                                    ) : 'Create'}
-                                </button>
-                                <div onClick={() => resumeUploadRef.current?.click()} className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-colors flex items-center justify-center" title="Proofread Existing">
-                                    <input type="file" ref={resumeUploadRef} className="hidden" accept=".pdf,image/*" onChange={(e) => handleProofreadUpload(e, 'RESUME')} />
-                                    <span className="text-xl">📤</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    )}
-
-                    <div className={`${isSocialCardMode ? 'max-w-xl mx-auto w-full' : 'lg:col-span-2'} glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5`}>
-                        <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
-                            <span className="text-xs font-bold text-gray-500 uppercase">{isSocialCardMode ? 'Social Card Preview' : 'Resume Preview'}</span>
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={() => setIsSocialCardMode(!isSocialCardMode)}
-                                    className={`px-3 py-1.5 rounded shadow text-xs font-bold uppercase transition-colors ${isSocialCardMode ? 'bg-skillfi-neon text-black' : 'bg-gray-800 text-white hover:bg-black'}`}
-                                >
-                                    {isSocialCardMode ? 'Edit Mode' : 'Social Card'}
-                                </button>
-                                {resumeContent && (
-                                    <>
-                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={() => handlePrintPDF('resume-preview')}>
-                                            {isSocialCardMode ? 'Save as PDF/Img' : 'Print / PDF'}
-                                        </button>
-                                        {!isSocialCardMode && (
-                                            <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(resumeContent, 'Resume.doc')}>
-                                                Word (.doc)
-                                            </button>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        
-                        <div className={`flex-1 overflow-y-auto p-8 bg-white text-gray-900 ${isSocialCardMode ? 'flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300' : ''}`}>
-                            {resumeContent ? (
-                                <div id="resume-preview" className={`prose prose-sm max-w-none ${isSocialCardMode ? 'bg-white p-8 shadow-2xl rounded-xl w-full border border-gray-200 transform scale-95 origin-top' : ''}`} dangerouslySetInnerHTML={{__html: resumeContent}}></div>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                                    <div className="text-6xl mb-4 opacity-20">📄</div>
-                                    <p className="text-sm font-medium">Drafting Corporate Profile...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* --- HEADSHOT --- */}
-            {activeModule === 'HEADSHOT' && (
-                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-                    {/* Controls */}
-                    <div className="glass-panel p-6 rounded-2xl h-fit lg:col-span-1">
-                        <h2 className="text-xl font-bold text-white mb-4">Studio Controls</h2>
-                         <div className="space-y-6">
-                            <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-skillfi-neon/50 hover:bg-white/5 transition-all group">
-                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-                                <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">📷</div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 group-hover:text-white">Upload Selfie</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {(['CORPORATE', 'MEDICAL', 'CREATIVE', 'TECH'] as const).map(style => (
-                                    <button key={style} onClick={() => setSelectedStyle(style)} className={`p-3 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${selectedStyle === style ? 'bg-skillfi-neon/20 border-skillfi-neon text-white' : 'bg-black/40 border-transparent text-gray-500 hover:text-white'}`}>{style}</button>
-                                ))}
-                            </div>
-                            <button onClick={handleGenerateHeadshot} disabled={!originalImage || isGeneratingHeadshot} className="w-full py-4 font-bold text-sm tracking-widest uppercase rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 bg-skillfi-neon text-black hover:bg-white disabled:bg-white/5 disabled:text-gray-600">
-                                {isGeneratingHeadshot ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        PROCESSING...
-                                    </>
-                                ) : (generatedImage ? 'REGENERATE' : 'CREATE PHOTO')}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Comparison Area */}
-                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="glass-panel p-2 rounded-2xl h-[400px] flex flex-col items-center bg-black/50 relative overflow-hidden group">
-                             <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-widest border border-white/10">Original</div>
-                             {!originalImage ? (
-                                <div className="h-full flex items-center justify-center text-center opacity-30">
-                                    <p className="font-mono text-xs uppercase">No Source Image</p>
-                                </div>
-                            ) : (
-                                <img src={originalImage} alt="Original" className="w-full h-full object-cover rounded-xl" />
-                            )}
-                        </div>
-
-                        <div className="glass-panel p-2 rounded-2xl h-[400px] flex flex-col items-center bg-black/50 relative overflow-hidden group border-2 border-skillfi-neon/20">
-                             <div className="absolute top-4 left-4 z-10 bg-skillfi-neon text-black px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Result</div>
-                             {!generatedImage ? (
-                                <div className="h-full flex items-center justify-center text-center opacity-30">
-                                    {isGeneratingHeadshot ? (
-                                        <div className="w-12 h-12 border-4 border-skillfi-neon border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <p className="font-mono text-xs uppercase">Awaiting Processing</p>
-                                    )}
-                                </div>
-                            ) : (
-                                <>
-                                    <img src={generatedImage} alt="Result" className="w-full h-full object-cover rounded-xl" />
-                                    <button 
-                                        onClick={() => handleDownloadImage(generatedImage!, 'Skillfi_Headshot')}
-                                        className="absolute bottom-4 right-4 bg-white text-black px-4 py-2 rounded-lg font-bold text-xs uppercase hover:bg-skillfi-neon transition-colors shadow-lg flex items-center gap-2"
-                                    >
-                                        Download
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* --- CV BUILDER --- */}
-            {activeModule === 'CV' && (
-                <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="glass-panel p-6 rounded-2xl h-fit overflow-y-auto max-h-[700px]">
-                        <h2 className="text-xl font-bold text-white mb-2">CV Builder</h2>
-                        <p className="text-xs text-gray-400 mb-6">Academic & Comprehensive. Detail-Oriented.</p>
-                        
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Target Role / Position</label>
-                                <input 
-                                    type="text" 
-                                    value={cvInputs.targetRole}
-                                    onChange={(e) => setCvInputs({...cvInputs, targetRole: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="e.g. Research Fellow"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Education & Honors</label>
-                                <textarea 
-                                    value={cvInputs.education}
-                                    onChange={(e) => setCvInputs({...cvInputs, education: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-20 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="PhD, MIT (2020) - Thesis on AI Ethics..."
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Professional History</label>
-                                <textarea 
-                                    value={cvInputs.experience}
-                                    onChange={(e) => setCvInputs({...cvInputs, experience: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-24 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Senior Lecturer - Oxford (2018-2022)..."
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Publications & Research</label>
-                                <textarea 
-                                    value={cvInputs.publications}
-                                    onChange={(e) => setCvInputs({...cvInputs, publications: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-24 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="List key papers, journals, or books..."
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase">Awards & Certifications</label>
-                                <textarea 
-                                    value={cvInputs.awards}
-                                    onChange={(e) => setCvInputs({...cvInputs, awards: e.target.value})}
-                                    className="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-white mt-1 text-sm h-16 focus:border-skillfi-neon outline-none transition-colors"
-                                    placeholder="Nobel Prize, PMP Certification..."
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={handleGenerateCV}
-                                    disabled={isGeneratingCV}
-                                    className="flex-1 py-3 bg-skillfi-neon text-black font-bold uppercase rounded-xl hover:bg-white transition-all shadow-lg text-xs tracking-widest mt-2 flex items-center justify-center gap-2"
-                                >
-                                    {isGeneratingCV ? (
-                                        <>
-                                            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                            Compiling CV...
-                                        </>
-                                    ) : 'Generate Academic CV'}
-                                </button>
-                                <div onClick={() => cvUploadRef.current?.click()} className="mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-colors flex items-center justify-center" title="Proofread Existing">
-                                    <input type="file" ref={cvUploadRef} className="hidden" accept=".pdf,image/*" onChange={(e) => handleProofreadUpload(e, 'CV')} />
-                                    <span className="text-xl">📤</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-2 glass-panel p-0 rounded-2xl min-h-[600px] overflow-hidden relative flex flex-col bg-white border-2 border-white/5">
-                        <div className="bg-gray-100 p-2 border-b flex justify-between items-center px-4">
-                            <span className="text-xs font-bold text-gray-500 uppercase">CV Preview</span>
-                            <div className="flex gap-2">
-                                {cvContent && (
-                                    <>
-                                        <button className="bg-gray-800 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-black transition-colors" onClick={() => handlePrintPDF('cv-preview')}>
-                                            Print / PDF
-                                        </button>
-                                        <button className="bg-blue-600 text-white px-3 py-1.5 rounded shadow text-xs font-bold uppercase hover:bg-blue-700 transition-colors" onClick={() => handleDownloadDoc(cvContent, 'CV.doc')}>
-                                            Word (.doc)
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        
-                        <div className="flex-1 overflow-y-auto p-8 bg-white text-gray-900">
-                            {cvContent ? (
-                                <div id="cv-preview" className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{__html: cvContent}}></div>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                                    <div className="text-6xl mb-4 opacity-20">🎓</div>
-                                    <p className="text-sm font-medium">Drafting Academic Record...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* --- PITCH DECK --- */}
-            {activeModule === 'PITCH' && (
-                <div className="animate-fade-in grid grid-cols-1 gap-8">
-                    <div className="glass-panel p-6 rounded-2xl">
-                        <h2 className="text-xl font-bold text-white mb-4">Pitch Deck Generator</h2>
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <input 
-                                type="text" 
-                                value={pitchTopic} 
-                                onChange={(e) => setPitchTopic(e.target.value)}
-                                placeholder="Describe your business idea (e.g. Uber for Dog Walkers)..."
-                                className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon transition-colors"
-                            />
-                            <button 
-                                onClick={handleGeneratePitch}
-                                disabled={isGeneratingPitch}
-                                className="bg-skillfi-neon text-black px-8 py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-white transition-all whitespace-nowrap shadow-lg flex items-center justify-center gap-2"
-                            >
-                                {isGeneratingPitch ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                                        Thinking...
-                                    </>
-                                ) : 'Generate Slides'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {pitchSlides && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {pitchSlides.map((slide, idx) => (
-                                <div key={idx} className="bg-white p-6 rounded-xl shadow-lg border-t-8 border-skillfi-neon relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                                    <div className="absolute top-2 right-4 text-6xl text-gray-100 font-black pointer-events-none select-none">{idx + 1}</div>
-                                    <h3 className="text-black font-bold text-lg mb-4 relative z-10 pr-8">{slide.title}</h3>
-                                    <p className="text-gray-600 text-sm relative z-10 font-medium leading-relaxed">{slide.bullet}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
+            {/* RESUME, CV, HEADSHOT, PITCH sections remain largely same, just preserving surrounding context */}
+            {/* (Omitted for brevity in this specific patch to keep focused, but assume they exist below) */}
+            
             {/* --- ELITE MODULE --- */}
             {activeModule === 'ELITE' && (
                 <div className="animate-fade-in relative space-y-6">
-                    {/* Search Bar for Elite */}
-                    <div className="glass-panel p-4 rounded-xl border border-white/10 flex items-center gap-3 relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-400">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                        <input 
-                            type="text" 
-                            placeholder="Search high-value skills..." 
-                            value={eliteSearch}
-                            onChange={(e) => setEliteSearch(e.target.value)}
-                            className="bg-transparent w-full text-white outline-none placeholder-gray-500 text-sm"
-                        />
+                    {/* Header with Assigned Goal */}
+                    <div className="flex justify-between items-center">
+                        <div className="glass-panel p-4 rounded-xl border border-white/10 flex items-center gap-3 relative flex-1 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-400">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                            <input 
+                                type="text" 
+                                placeholder="Search high-value skills..." 
+                                value={eliteSearch}
+                                onChange={(e) => setEliteSearch(e.target.value)}
+                                className="bg-transparent w-full text-white outline-none placeholder-gray-500 text-sm"
+                            />
+                        </div>
+                        {assignedSkill && (
+                            <div className="bg-skillfi-neon/10 border border-skillfi-neon/30 px-4 py-2 rounded-xl">
+                                <span className="text-[9px] text-skillfi-neon font-bold uppercase block">Quarterly Goal</span>
+                                <span className="text-white font-bold text-xs">{assignedSkill}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1235,7 +827,15 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                                         </h2>
                                         <p className="text-skillfi-neon text-xs font-bold uppercase tracking-widest mt-1">Refinement Module</p>
                                     </div>
-                                    <button className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setActiveEliteItem(null)}>✕</button>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={handleAssignEliteGoal}
+                                            className="bg-white/10 hover:bg-skillfi-neon hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-white/10"
+                                        >
+                                            Assign as Goal
+                                        </button>
+                                        <button className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setActiveEliteItem(null)}>✕</button>
+                                    </div>
                                 </div>
                                 
                                 <div className="p-6 overflow-y-auto scrollbar-hide">

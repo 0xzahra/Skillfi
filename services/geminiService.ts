@@ -513,19 +513,24 @@ export interface CareerRoadmap {
     advice: string;
     web2: { role: string; skills: string[]; action: string; salaries: {country: string, amount: string}[] };
     web3: { role: string; skills: string[]; action: string; salaries: {country: string, amount: string}[] };
+    fitScore: number;
+    gapAnalysis: string[];
 }
 
 export const generateCareerRoadmap = async (context: string): Promise<CareerRoadmap | null> => {
     const ai = getClient();
     const prompt = `
     Analyze this user profile: "${context}".
-    Suggest two distinct career paths:
-    1. A traditional Web2/Corporate role.
-    2. A Web3/Emerging Tech role.
+    Suggest two distinct career paths (Web2 and Web3).
+    
+    Calculate a 'fitScore' (0-100) indicating how ready they are for these roles based on their current skills.
+    Provide a 'gapAnalysis' list of 3 specific missing skills or actions needed to reach 100%.
 
     Return JSON format:
     {
       "advice": "One sentence strategic summary.",
+      "fitScore": 75,
+      "gapAnalysis": ["Learn Solidity", "Build Portfolio", "Network on Twitter"],
       "web2": {
         "role": "Job Title",
         "skills": ["Skill1", "Skill2", "Skill3"],

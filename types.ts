@@ -44,6 +44,7 @@ export interface UserProfile {
   credits: number;
   isElite: boolean;
   following?: string[];
+  assignedEliteGoal?: string; // New: Refinement Skill Assignment
 }
 
 export interface ActivityLog {
