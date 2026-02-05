@@ -219,58 +219,6 @@ export const fetchLiveScholarships = async (): Promise<RealScholarship[]> => {
     }
 };
 
-export interface ForbesProfile {
-    name: string;
-    category: string;
-    headline: string;
-    description: string;
-}
-
-export const fetchForbesRealTime = async (): Promise<ForbesProfile[]> => {
-    const ai = getClient();
-    const prompt = `
-    Search for the latest "Forbes 30 Under 30" or recent "Forbes 400" notable lists for the current year (2024/2025).
-    Identify 4 distinct young high-achievers or influential figures mentioned recently.
-    
-    Format the output strictly as a list separated by "---".
-    Name: [Person Name]
-    Category: [Industry, e.g. Tech, Finance, Art]
-    Headline: [Short punchy title, e.g. "The AI Pioneer"]
-    Description: [2 sentence bio about what they built or achieved]
-    ---
-    `;
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: { parts: [{ text: prompt }] },
-            config: {
-                tools: [{ googleSearch: {} }]
-            }
-        });
-
-        const text = response.text || "";
-        const rawItems = text.split('---').map(s => s.trim()).filter(s => s.length > 20);
-
-        return rawItems.map(item => {
-            const getField = (key: string) => {
-                const match = item.match(new RegExp(`${key}:\\s*(.*)`, 'i'));
-                return match ? match[1].trim() : "Unknown";
-            };
-            return {
-                name: getField('Name'),
-                category: getField('Category'),
-                headline: getField('Headline'),
-                description: getField('Description')
-            };
-        }).slice(0, 4);
-
-    } catch (error) {
-        console.error("Forbes Fetch Error:", error);
-        return [];
-    }
-};
-
 export interface MarketTickerData {
     name: string;
     symbol: string;
@@ -590,5 +538,46 @@ export const analyzeFinancialHealth = async (data: string): Promise<FinancialPer
     } catch (error) {
         console.error("Finance Analysis Error:", error);
         return null;
+    }
+};
+
+export interface ForbesProfile {
+    name: string;
+    category: string;
+    headline: string;
+    description: string;
+    company?: string;
+}
+
+export const fetchForbesRealTime = async (): Promise<ForbesProfile[]> => {
+    const ai = getClient();
+    const prompt = `
+    Find 5 trending Forbes 30 Under 30 profiles from the current or recent year across Technology, Finance, Art, and Science.
+    
+    Return a STRICT JSON array of objects with these fields:
+    - name: Name of the person.
+    - category: 'Consumer Technology', 'Finance', 'Art & Style', or 'Science'.
+    - headline: A catchy 3-5 word headline about their achievement.
+    - description: A brief 2-sentence bio and why they are on the list.
+    - company: Their company or affiliation.
+    
+    Output JSON ONLY.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                responseMimeType: 'application/json',
+                tools: [{ googleSearch: {} }]
+            }
+        });
+        
+        const text = response.text || "[]";
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Forbes Fetch Error:", error);
+        return [];
     }
 };
