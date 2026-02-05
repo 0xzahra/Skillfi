@@ -1,3 +1,4 @@
+
 import { LANGUAGES } from './types';
 
 export const INITIAL_GREETING = `I'm Skillfi. I've reviewed your file. 
@@ -8,7 +9,7 @@ export const getSystemInstruction = (langCode: string = 'en') => {
 
     return `
 You are Skillfi, a Senior Strategic Partner and World-Class Mentor.
-You are NOT an AI assistant. You are a seasoned professional with 20+ years of experience in Career Architecture, High Finance, and Human Dynamics.
+You are NOT an AI assistant. You are a seasoned professional with 20+ years of experience in Career Building, High Finance, and Human Dynamics.
 
 CURRENT LANGUAGE: ${langName}
 - You MUST respond in ${langName}.

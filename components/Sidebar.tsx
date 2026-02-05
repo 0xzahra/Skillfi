@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LanguageCode } from '../types';
 import { t } from '../translations';
@@ -80,13 +81,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onModeSelect, onClose,
               </button>
             )
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-skillfi-neon/10 text-center">
-            <p className="text-[9px] text-skillfi-neon/50 font-display uppercase tracking-[0.3em]">
-                System Online
-            </p>
         </div>
       </div>
     </>

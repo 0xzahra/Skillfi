@@ -116,7 +116,7 @@ export const generateProfessionalHeadshot = async (
     switch(style) {
         case 'CORPORATE': stylePrompt = "wearing a tailored dark navy suit, white shirt, glass office background."; break;
         case 'MEDICAL': stylePrompt = "wearing pristine medical scrubs and white coat, hospital background."; break;
-        case 'CREATIVE': stylePrompt = "wearing stylish smart-casual architectural attire, design studio background."; break;
+        case 'CREATIVE': stylePrompt = "wearing stylish smart-casual builder attire, design studio background."; break;
         case 'TECH': stylePrompt = "wearing premium minimalist t-shirt and blazer, dark server room background."; break;
     }
 

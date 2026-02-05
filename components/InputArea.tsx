@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 
 interface InputAreaProps {
@@ -160,7 +161,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, onStop, isL
       },
       { 
           icon: '🏗️', 
-          label: 'Architect', 
+          label: 'Builder', 
           desc: 'Code Gen', 
           action: () => handleModeSelect('[CODE INTERPRETER]:'), 
           color: 'text-orange-400', 

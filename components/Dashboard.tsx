@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { UserProfile, LanguageCode } from '../types';
 import { t } from '../translations';
@@ -107,7 +108,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
                         {/* Text / CTA Section */}
                         <div className="w-full md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-gradient-to-r from-black via-[#0a0a0a] to-transparent">
                              <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-2">Editor's Pick</h3>
-                             <h2 className="text-2xl font-bold text-white mb-3">The Architect of Tomorrow</h2>
+                             <h2 className="text-2xl font-bold text-white mb-3">The Builder of Tomorrow</h2>
                              <p className="text-gray-400 text-sm leading-relaxed mb-6">
                                  Dive into the psychology of the world's wealthiest man. Learn how First Principles Thinking can restructure your career path.
                              </p>

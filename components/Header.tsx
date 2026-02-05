@@ -51,30 +51,30 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-    <header className="px-4 md:px-6 py-4 glass-panel border-b-0 flex items-center justify-between sticky top-0 z-40 shadow-2xl shrink-0 mx-4 mt-2 rounded-xl">
-      <div className="flex items-center gap-6 flex-1 mr-4">
+    <header className="px-3 md:px-6 py-3 md:py-4 glass-panel border-b-0 flex items-center justify-between sticky top-0 z-40 shadow-2xl shrink-0 mx-2 md:mx-4 mt-2 rounded-xl">
+      <div className="flex items-center gap-3 md:gap-6 flex-1 mr-2 min-w-0">
         <button 
           onClick={onToggleMenu}
-          className="md:hidden p-2 text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30"
+          className="md:hidden p-2 text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-skillfi-neon/30 flex-shrink-0"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
         
-        <div className="flex items-center gap-3 select-none">
-          <h1 className="text-2xl font-bold font-display tracking-[0.2em] dark:text-white text-slate-900 text-shadow-gold">
+        <div className="flex items-center gap-3 select-none overflow-hidden">
+          <h1 className="text-xl md:text-2xl font-bold font-display tracking-[0.2em] dark:text-white text-slate-900 text-shadow-gold truncate">
             SKILLFI
           </h1>
         </div>
       </div>
       
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-1 md:gap-4 flex-shrink-0">
         
-        {/* Share Button (New) */}
+        {/* Share Button (Hidden on tiny screens) */}
         <button 
             onClick={handleShareApp}
-            className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+            className="hidden sm:block p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
             title="Share App"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -82,11 +82,11 @@ export const Header: React.FC<HeaderProps> = ({
             </svg>
         </button>
 
-        {/* Tour Toggle (New) */}
+        {/* Tour Toggle (Desktop Only) */}
         {onToggleTour && (
             <button 
                 onClick={onToggleTour}
-                className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+                className="hidden md:block p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
                 title="Interactive Tour"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -95,11 +95,11 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
         )}
 
-        {/* Sync Button */}
+        {/* Sync Button (Hidden on very small screens) */}
         {onSync && (
             <button 
                 onClick={onSync}
-                className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+                className="hidden xs:block p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
                 title="Force Refresh Data"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
              )}
         </button>
 
-        {/* Notifications Icon */}
+        {/* Notifications Icon (Priority Visible) */}
         <button 
             onClick={onViewNotifications}
             className="p-2 text-gray-400 hover:text-skillfi-neon hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors relative"

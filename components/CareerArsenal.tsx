@@ -1,5 +1,19 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { generateProfessionalHeadshot, generatePitchDeck, generateCVContent, generateResumeContent, generateCareerRoadmap, generateItemVisual, proofreadDocument, CareerRoadmap } from '../services/geminiService';
+import { 
+    generateProfessionalHeadshot, 
+    generatePitchDeck, 
+    generateCVContent, 
+    generateResumeContent, 
+    generateCareerRoadmap, 
+    generateItemVisual, 
+    proofreadDocument, 
+    generateContentPack,
+    sendMessageToSkillfi,
+    initializeChat,
+    CareerRoadmap,
+    ContentPack
+} from '../services/geminiService';
 import { AudioService } from '../services/audioService';
 import { UserProfile } from '../types';
 
@@ -61,100 +75,13 @@ const ELITE_DATA: Record<string, EliteSkillData> = {
         advanced: "**Business Timing:** Never discuss business on the first few holes. Build rapport. Business happens naturally on the cart or at the 19th hole (drinks after). Let the senior person bring it up.",
         pro_tip: "If you are bad, admit it early and laugh about it. People enjoy playing with a happy loser, but they hate playing with an angry one. Cheating is the ultimate sin; if you cheat at golf, you cheat at contracts."
     },
-    'Horology': {
-        icon: '⌚',
-        desc: 'Understanding timepieces and engineering.',
-        philosophy: "A watch is the only piece of jewelry a man can wear that serves a function. It signals appreciation for engineering, heritage, and the value of time itself.",
-        mechanics: "1. **Movements:** Quartz (battery, cheap, accurate) vs. Mechanical (springs, expensive, art). High society respects Mechanical.\n2. **Fit:** The lugs (where the strap attaches) should not overhang your wrist.\n3. **Occasion:** Dress watch (leather strap) for suits. Diver/Steel for casual.",
-        advanced: "**The Holy Trinity:** Patek Philippe, Audemars Piguet, Vacheron Constantin. Knowing these brands shows deep knowledge. Rolex is king of marketing, but Patek is king of legacy.",
-        pro_tip: "Match your leathers. If you wear a watch with a brown leather strap, your belt and shoes must be brown. Black strap? Black shoes."
-    },
-    'Art Collecting': {
-        icon: '🎨',
-        desc: 'Asset preservation through culture.',
-        philosophy: "Art is the ultimate asset class of the ultra-wealthy. It preserves capital while signaling cultural patronage. It is an intellectual pursuit, not just decoration.",
-        mechanics: "1. **Primary vs. Secondary:** Primary market is buying from the artist/gallery (first sale). Secondary is buying at auction (resale).\n2. **Provenance:** The history of ownership. A clear paper trail adds immense value.\n3. **Medium:** Oil on canvas generally holds value better than prints or paper.",
-        advanced: "**Blue Chip vs. Emerging:** Blue Chip artists (Picasso, Warhol, Basquiat) are safe 'bonds'. Emerging artists are high-risk 'stocks'. Diversify your collection like a portfolio.",
-        pro_tip: "Buy with your eyes, not just your ears. If you buy for investment only, you will lose. Buy what you love; if it goes to zero, you still have a beautiful object on your wall."
-    },
-    'Private Aviation': {
-        icon: '✈️',
-        desc: 'The language of the skies.',
-        philosophy: "Time is the only non-renewable asset. Private aviation is not about luxury; it is about buying time. Understanding this world signals high-level operational awareness.",
-        mechanics: "1. **Part 91 vs 135:** Part 91 is non-commercial (own plane). Part 135 is charter (renting). Know the difference.\n2. **The Empty Leg:** A flight returning empty. This is how smart players fly private for commercial prices.\n3. **FBO:** Fixed Base Operator. You don't go to a terminal; you go to the FBO.",
-        advanced: "**Aircraft Classes:** Light Jets (CJ3) for short hops. Mid-size (Challenger 300) for coast-to-coast. Ultra-Long Range (Global 7500) for oceans. Don't ask a Light Jet to cross the Atlantic.",
-        pro_tip: "Treat the pilots like gold. They hold your life in their hands. Acknowledge them before you acknowledge the champagne."
-    },
-    'Fine Wine Mastery': {
-        icon: '🍷',
-        desc: 'Reading labels, pairing, and tasting.',
-        philosophy: "Wine is history in a bottle. Knowing it commands respect at the table and shows patience and refinement.",
-        mechanics: "1. **The Swirl:** Aerates the wine, releasing aromas. 2. **The Sniff:** 80% of taste is smell. Don't skip this. 3. **The Sip:** Let it coat your tongue before swallowing.",
-        advanced: "**Terroir:** Understanding how soil and climate affect taste. Old World (Earth/Mineral) vs New World (Fruit/Oak).",
-        pro_tip: "Never fill the glass more than one-third. It allows the wine to breathe and prevents spills. Holding the glass by the stem prevents warming the wine."
-    },
-    'Cigar Lounge Protocol': {
-        icon: '🪵',
-        desc: 'The gentleman\'s club ritual.',
-        philosophy: "A cigar is not smoked; it is experienced. It requires patience (45m+) and signals a moment of reflection and celebration.",
-        mechanics: "1. **The Cut:** Just the cap, don't unravel it. 2. **The Light:** Toast the foot first, don't char it directly. 3. **The Ash:** Let it grow long; it cools the smoke.",
-        advanced: "**Cuban vs. Dominican:** Recognize the flavor profiles. Cohiba is the Rolex of cigars, but Padron is the Patek.",
-        pro_tip: "Never stub a cigar out. Let it die with dignity in the ashtray. Stubbing creates a foul odor that offends the room."
-    },
-    'Equestrian Culture': {
-        icon: '🐎',
-        desc: 'The sport of kings.',
-        philosophy: "Horses represent power controlled by grace. Connection with the animal is paramount in high society circles.",
-        mechanics: "1. **Approach:** Always from the shoulder, never the rear. 2. **Mounting:** Left side only. 3. **Attire:** Breeches and boots, never jeans.",
-        advanced: "**Dressage vs. Jumping:** Dressage is 'horse ballet'; Jumping is precision speed. Know the difference before attending an event.",
-        pro_tip: "Always thank the groom. They do the hard work. Acknowledging them shows true class and lack of pretension."
-    },
-    'Yachting Etiquette': {
-        icon: '🛥️',
-        desc: 'Rules of the open sea.',
-        philosophy: "A yacht is a floating palace with strict hierarchy and safety protocols. It is a closed environment where manners are magnified.",
-        mechanics: "1. **Barefoot Rule:** Shoes off at the gangway immediately. 2. **Luggage:** Soft bags only; hard cases damage teak decks.",
-        advanced: "**Port vs. Starboard:** Left is Port (Red), Right is Starboard (Green). Use the correct terminology.",
-        pro_tip: "The Captain's word is law. Never argue with the crew regarding safety or route. Tipping the crew (10-20% of charter) is mandatory."
-    },
-    'Auction Strategy': {
-        icon: '🔨',
-        desc: 'Winning at Christie\'s and Sotheby\'s.',
-        philosophy: "Auctions are theater. Emotional control wins the lot, not just money. It is a battle of wills.",
-        mechanics: "1. **The Paddle:** Keep it visible but subtle. 2. **The Reserve:** The hidden minimum price. 3. **The Hammer:** Sold is sold.",
-        advanced: "**Buyer's Premium:** Remember the house takes ~25% on top of your bid. Calculate this before lifting your hand.",
-        pro_tip: "Bid late. Let the amateurs exhaust themselves early. Enter when the room goes quiet to show dominance."
-    },
-    'Bespoke Tailoring': {
-        icon: '🧵',
-        desc: 'The difference between clothing and style.',
-        philosophy: "Fit is everything. A $500 suit fitted perfectly looks better than a $5000 suit off the rack.",
-        mechanics: "1. **The Break:** Where pants hit the shoe (No break, half break, full break). 2. **The Cuff:** Shows 1/2 inch of shirt sleeve.",
-        advanced: "**Canvas Construction:** Full canvas suits mold to your body over time. Fused suits bubble and look cheap.",
-        pro_tip: "Working buttons on the sleeve ('Surgeon's Cuffs') are the hallmark of true bespoke. Leave the last one unbuttoned to signal quality."
-    },
-    'Opera & Ballet': {
-        icon: '🎭',
-        desc: 'High culture and performance arts.',
-        philosophy: "Art refines the soul. Silence during performance is sacred. It is a communal meditative experience.",
-        mechanics: "1. **Arrival:** Never late. If late, wait for intermission. 2. **Applause:** Only at the end of acts or specific arias, not during.",
-        advanced: "**Bravo code:** 'Bravo' (Male), 'Brava' (Female), 'Bravi' (Group). Use correctly to impress.",
-        pro_tip: "Read the synopsis beforehand. You cannot appreciate the nuance if you are confused about the plot."
-    },
-    'Philanthropy': {
-        icon: '🏛️',
-        desc: 'Strategic giving and legacy building.',
-        philosophy: "Wealth is a tool for impact. True power is changing lives, not just buying things. Legacy is what you give, not what you keep.",
-        mechanics: "1. **The Mission:** Focus on one cause (e.g., Clean Water) rather than scattering small gifts. 2. **Due Diligence:** Vet the charity's overhead costs.",
-        advanced: "**Endowments:** Creating a perpetual fund that sustains an institution forever. The ultimate legacy.",
-        pro_tip: "Don't just give money; give time and network. Joining a board is more impactful and respected than just writing a check."
-    }
 };
 
 export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScoutData, lastSync }) => {
     // TABS
     const [activeModule, setActiveModule] = useState<'PATH' | 'HEADSHOT' | 'CV' | 'RESUME' | 'PITCH' | 'ELITE' | 'CORPORATE_OPS' | 'TRENDS'>('PATH');
     const [dailyQuote, setDailyQuote] = useState(CAREER_QUOTES[0]);
+    const [mobileEditorView, setMobileEditorView] = useState<'EDIT' | 'PREVIEW'>('EDIT');
     
     // Pathfinder State
     const [careerMap, setCareerMap] = useState<CareerRoadmap | null>(null);
@@ -193,13 +120,23 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
     });
     const [resumeContent, setResumeContent] = useState<string | null>(null);
     const [isGeneratingResume, setIsGeneratingResume] = useState(false);
-    const [isSocialCardMode, setIsSocialCardMode] = useState(false);
     const resumeUploadRef = useRef<HTMLInputElement>(null);
 
     // Pitch Deck State
     const [pitchTopic, setPitchTopic] = useState('');
     const [pitchSlides, setPitchSlides] = useState<{title: string, bullet: string}[] | null>(null);
     const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
+
+    // Trends / Content State
+    const [trendIdea, setTrendIdea] = useState('');
+    const [contentPack, setContentPack] = useState<ContentPack | null>(null);
+    const [isGeneratingTrend, setIsGeneratingTrend] = useState(false);
+
+    // Corp Ops State
+    const [corpInput, setCorpInput] = useState('');
+    const [corpOutput, setCorpOutput] = useState('');
+    const [corpMode, setCorpMode] = useState<'EMAIL' | 'POLITE_REJECTION' | 'NEGOTIATION'>('EMAIL');
+    const [isProcessingCorp, setIsProcessingCorp] = useState(false);
 
     // Elite Modal State
     const [activeEliteItem, setActiveEliteItem] = useState<{title: string, icon: string, desc: string} | null>(null);
@@ -229,6 +166,11 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
         }
         setDailyQuote(CAREER_QUOTES[Math.floor(Math.random() * CAREER_QUOTES.length)]);
     }, []);
+
+    // Reset mobile view when switching tabs
+    useEffect(() => {
+        setMobileEditorView('EDIT');
+    }, [activeModule]);
 
     // Instant Scout Trigger
     useEffect(() => {
@@ -330,47 +272,52 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
         }
     };
 
-    const handleDownloadDoc = (content: string | null, filename: string) => {
-        if (content) {
-            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Document</title></head><body>";
-            const footer = "</body></html>";
-            const sourceHTML = header + content + footer;
-            
-            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-            const fileDownload = document.createElement("a");
-            document.body.appendChild(fileDownload);
-            fileDownload.href = source;
-            fileDownload.download = filename;
-            fileDownload.click();
-            document.body.removeChild(fileDownload);
-            AudioService.playSuccess();
-        }
+    const handleDownloadDoc = (content: string, filename: string) => {
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+            "xmlns='http://www.w3.org/TR/REC-html40'>"+
+            "<head><meta charset='utf-8'><title>Export HTML to Word Document with JavaScript</title></head><body>";
+        const footer = "</body></html>";
+        const sourceHTML = header+content+footer;
+        
+        const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+        const fileDownload = document.createElement("a");
+        document.body.appendChild(fileDownload);
+        fileDownload.href = source;
+        fileDownload.download = filename;
+        fileDownload.click();
+        document.body.removeChild(fileDownload);
+        AudioService.playSuccess();
     };
 
     const handlePrintPDF = (elementId: string) => {
         const printContent = document.getElementById(elementId);
-        if (printContent) {
-            const win = window.open('', '', 'height=800,width=800');
-            if (win) {
-                win.document.write('<html><head><title>Print Preview</title>');
-                // Inject simple CSS for printing
-                win.document.write(`
-                    <style>
-                        body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #000; line-height: 1.6; }
-                        h1 { font-size: 24px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-                        h2 { font-size: 18px; text-transform: uppercase; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-                        p { margin-bottom: 10px; font-size: 14px; }
-                        ul { margin-bottom: 10px; padding-left: 20px; }
-                        li { font-size: 14px; margin-bottom: 5px; }
-                    </style>
-                `);
-                win.document.write('</head><body>');
-                win.document.write(printContent.innerHTML);
-                win.document.write('</body></html>');
-                win.document.close();
-                win.focus();
-                win.print();
-            }
+        if (!printContent) return;
+        
+        const WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+        if (WinPrint) {
+            WinPrint.document.write('<html><head><title>Print</title>');
+            // Inline tailored styles for clean print output
+            WinPrint.document.write(`
+                <style>
+                    body { font-family: 'Times New Roman', serif; padding: 40px; color: black; background: white; }
+                    h1, h2, h3 { color: #000; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 20px; }
+                    p, li { line-height: 1.5; margin-bottom: 8px; font-size: 12pt; }
+                    ul { padding-left: 20px; }
+                    strong { font-weight: bold; }
+                    a { color: black; text-decoration: none; }
+                </style>
+            `);
+            WinPrint.document.write('</head><body>');
+            WinPrint.document.write(printContent.innerHTML);
+            WinPrint.document.write('</body></html>');
+            WinPrint.document.close();
+            WinPrint.focus();
+            setTimeout(() => {
+                WinPrint.print();
+                WinPrint.close();
+            }, 500); // Allow time for styles to load
+            AudioService.playSuccess();
         }
     };
 
@@ -393,6 +340,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
         if (cv) {
             setCvContent(cv);
             AudioService.playSuccess();
+            setMobileEditorView('PREVIEW'); // Switch to preview on mobile
         }
         setIsGeneratingCV(false);
     };
@@ -414,6 +362,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
         if (resume) {
             setResumeContent(resume);
             AudioService.playSuccess();
+            setMobileEditorView('PREVIEW'); // Switch to preview on mobile
         }
         setIsGeneratingResume(false);
     };
@@ -428,6 +377,41 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
             AudioService.playSuccess();
         }
         setIsGeneratingPitch(false);
+    };
+
+    const handleGenerateTrend = async () => {
+        if (!trendIdea) return;
+        setIsGeneratingTrend(true);
+        AudioService.playProcessing();
+        const pack = await generateContentPack(trendIdea);
+        if (pack) {
+            setContentPack(pack);
+            AudioService.playSuccess();
+        }
+        setIsGeneratingTrend(false);
+    };
+
+    const handleCorpOps = async () => {
+        if (!corpInput) return;
+        setIsProcessingCorp(true);
+        AudioService.playProcessing();
+        try {
+            const chat = await initializeChat('en');
+            let prompt = `Rewrite the following text to be `;
+            if (corpMode === 'EMAIL') prompt += "a professional, concise corporate email.";
+            if (corpMode === 'POLITE_REJECTION') prompt += "a polite, firm, but professional rejection or 'no'.";
+            if (corpMode === 'NEGOTIATION') prompt += "a strategic negotiation counter-offer, firm but collaborative.";
+            
+            prompt += `\n\nInput Text: "${corpInput}"`;
+            
+            const result = await sendMessageToSkillfi(chat, prompt);
+            setCorpOutput(result);
+            AudioService.playSuccess();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsProcessingCorp(false);
+        }
     };
     
     const handlePathfinder = async (overrideContext?: string) => {
@@ -517,6 +501,7 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                     if (type === 'CV') setCvContent(result);
                     else setResumeContent(result);
                     AudioService.playSuccess();
+                    setMobileEditorView('PREVIEW');
                 } else {
                     AudioService.playAlert();
                     alert("Could not analyze document. Please ensure it is a PDF or Image.");
@@ -762,10 +747,368 @@ export const CareerArsenal: React.FC<CareerArsenalProps> = ({ user, initialScout
                     </div>
                 </div>
             )}
-            
-            {/* ... Other modules ... */}
-            {/* RESUME, CV, HEADSHOT, PITCH sections remain largely same, just preserving surrounding context */}
-            {/* (Omitted for brevity in this specific patch to keep focused, but assume they exist below) */}
+
+            {/* --- CORPORATE OPS --- */}
+            {activeModule === 'CORPORATE_OPS' && (
+                <div className="animate-fade-in grid grid-cols-1 gap-8">
+                    <div className="glass-panel p-6 rounded-2xl">
+                        <h2 className="text-xl font-bold text-white mb-4">Corporate Translator</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Input (Rough Draft)</label>
+                                <textarea 
+                                    value={corpInput}
+                                    onChange={(e) => setCorpInput(e.target.value)}
+                                    placeholder="e.g., 'I can't do this right now, I'm busy.'"
+                                    className="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon h-40 resize-none text-sm"
+                                />
+                                <div className="flex gap-2 bg-white/5 p-2 rounded-xl">
+                                    {(['EMAIL', 'POLITE_REJECTION', 'NEGOTIATION'] as const).map(mode => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => setCorpMode(mode)}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${corpMode === mode ? 'bg-skillfi-neon text-black' : 'text-gray-400 hover:text-white'}`}
+                                        >
+                                            {mode.replace('_', ' ')}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button 
+                                    onClick={handleCorpOps}
+                                    disabled={isProcessingCorp || !corpInput}
+                                    className="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-skillfi-neon transition-all"
+                                >
+                                    {isProcessingCorp ? 'Translating...' : 'Translate to Corporate'}
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Output (Professional)</label>
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-xl h-full min-h-[200px] text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                                    {corpOutput || <span className="text-gray-600 italic">Output will appear here...</span>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- TREND RADAR --- */}
+            {activeModule === 'TRENDS' && (
+                <div className="animate-fade-in max-w-4xl mx-auto">
+                    <div className="glass-panel p-6 rounded-2xl mb-8">
+                        <h2 className="text-xl font-bold text-white mb-2">Trend Viral Strategist</h2>
+                        <p className="text-xs text-gray-500 mb-6">Convert any idea into a multi-platform content strategy.</p>
+                        
+                        <div className="flex gap-4">
+                            <input 
+                                type="text" 
+                                value={trendIdea}
+                                onChange={(e) => setTrendIdea(e.target.value)}
+                                placeholder="Enter topic (e.g. AI Agents in Finance)"
+                                className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon text-sm"
+                            />
+                            <button 
+                                onClick={handleGenerateTrend}
+                                disabled={isGeneratingTrend || !trendIdea}
+                                className="bg-purple-600 hover:bg-purple-500 text-white px-8 rounded-xl font-bold uppercase text-xs tracking-widest transition-all"
+                            >
+                                {isGeneratingTrend ? 'Generating...' : 'Create Strategy'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {contentPack && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+                            <div className="bg-[#0077b5]/10 border border-[#0077b5]/30 p-5 rounded-xl">
+                                <h3 className="text-[#0077b5] font-bold text-sm uppercase tracking-widest mb-3">LinkedIn</h3>
+                                <p className="text-gray-200 text-xs leading-relaxed whitespace-pre-wrap">{contentPack.linkedin}</p>
+                            </div>
+                            <div className="bg-[#1da1f2]/10 border border-[#1da1f2]/30 p-5 rounded-xl">
+                                <h3 className="text-[#1da1f2] font-bold text-sm uppercase tracking-widest mb-3">Twitter Thread</h3>
+                                <ul className="space-y-4">
+                                    {contentPack.twitter.map((tweet, i) => (
+                                        <li key={i} className="text-gray-200 text-xs border-b border-white/5 pb-2 last:border-0">{tweet}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="bg-[#ff0050]/10 border border-[#ff0050]/30 p-5 rounded-xl">
+                                <h3 className="text-[#ff0050] font-bold text-sm uppercase tracking-widest mb-3">TikTok Script</h3>
+                                <p className="text-gray-200 text-xs leading-relaxed whitespace-pre-wrap">{contentPack.tiktok}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* --- RESUME --- */}
+            {activeModule === 'RESUME' && (
+                <div className="animate-fade-in flex flex-col lg:grid lg:grid-cols-2 gap-8 h-full">
+                    {/* Mobile View Toggle */}
+                    <div className="lg:hidden flex mb-4 bg-white/5 p-1 rounded-xl">
+                        <button 
+                            onClick={() => setMobileEditorView('EDIT')} 
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${mobileEditorView === 'EDIT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            Editor
+                        </button>
+                        <button 
+                            onClick={() => setMobileEditorView('PREVIEW')} 
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${mobileEditorView === 'PREVIEW' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            Preview
+                        </button>
+                    </div>
+
+                    <div className={`space-y-6 overflow-y-auto pr-2 ${mobileEditorView === 'PREVIEW' ? 'hidden lg:block' : 'block'}`}>
+                        <div className="glass-panel p-6 rounded-2xl">
+                            <h2 className="text-xl font-bold text-white mb-4">Resume Builder</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Target Role</label>
+                                    <input 
+                                        type="text" 
+                                        value={resumeInputs.targetRole}
+                                        onChange={(e) => setResumeInputs({...resumeInputs, targetRole: e.target.value})}
+                                        className="w-full bg-black/40 border border-white/10 p-3 rounded-lg text-white text-sm outline-none focus:border-skillfi-neon mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Experience Summary</label>
+                                    <textarea 
+                                        value={resumeInputs.experience}
+                                        onChange={(e) => setResumeInputs({...resumeInputs, experience: e.target.value})}
+                                        className="w-full bg-black/40 border border-white/10 p-3 rounded-lg text-white text-sm outline-none focus:border-skillfi-neon mt-1 h-32"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button 
+                                        onClick={handleGenerateResume}
+                                        disabled={isGeneratingResume}
+                                        className="bg-white text-black font-bold py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-skillfi-neon transition-all"
+                                    >
+                                        {isGeneratingResume ? 'Drafting...' : 'Generate Resume'}
+                                    </button>
+                                    <div className="relative">
+                                        <input 
+                                            type="file" 
+                                            ref={resumeUploadRef}
+                                            onChange={(e) => handleProofreadUpload(e, 'RESUME')}
+                                            className="hidden"
+                                            accept=".pdf,image/*"
+                                        />
+                                        <button 
+                                            onClick={() => resumeUploadRef.current?.click()}
+                                            className="w-full bg-white/10 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+                                        >
+                                            Upload to Polish
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={`bg-white text-black p-8 rounded-xl shadow-2xl overflow-y-auto h-[600px] relative font-serif ${mobileEditorView === 'EDIT' ? 'hidden lg:block' : 'block'}`} id="resume-preview">
+                        {resumeContent ? (
+                            <div dangerouslySetInnerHTML={{ __html: resumeContent }} className="prose prose-sm max-w-none" />
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-400 text-xs uppercase tracking-widest">
+                                Preview Area
+                            </div>
+                        )}
+                        {resumeContent && (
+                            <div className="absolute top-4 right-4 flex gap-2">
+                                <button onClick={() => handleDownloadDoc(resumeContent, 'resume.doc')} className="bg-black text-white px-3 py-1 rounded text-[10px] font-bold uppercase">DOC</button>
+                                <button onClick={() => handlePrintPDF('resume-preview')} className="bg-black text-white px-3 py-1 rounded text-[10px] font-bold uppercase">PDF</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- CV (ACADEMIC) --- */}
+            {activeModule === 'CV' && (
+                <div className="animate-fade-in flex flex-col lg:grid lg:grid-cols-2 gap-8 h-full">
+                    {/* Mobile View Toggle */}
+                    <div className="lg:hidden flex mb-4 bg-white/5 p-1 rounded-xl">
+                        <button 
+                            onClick={() => setMobileEditorView('EDIT')} 
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${mobileEditorView === 'EDIT' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            Editor
+                        </button>
+                        <button 
+                            onClick={() => setMobileEditorView('PREVIEW')} 
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${mobileEditorView === 'PREVIEW' ? 'bg-skillfi-neon text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            Preview
+                        </button>
+                    </div>
+
+                    <div className={`space-y-6 overflow-y-auto pr-2 ${mobileEditorView === 'PREVIEW' ? 'hidden lg:block' : 'block'}`}>
+                        <div className="glass-panel p-6 rounded-2xl border-t-4 border-t-blue-500">
+                            <h2 className="text-xl font-bold text-white mb-4">Academic CV</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Research / Publications</label>
+                                    <textarea 
+                                        value={cvInputs.publications}
+                                        onChange={(e) => setCvInputs({...cvInputs, publications: e.target.value})}
+                                        className="w-full bg-black/40 border border-white/10 p-3 rounded-lg text-white text-sm outline-none focus:border-blue-500 mt-1 h-32"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button 
+                                        onClick={handleGenerateCV}
+                                        disabled={isGeneratingCV}
+                                        className="bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-blue-500 transition-all"
+                                    >
+                                        {isGeneratingCV ? 'Compiling...' : 'Generate CV'}
+                                    </button>
+                                    <div className="relative">
+                                        <input 
+                                            type="file" 
+                                            ref={cvUploadRef}
+                                            onChange={(e) => handleProofreadUpload(e, 'CV')}
+                                            className="hidden"
+                                            accept=".pdf,image/*"
+                                        />
+                                        <button 
+                                            onClick={() => cvUploadRef.current?.click()}
+                                            className="w-full bg-white/10 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+                                        >
+                                            Upload to Fix
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={`bg-white text-black p-8 rounded-xl shadow-2xl overflow-y-auto h-[600px] relative font-serif ${mobileEditorView === 'EDIT' ? 'hidden lg:block' : 'block'}`} id="cv-preview">
+                        {cvContent ? (
+                            <div dangerouslySetInnerHTML={{ __html: cvContent }} className="prose prose-sm max-w-none" />
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-400 text-xs uppercase tracking-widest">
+                                Academic Preview Area
+                            </div>
+                        )}
+                        {cvContent && (
+                            <div className="absolute top-4 right-4 flex gap-2">
+                                <button onClick={() => handleDownloadDoc(cvContent, 'cv.doc')} className="bg-black text-white px-3 py-1 rounded text-[10px] font-bold uppercase">DOC</button>
+                                <button onClick={() => handlePrintPDF('cv-preview')} className="bg-black text-white px-3 py-1 rounded text-[10px] font-bold uppercase">PDF</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- PITCH DECK --- */}
+            {activeModule === 'PITCH' && (
+                <div className="animate-fade-in max-w-5xl mx-auto">
+                    <div className="glass-panel p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center">
+                        <div className="flex-1 w-full">
+                            <h2 className="text-xl font-bold text-white mb-2">Pitch Deck Builder</h2>
+                            <input 
+                                type="text" 
+                                value={pitchTopic}
+                                onChange={(e) => setPitchTopic(e.target.value)}
+                                placeholder="Describe your startup idea (e.g. Uber for Dog Walking)"
+                                className="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-skillfi-neon text-sm"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleGeneratePitch}
+                            disabled={isGeneratingPitch || !pitchTopic}
+                            className="bg-white text-black px-8 py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-skillfi-neon transition-all md:mt-8 w-full md:w-auto"
+                        >
+                            {isGeneratingPitch ? 'Structuring...' : 'Build Deck'}
+                        </button>
+                    </div>
+
+                    {pitchSlides && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                            {pitchSlides.map((slide, i) => (
+                                <div key={i} className="bg-white text-black aspect-video p-6 rounded-lg shadow-xl flex flex-col justify-center relative overflow-hidden group hover:scale-105 transition-transform">
+                                    <div className="absolute top-2 left-2 text-[10px] font-bold text-gray-400">SLIDE 0{i+1}</div>
+                                    <h3 className="text-lg font-bold mb-2 font-display uppercase">{slide.title}</h3>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{slide.bullet}</p>
+                                    <div className="absolute bottom-0 left-0 w-full h-1 bg-skillfi-neon"></div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* --- HEADSHOT --- */}
+            {activeModule === 'HEADSHOT' && (
+                <div className="animate-fade-in grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="glass-panel p-6 rounded-2xl">
+                        <h2 className="text-xl font-bold text-white mb-6">AI Headshot Studio</h2>
+                        
+                        <div className="space-y-6">
+                            <div className="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-skillfi-neon transition-colors cursor-pointer relative" onClick={() => fileInputRef.current?.click()}>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                />
+                                {originalImage ? (
+                                    <img src={originalImage} alt="Upload" className="max-h-48 mx-auto rounded-lg shadow-lg" />
+                                ) : (
+                                    <div className="text-gray-500">
+                                        <div className="text-4xl mb-2">📸</div>
+                                        <p className="text-xs uppercase tracking-widest">Upload Selfie</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Style</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(['CORPORATE', 'MEDICAL', 'CREATIVE', 'TECH'] as const).map(style => (
+                                        <button 
+                                            key={style}
+                                            onClick={() => setSelectedStyle(style)}
+                                            className={`py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${selectedStyle === style ? 'bg-skillfi-neon text-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+                                        >
+                                            {style}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleGenerateHeadshot}
+                                disabled={isGeneratingHeadshot || !originalImage}
+                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:shadow-lg transition-all"
+                            >
+                                {isGeneratingHeadshot ? 'Processing...' : 'Generate Pro Headshot'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="glass-panel p-6 rounded-2xl flex items-center justify-center bg-black/40 border border-white/10 relative overflow-hidden group">
+                        {generatedImage ? (
+                            <div className="relative w-full h-full max-h-[500px]">
+                                <img src={generatedImage} alt="Generated Headshot" className="w-full h-full object-contain rounded-xl shadow-2xl" />
+                                <button 
+                                    onClick={() => handleDownloadImage(generatedImage!, 'headshot')}
+                                    className="absolute bottom-4 right-4 bg-white text-black px-4 py-2 rounded-full text-xs font-bold uppercase shadow-lg hover:scale-105 transition-transform"
+                                >
+                                    Download HD
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-center text-gray-600">
+                                <div className="text-6xl mb-4 opacity-20">🖼️</div>
+                                <p className="text-xs uppercase tracking-widest">Result Area</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
             
             {/* --- ELITE MODULE --- */}
             {activeModule === 'ELITE' && (
