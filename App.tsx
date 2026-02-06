@@ -17,7 +17,6 @@ import { Inbox } from './components/Inbox';
 import { Notifications } from './components/Notifications';
 import { CareerArsenal } from './components/CareerArsenal'; 
 import { EducationCenter } from './components/EducationCenter'; 
-import { RelationshipsDash } from './components/RelationshipsDash';
 import { MentalHealth } from './components/MentalHealth';
 import { OnboardingTour } from './components/OnboardingTour';
 import { initializeChat, sendMessageToSkillfi, generateSpeech, generateCareerAvatar } from './services/geminiService';
@@ -29,14 +28,13 @@ const App: React.FC = () => {
   // --- STATE ---
   const [showSplash, setShowSplash] = useState(true);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
-  const [showTour, setShowTour] = useState(false); // Tour State
+  const [showTour, setShowTour] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('AUTH');
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [lastSync, setLastSync] = useState<number>(Date.now()); // Global Refresh Trigger
+  const [theme, setTheme] = useState<'dark' | 'light'>('light'); // Default to Light Mode for Academic Look
+  const [lastSync, setLastSync] = useState<number>(Date.now());
   
-  // Feature State: Instant Scout
   const [scoutPrompt, setScoutPrompt] = useState<string | null>(null);
 
   const [activities, setActivities] = useState<ActivityLog[]>([
@@ -57,23 +55,22 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   
-  // History State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const chatSessionRef = useRef<any>(null);
-
-  // --- GESTURE STATE ---
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
 
   // --- INITIALIZATION ---
   
   useEffect(() => {
-      // Check Theme Preference
+      // Check Theme Preference - Defaulting to light if not set
       const savedTheme = localStorage.getItem('skillfi_theme') as 'dark' | 'light' | null;
       if (savedTheme) {
           setTheme(savedTheme);
+      } else {
+          setTheme('light');
       }
   }, []);
 
@@ -86,13 +83,12 @@ const App: React.FC = () => {
       localStorage.setItem('skillfi_theme', theme);
   }, [theme]);
 
-  // Init Lenis Smooth Scroll
   useEffect(() => {
     // @ts-ignore
     if (window.Lenis) {
         // @ts-ignore
         const lenis = new window.Lenis({
-            duration: 1.2,
+            duration: 1.0,
             easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical',
             gestureDirection: 'vertical',
@@ -106,17 +102,12 @@ const App: React.FC = () => {
             lenis.raf(time);
             requestAnimationFrame(raf);
         }
-
         requestAnimationFrame(raf);
-        
-        return () => {
-             lenis.destroy();
-        };
+        return () => { lenis.destroy(); };
     }
   }, []);
 
   useEffect(() => {
-    // Check local storage for auth logic
     const savedUser = localStorage.getItem('skillfi_user');
     if (savedUser) {
         const parsed = JSON.parse(savedUser);
@@ -129,31 +120,24 @@ const App: React.FC = () => {
         setUser(migratedUser);
     }
     
-    // Load Chat History
     const savedSessions = localStorage.getItem('skillfi_sessions');
     if (savedSessions) {
         setSessions(JSON.parse(savedSessions));
     }
 
-    // Init Chat with default lang
     initChat('en');
   }, []);
 
-  // Re-initialize chat if language changes
   useEffect(() => {
-      if (user) {
-          initChat(currentLang);
-      }
+      if (user) initChat(currentLang);
   }, [currentLang]);
 
-  // Save Sessions to LocalStorage whenever they change
   useEffect(() => {
     if (sessions.length > 0) {
         localStorage.setItem('skillfi_sessions', JSON.stringify(sessions));
     }
   }, [sessions]);
 
-  // Auto-save current chat to history
   useEffect(() => {
     if (messages.length > 1) {
         saveCurrentSession();
@@ -219,7 +203,6 @@ const App: React.FC = () => {
       setCurrentView('DASHBOARD');
       AudioService.playSuccess();
       initChat(currentLang);
-      // Auto-trigger tour for new logins if desired, but user asked for toggle
       if (!localStorage.getItem('skillfi_tour_seen')) {
           setShowTour(true);
           localStorage.setItem('skillfi_tour_seen', 'true');
@@ -240,7 +223,6 @@ const App: React.FC = () => {
 
   const handleAddSkill = (skill: string) => {
       if (!user) return;
-      
       const updatedSkills = [...user.skills, skill];
       const newCredits = user.credits + 100;
       const eliteStatus = updatedSkills.length >= 5;
@@ -254,19 +236,12 @@ const App: React.FC = () => {
 
       if (eliteStatus && !user.isElite) {
           AudioService.playSuccess();
-          alert("ELITE STATUS UNLOCKED! USDC SIMULATION ACTIVATED.");
+          alert("ELITE STATUS UNLOCKED.");
       } else {
           AudioService.playSuccess(); 
       }
 
       handleUpdateUser(updatedUser);
-      setActivities(prev => [{
-        id: Date.now().toString(),
-        title: 'Skill Verified',
-        desc: `Added ${skill} (+100 x404)`,
-        time: 'Just now',
-        type: 'USER'
-      }, ...prev]);
   };
 
   const handleClearActivity = () => {
@@ -314,9 +289,8 @@ const App: React.FC = () => {
   };
 
   const handleNavigate = (view: string) => {
-      if (navigator.vibrate) navigator.vibrate(10); // Haptic feedback on nav
+      if (navigator.vibrate) navigator.vibrate(10);
 
-      // Routing Logic
       if (view === 'FINANCE' || view === 'TOOLS_CALC') {
           setCurrentView('TOOLS_CALC');
       } 
@@ -326,7 +300,7 @@ const App: React.FC = () => {
       else if (view === 'EDUCATION') {
           setCurrentView('EDUCATION');
       }
-      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS', 'RELATIONSHIPS_DASH', 'MENTAL_HEALTH'].includes(view)) {
+      else if (['DASHBOARD', 'PROFILE', 'SETTINGS', 'HISTORY', 'TRIBES', 'SUPPORT', 'INBOX', 'NOTIFICATIONS', 'MENTAL_HEALTH'].includes(view)) {
           setCurrentView(view as any);
       } else if (view === 'LOGOUT') {
           localStorage.removeItem('skillfi_user');
@@ -349,7 +323,6 @@ const App: React.FC = () => {
       setCurrentView('CAREER');
   };
 
-  // Triggered by Finance Tools
   const handleAnalyzeFinance = (dataContext: string) => {
       setCurrentView('CHAT');
       handleSendMessage(`[SYSTEM AUDIT REQUEST]\nDATA PACKAGE:\n${dataContext}\n\nTASK: Analyze this financial data. Provide a ruthless, optimized strategy to maximize wealth and efficiency. Spot leaks and suggest improvements.`);
@@ -378,7 +351,6 @@ const App: React.FC = () => {
     setIsLoading(true);
     AudioService.playProcessing();
 
-    // Check for Image Generation Intent
     const isImageGenIntent = attachment && attachment.mimeType.startsWith('image/') && 
                              (text.toLowerCase().includes('imagine') || text.toLowerCase().includes('visualize') || text.toLowerCase().includes('avatar'));
 
@@ -388,13 +360,12 @@ const App: React.FC = () => {
             setMessages(prev => [...prev, {
                 id: loadingId,
                 role: 'model',
-                content: "[PROCESSING IMAGE MATRIX] Analyzing biometric data... Generating future self projection...",
+                content: "Generating visualization...",
                 timestamp: Date.now()
             }]);
 
             const skills = user?.skills.join(', ') || 'General Tech';
             const roleContext = `${text}. Skills: ${skills}. Level: ${user?.level}.`;
-            
             const generatedImageBase64 = await generateCareerAvatar(attachment.data, roleContext);
 
             setMessages(prev => prev.filter(m => m.id !== loadingId));
@@ -403,7 +374,7 @@ const App: React.FC = () => {
                 const imgMsg: Message = {
                     id: Date.now().toString(),
                     role: 'model',
-                    content: "Identity Projection Complete. Here is your visualized career avatar.",
+                    content: "Visualization Complete.",
                     attachment: {
                         data: generatedImageBase64,
                         mimeType: 'image/jpeg'
@@ -447,7 +418,6 @@ const App: React.FC = () => {
       
       setMessages(prev => [...prev, newBotMsg]);
       
-      // Voice Output Logic
       if (isVoiceMode) {
           const speechData = await generateSpeech(responseText);
           if (speechData) {
@@ -508,49 +478,28 @@ const App: React.FC = () => {
       }
   };
 
-  // --- RENDERING ---
-
   const isIntroOrAuth = showSplash || showLanguageSelect || currentView === 'AUTH';
 
   return (
     <div 
-        className="relative h-screen w-full overflow-hidden font-sans selection:bg-skillfi-neon selection:text-black dark:text-white text-gray-900"
+        className="relative h-screen w-full overflow-hidden font-sans selection:bg-skillfi-neon selection:text-white dark:text-white text-gray-900 bg-skillfi-bg"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
     >
-      
-      {/* Persistent Background Video for Intro/Auth - Fades out in Light Mode for clean look */}
-      {isIntroOrAuth && (
-          <div className="fixed inset-0 z-0 transition-opacity duration-500 dark:opacity-100 opacity-20">
-              <video 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline
-                  className="w-full h-full object-cover filter grayscale contrast-110 brightness-[0.6] opacity-60"
-              >
-                  <source src="https://videos.pexels.com/video-files/3252573/3252573-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-                  <div className="w-full h-full bg-neutral-900"></div>
-              </video>
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 z-10"></div>
-          </div>
-      )}
-
       {/* Intro Overlay */}
       {showSplash && (
           <IntroSplash onComplete={handleSplashComplete} />
       )}
 
-      {/* Language Selection (Shows after Splash) */}
+      {/* Language Selection */}
       {!showSplash && showLanguageSelect && (
           <LanguageSelector onSelect={handleLanguageSelect} />
       )}
 
-      {/* Auth Screen (Overlaying Video) */}
+      {/* Auth Screen */}
       {!showSplash && !showLanguageSelect && currentView === 'AUTH' && (
-          <div className="relative z-10 h-full w-full overflow-y-auto">
+          <div className="relative z-10 h-full w-full overflow-y-auto bg-skillfi-bg flex items-center justify-center">
               <Auth onLogin={handleLogin} currentLang={currentLang} />
           </div>
       )}
@@ -558,7 +507,7 @@ const App: React.FC = () => {
       {/* Onboarding Tour Overlay */}
       {showTour && <OnboardingTour onClose={() => setShowTour(false)} />}
 
-      {/* Main App (Dashboard/Chat/etc) */}
+      {/* Main App */}
       {!showSplash && !showLanguageSelect && currentView !== 'AUTH' && (
           <div className="flex h-screen w-full overflow-hidden relative z-20">
               
@@ -570,7 +519,7 @@ const App: React.FC = () => {
                 currentLang={currentLang}
               />
 
-              <div className="flex-1 flex flex-col h-full relative w-full z-10 overflow-hidden">
+              <div className="flex-1 flex flex-col h-full relative w-full z-10 overflow-hidden bg-skillfi-bg">
                 <Header 
                     onNewChat={handleNewChat}
                     onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -580,12 +529,7 @@ const App: React.FC = () => {
                     onLangChange={(l) => setCurrentLang(l)}
                     onViewNotifications={() => handleNavigate('NOTIFICATIONS')}
                     onViewInbox={() => handleNavigate('INBOX')}
-                    onShare={() => {
-                        // Legacy transcript share if needed, otherwise rely on Header's new social share
-                        const transcript = messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n');
-                        navigator.clipboard.writeText(transcript);
-                        alert("Session transcript copied to clipboard.");
-                    }}
+                    onShare={() => {}}
                     onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     theme={theme}
                     onSync={handleGlobalSync}
@@ -611,23 +555,18 @@ const App: React.FC = () => {
                       />
                   )}
                   {currentView === 'EDUCATION' && <EducationCenter lastSync={lastSync} />}
-                  {currentView === 'RELATIONSHIPS_DASH' && <RelationshipsDash />}
                   {currentView === 'MENTAL_HEALTH' && <MentalHealth />}
 
                   {currentView === 'CHAT' && (
                     <>
                       <ChatInterface messages={messages} isLoading={isLoading} />
-                      <div className="p-4 md:p-6 bg-transparent border-t border-skillfi-neon/10 w-full">
+                      <div className="p-4 md:p-6 bg-transparent border-t border-skillfi-border w-full">
                         <div className="max-w-4xl mx-auto w-full">
                             <InputArea 
                                 onSendMessage={handleSendMessage} 
                                 onStop={() => setIsLoading(false)}
                                 isLoading={isLoading} 
                             />
-                            <div className="text-center mt-3 text-[10px] text-gray-500 font-mono flex items-center justify-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                Vibe coded by arewa.base.eth
-                            </div>
                         </div>
                       </div>
                     </>
@@ -667,4 +606,5 @@ const App: React.FC = () => {
     </div>
   );
 };
+
 export default App;

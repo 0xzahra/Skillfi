@@ -40,44 +40,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
     };
 
     return (
-        <div className="p-4 md:p-8 h-full overflow-y-auto pb-24 font-sans scrollbar-hide touch-pan-y">
+        <div className="p-6 md:p-12 h-full overflow-y-auto pb-24 font-sans scrollbar-hide touch-pan-y bg-skillfi-bg">
             {/* Header */}
-            <header className="mb-10 text-center md:text-left border-b border-skillfi-neon/10 pb-6">
-                <h1 className="text-3xl md:text-5xl font-bold font-display dark:text-white text-slate-900 tracking-widest mb-2 kinetic-type">
-                    {greeting}, <span className="text-skillfi-neon text-shadow-gold">{user.username}</span>
+            <header className="mb-12 text-center md:text-left border-b border-skillfi-border pb-8">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-skillfi-accent tracking-tight mb-2 animate-slide-up">
+                    {greeting}, <span className="text-skillfi-neon">{user.username}</span>
                 </h1>
-                <p className="text-gray-500 text-xs md:text-sm font-display tracking-widest uppercase">The Career and Financial Guidance Counselor</p>
+                <p className="text-skillfi-dim text-sm font-medium tracking-wide uppercase mt-2">The Career and Financial Guidance Counselor</p>
             </header>
 
             {/* Wisdom Card */}
-            <div className="glass-panel p-8 rounded-xl mb-10 border border-skillfi-neon/20 relative overflow-hidden bg-gradient-to-r from-skillfi-neon/5 to-transparent">
-                <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl font-serif text-skillfi-neon select-none">❝</div>
-                <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-[0.2em] mb-3">Daily Wisdom</h3>
-                <p className="text-xl md:text-3xl font-serif dark:text-white text-slate-800 mb-6 leading-tight italic">"{dailyMotivation.text}"</p>
+            <div className="glass-panel p-8 rounded-2xl mb-12 relative overflow-hidden group hover:shadow-lg transition-all duration-500">
+                <div className="absolute top-0 right-0 p-6 opacity-5 text-9xl font-serif text-skillfi-neon select-none">❝</div>
+                <h3 className="text-skillfi-neon font-bold text-xs uppercase tracking-widest mb-4">Daily Wisdom</h3>
+                <p className="text-xl md:text-3xl font-serif text-skillfi-text mb-8 leading-snug italic">"{dailyMotivation.text}"</p>
                 <div className="flex items-center gap-3">
-                    <span className="h-px w-8 bg-skillfi-neon"></span>
-                    <span className="text-gray-500 dark:text-gray-300 text-xs font-bold uppercase tracking-wider">{dailyMotivation.action}</span>
+                    <span className="h-px w-12 bg-skillfi-neon"></span>
+                    <span className="text-skillfi-dim text-xs font-bold uppercase tracking-widest">{dailyMotivation.action}</span>
                 </div>
             </div>
 
             {/* INSTANT ROLE SCOUT */}
-            <div className="mb-10 glass-panel p-6 rounded-2xl border border-white/10 shadow-xl bg-gradient-to-br from-gray-900 to-black">
-                <h3 className="text-white font-bold font-display text-lg mb-2 flex items-center gap-2">
-                    <span className="text-2xl">🎯</span> Instant Role Scout
+            <div className="mb-12 glass-panel p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-skillfi-border shadow-sm">
+                <h3 className="text-skillfi-accent font-bold text-xl mb-3 flex items-center gap-3">
+                    <span className="text-2xl p-2 bg-skillfi-bg rounded-full shadow-sm">🎯</span> Instant Role Scout
                 </h3>
-                <p className="text-gray-400 text-xs mb-4">Drop your hobbies or passions below. We'll instantly assign a Web2 and Web3 role.</p>
-                <div className="flex gap-2">
+                <p className="text-skillfi-text text-sm mb-6 max-w-2xl leading-relaxed">Drop your hobbies or passions below. We'll instantly assign a tailored Web2 and Web3 role that fits your personality.</p>
+                <div className="flex gap-3">
                     <input 
                         type="text" 
                         value={hobbyInput}
                         onChange={(e) => setHobbyInput(e.target.value)}
-                        placeholder="e.g. I love gaming and drawing..." 
+                        placeholder="e.g. I love gaming, solving puzzles, and drawing..." 
                         onKeyDown={(e) => e.key === 'Enter' && handleScoutSubmit()}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-skillfi-neon outline-none text-sm placeholder-gray-600 transition-colors"
+                        className="flex-1 bg-white border border-skillfi-border rounded-xl px-6 py-4 text-skillfi-text focus:border-skillfi-neon focus:ring-2 focus:ring-skillfi-neon/10 outline-none text-base placeholder-skillfi-dim transition-all shadow-inner"
                     />
                     <button 
                         onClick={handleScoutSubmit}
-                        className="bg-skillfi-neon text-black px-6 rounded-xl font-bold uppercase text-xs tracking-wider hover:bg-white transition-all shadow-lg"
+                        className="bg-skillfi-neon text-white px-8 rounded-xl font-bold uppercase text-xs tracking-wider hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform active:scale-95"
                     >
                         Analyze
                     </button>
@@ -85,65 +85,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate, currentL
             </div>
 
             {/* Main Navigation Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 
                 {/* CAREER */}
                 <div 
                     onClick={() => onNavigate('CAREER')}
-                    className="glass-panel p-8 rounded-xl relative overflow-hidden group cursor-pointer transition-all duration-500 hover:border-skillfi-neon/50 hover:bg-skillfi-neon/5"
+                    className="glass-panel-interactive bg-white p-8 rounded-2xl cursor-pointer relative overflow-hidden group border border-skillfi-border"
                 >
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-6">
-                             <h3 className="text-2xl font-bold dark:text-white text-slate-900 font-display tracking-wide">Career Path</h3>
-                             <span className="text-3xl group-hover:scale-110 transition-transform duration-500">⚜️</span>
+                             <h3 className="text-2xl font-bold text-skillfi-accent tracking-tight">Career Path</h3>
+                             <span className="text-3xl text-skillfi-neon bg-skillfi-bg p-3 rounded-full">⚜️</span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-light leading-relaxed">Strategic guidance for professional ascension. Access high-value skills toolkit.</p>
-                        <span className="text-skillfi-neon text-xs font-bold uppercase tracking-[0.2em] border-b border-skillfi-neon/30 pb-1 group-hover:border-skillfi-neon transition-all">Enter Module</span>
+                        <p className="text-skillfi-text text-sm mb-8 font-medium leading-relaxed opacity-80">Strategic guidance for professional ascension. Access high-value skills toolkit.</p>
+                        <span className="text-skillfi-neon text-xs font-bold uppercase tracking-widest border-b-2 border-transparent group-hover:border-skillfi-neon pb-1 transition-all">Enter Module &rarr;</span>
                     </div>
                 </div>
 
                 {/* FINANCE */}
                 <div 
                     onClick={() => onNavigate('FINANCE')}
-                    className="glass-panel p-8 rounded-xl relative overflow-hidden group cursor-pointer transition-all duration-500 hover:border-green-500/50 hover:bg-green-500/5"
+                    className="glass-panel-interactive bg-white p-8 rounded-2xl cursor-pointer relative overflow-hidden group border border-skillfi-border"
                 >
                     <div className="relative z-10">
                          <div className="flex justify-between items-start mb-6">
-                             <h3 className="text-2xl font-bold dark:text-white text-slate-900 font-display tracking-wide">Wealth</h3>
-                             <span className="text-3xl group-hover:scale-110 transition-transform duration-500">🏛️</span>
+                             <h3 className="text-2xl font-bold text-skillfi-accent tracking-tight">Wealth</h3>
+                             <span className="text-3xl text-skillfi-success bg-skillfi-bg p-3 rounded-full">🏛️</span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-light leading-relaxed">Asset allocation, tax efficiency, and capital preservation strategies.</p>
-                        <span className="text-green-500 dark:text-green-400 text-xs font-bold uppercase tracking-[0.2em] border-b border-green-500/30 pb-1 group-hover:border-green-500 transition-all">Manage Assets</span>
-                    </div>
-                </div>
-
-                {/* RELATIONSHIPS */}
-                <div 
-                    onClick={() => onNavigate('RELATIONSHIPS_DASH')}
-                    className="glass-panel p-8 rounded-xl relative overflow-hidden group cursor-pointer transition-all duration-500 hover:border-red-500/50 hover:bg-red-500/5"
-                >
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                             <h3 className="text-2xl font-bold dark:text-white text-slate-900 font-display tracking-wide">Dynamics</h3>
-                             <span className="text-3xl group-hover:scale-110 transition-transform duration-500">❤️</span>
-                        </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-light leading-relaxed">Interpersonal harmony, rights, and conflict resolution protocols.</p>
-                        <span className="text-red-500 dark:text-red-400 text-xs font-bold uppercase tracking-[0.2em] border-b border-red-500/30 pb-1 group-hover:border-red-500 transition-all">View Dynamics</span>
+                        <p className="text-skillfi-text text-sm mb-8 font-medium leading-relaxed opacity-80">Asset allocation, tax efficiency, and capital preservation strategies.</p>
+                        <span className="text-skillfi-success text-xs font-bold uppercase tracking-widest border-b-2 border-transparent group-hover:border-skillfi-success pb-1 transition-all">Manage Assets &rarr;</span>
                     </div>
                 </div>
 
                 {/* MENTAL HEALTH */}
                 <div 
                     onClick={() => onNavigate('MENTAL_HEALTH')}
-                    className="glass-panel p-8 rounded-xl relative overflow-hidden group cursor-pointer transition-all duration-500 hover:border-blue-500/50 hover:bg-blue-500/5"
+                    className="glass-panel-interactive bg-white p-8 rounded-2xl cursor-pointer relative overflow-hidden group border border-skillfi-border md:col-span-2 lg:col-span-1"
                 >
                     <div className="relative z-10">
                          <div className="flex justify-between items-start mb-6">
-                             <h3 className="text-2xl font-bold dark:text-white text-slate-900 font-display tracking-wide">Clarity</h3>
-                             <span className="text-3xl group-hover:scale-110 transition-transform duration-500">🧠</span>
+                             <h3 className="text-2xl font-bold text-skillfi-accent tracking-tight">Clarity</h3>
+                             <span className="text-3xl text-blue-400 bg-skillfi-bg p-3 rounded-full">🧠</span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-light leading-relaxed">Cognitive processing, trauma release, and mental fortitude.</p>
-                        <span className="text-blue-500 dark:text-blue-400 text-xs font-bold uppercase tracking-[0.2em] border-b border-blue-500/30 pb-1 group-hover:border-blue-500 transition-all">Clear Mind</span>
+                        <p className="text-skillfi-text text-sm mb-8 font-medium leading-relaxed opacity-80">Cognitive processing, trauma release, and mental fortitude.</p>
+                        <span className="text-blue-400 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent group-hover:border-blue-400 pb-1 transition-all">Clear Mind &rarr;</span>
                     </div>
                 </div>
             </div>

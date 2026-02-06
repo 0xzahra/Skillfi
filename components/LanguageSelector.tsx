@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { LanguageCode, LANGUAGES } from '../types';
 
 interface LanguageSelectorProps {
@@ -7,23 +7,29 @@ interface LanguageSelectorProps {
 }
 
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onSelect }) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl animate-fade-in font-sans">
-         {/* Background Video Layer */}
-         <div className="absolute inset-0 z-0">
-             <video 
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                className="w-full h-full object-cover opacity-20 filter contrast-125 brightness-50 grayscale"
-            >
-                <source src="https://videos.pexels.com/video-files/3196360/3196360-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/60"></div>
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black animate-fade-in font-sans">
+         {/* Background Layer */}
+         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-br from-gray-900 to-black">
+             {/* Only show video if it plays successfully */}
+             <div className={`absolute inset-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-30' : 'opacity-0'}`}>
+                 <video 
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline
+                    onPlaying={() => setVideoLoaded(true)}
+                    className="w-full h-full object-cover filter contrast-125 brightness-50 grayscale"
+                >
+                    <source src="https://videos.pexels.com/video-files/3196360/3196360-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+                </video>
+             </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60"></div>
         </div>
 
-         <div className="text-center mb-8 relative z-10">
+         <div className="text-center mb-8 relative z-10 p-4">
             <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
                 Skillfi<span className="text-skillfi-neon">.</span>
             </h1>
@@ -35,7 +41,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onSelect }) 
                 <button
                     key={lang.code}
                     onClick={() => onSelect(lang.code)}
-                    className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-4 rounded-xl hover:bg-skillfi-neon/10 hover:border-skillfi-neon/50 hover:scale-105 transition-all group text-left w-full"
+                    className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-4 rounded-xl hover:bg-skillfi-neon/10 hover:border-skillfi-neon/50 hover:scale-105 transition-all group text-left w-full active:scale-95"
                 >
                     <span className="text-2xl">{lang.flag}</span>
                     <div>

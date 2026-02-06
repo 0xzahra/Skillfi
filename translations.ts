@@ -1,3 +1,4 @@
+
 import { LanguageCode } from './types';
 
 interface TranslationSet {
@@ -32,10 +33,7 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         tribes: "Communities",
         career: "Career Path",
         finance: "Money Tools",
-        relationships: "Relationships",
         rights: "Your Rights",
-        duties: "Duties",
-        criteria: "Finding a Partner",
         elite: "High Class Skills",
         education: "Scholarship",
         safety: "Scam Protection",
@@ -74,10 +72,7 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         tribes: "Communautés",
         career: "Carrière",
         finance: "Outils Argent",
-        relationships: "Relations",
         rights: "Vos Droits",
-        duties: "Devoirs",
-        criteria: "Trouver un partenaire",
         elite: "Savoir-Vivre",
         education: "Bourse d'études",
         safety: "Anti-Arnaque",
@@ -91,8 +86,6 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         add_skill: "Ajouter",
         vault_btn: "Voir"
     },
-    // Other languages kept essentially the same but with the simpler keys mapping if needed. 
-    // For brevity in this update, keeping keys consistent.
     de: {
         auth_title: "Karriereberater",
         auth_reg_title: "Konto Erstellen",
@@ -116,10 +109,7 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         tribes: "Gemeinschaften",
         career: "Karriere",
         finance: "Geldwerkzeuge",
-        relationships: "Beziehungen",
         rights: "Rechte",
-        duties: "Pflichten",
-        criteria: "Partnerwahl",
         elite: "Etikette",
         education: "Stipendium",
         safety: "Schutz",
@@ -133,7 +123,6 @@ export const TRANSLATIONS: Record<string, TranslationSet> = {
         add_skill: "Hinzufügen",
         vault_btn: "Ansehen"
     },
-    // ... (Languages continue, mapping to the new simpler concepts)
 };
 
 export const t = (key: string, lang: LanguageCode): string => {
